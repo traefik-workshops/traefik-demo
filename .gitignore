@@ -10,3 +10,5 @@
 **/images
 
 runtime-config.yaml
+
+.claude/settings.local.json
