@@ -1,0 +1,14 @@
+Ai Gateway deployed!
+====================
+
+Release: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+Next steps:
+
+  # Watch resources come up
+  kubectl get all -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+  # (Add chart-specific URLs, credentials, or commands here.)
+
+For more, see: {{ .Chart.Sources | first | default "<no source URL set>" }}

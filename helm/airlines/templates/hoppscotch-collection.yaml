@@ -1,0 +1,2295 @@
+{{- if include "airlines.mc.isParentMode" . }}
+{{- if .Values.hoppscotch.enabled }}
+{{- $domain := include "airlines.domain" . }}
+{{- $port := include "airlines.portSuffix" . }}
+{{- $oidcUrl := include "airlines.oidc.issuerUrl" . }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airlines-hoppscotch-collection
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+data:
+  collection.json: |
+    {
+      "v": 5,
+      "name": "Traefik Airlines",
+      "folders": [
+        {
+          "v": 5,
+          "name": "Airlines APIs",
+          "folders": [
+            {
+              "v": 5,
+              "name": "Flight Operations",
+              "folders": [
+                {
+                  "v": 5,
+                  "name": "Flights",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "flights-list",
+                      "name": "List All Flights",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Pre-processing: admin token acquired\", () => { pw.expect(pw.response.status).not.toBe(401); });\npw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });\npw.test(\"Response is array\", () => { pw.expect(Array.isArray(pw.response.body)).toBe(true); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "flights-search",
+                      "name": "Search Flights",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights/search",
+                      "params": [
+                        {
+                          "key": "origin",
+                          "value": "IST",
+                          "active": true
+                        },
+                        {
+                          "key": "destination",
+                          "value": "JFK",
+                          "active": true
+                        }
+                      ],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "flights-create",
+                      "name": "Create Flight",
+                      "method": "POST",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Flight created — 201\", () => { pw.expect(pw.response.status).toBe(201); });\npw.test(\"Response contains flight_id\", () => { pw.expect(pw.response.body.flight_id).toBeType(\"string\"); });\nhopp.env.global.set(\"test_flight_id\", pw.response.body.flight_id);",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"flight_number\": \"TK-9001\", \"origin\": \"SFO\", \"destination\": \"NRT\", \"departure_time\": \"2026-06-01T10:00:00Z\", \"arrival_time\": \"2026-06-01T18:00:00Z\", \"aircraft\": \"A350-900\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "flights-get",
+                      "name": "Get Flight by ID",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights/<<test_flight_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://flights.{{ $domain }}{{ $port }}/v2/flights\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"flight_number\": \"TK-9001\", \"origin\": \"SFO\", \"destination\": \"NRT\", \"departure_time\": \"2026-06-01T10:00:00Z\", \"arrival_time\": \"2026-06-01T18:00:00Z\", \"aircraft\": \"A350-900\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_flight_id\", createData.flight_id || \"TK-9001\");",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });\npw.test(\"Correct flight returned\", () => { pw.expect(pw.response.body.flight_id).toBeType(\"string\"); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "flights-update",
+                      "name": "Update Flight (PUT)",
+                      "method": "PUT",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights/<<test_flight_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://flights.{{ $domain }}{{ $port }}/v2/flights\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"flight_number\": \"TK-9001\", \"origin\": \"SFO\", \"destination\": \"NRT\", \"departure_time\": \"2026-06-01T10:00:00Z\", \"arrival_time\": \"2026-06-01T18:00:00Z\", \"aircraft\": \"A350-900\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_flight_id\", createData.flight_id || \"TK-9001\");",
+                      "testScript": "pw.test(\"Flight updated — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"flight_number\": \"TK-9001\", \"origin\": \"SFO\", \"destination\": \"NRT\", \"departure_time\": \"2026-06-01T11:00:00Z\", \"arrival_time\": \"2026-06-01T19:00:00Z\", \"aircraft\": \"A350-900\", \"status\": \"delayed\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "flights-delete",
+                      "name": "Delete Flight",
+                      "method": "DELETE",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights/<<test_flight_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://flights.{{ $domain }}{{ $port }}/v2/flights\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"flight_number\": \"TK-9001\", \"origin\": \"SFO\", \"destination\": \"NRT\", \"departure_time\": \"2026-06-01T10:00:00Z\", \"arrival_time\": \"2026-06-01T18:00:00Z\", \"aircraft\": \"A350-900\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_flight_id\", createData.flight_id || \"TK-9001\");",
+                      "testScript": "pw.test(\"Flight deleted — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "flights-v1",
+                      "name": "List Flights v1 (Deprecated — check headers)",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v1/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });\nvar depHeader = pw.response.headers.find(function(h) { return h.key === \"deprecation\"; });\nvar sunsetHeader = pw.response.headers.find(function(h) { return h.key === \"sunset\"; });\npw.test(\"Deprecation header set\", () => { pw.expect(depHeader && depHeader.value).toBe(\"true\"); });\npw.test(\"Sunset header present\", () => { pw.expect(sunsetHeader && sunsetHeader.value).toBeType(\"string\"); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Crew",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "crew-list",
+                      "name": "List All Crew",
+                      "method": "GET",
+                      "endpoint": "https://crew.{{ $domain }}{{ $port }}/crew",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "crew-create",
+                      "name": "Assign Crew Member",
+                      "method": "POST",
+                      "endpoint": "https://crew.{{ $domain }}{{ $port }}/crew",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Crew assigned — 201\", () => { pw.expect(pw.response.status).toBe(201); });\nhopp.env.global.set(\"test_crew_id\", pw.response.body.crew_id || \"CR-NEW\");",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"crew_member_id\": \"EMP-101\", \"role\": \"captain\", \"flight_id\": \"TK-1042\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "crew-get",
+                      "name": "Get Crew Member",
+                      "method": "GET",
+                      "endpoint": "https://crew.{{ $domain }}{{ $port }}/crew/<<test_crew_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://crew.{{ $domain }}{{ $port }}/crew\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"crew_member_id\": \"EMP-101\", \"role\": \"captain\", \"flight_id\": \"TK-1042\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_crew_id\", createData.crew_id || \"CR-NEW\");",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "crew-delete",
+                      "name": "Delete Crew Member",
+                      "method": "DELETE",
+                      "endpoint": "https://crew.{{ $domain }}{{ $port }}/crew/<<test_crew_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://crew.{{ $domain }}{{ $port }}/crew\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"crew_member_id\": \"EMP-101\", \"role\": \"captain\", \"flight_id\": \"TK-1042\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_crew_id\", createData.crew_id || \"CR-NEW\");",
+                      "testScript": "pw.test(\"Crew deleted — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Pricing",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "pricing-list",
+                      "name": "List All Pricing",
+                      "method": "GET",
+                      "endpoint": "https://pricing.{{ $domain }}{{ $port }}/v2/pricing",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "pricing-calculate",
+                      "name": "Calculate Fare",
+                      "method": "POST",
+                      "endpoint": "https://pricing.{{ $domain }}{{ $port }}/v2/pricing/calculate",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Fare calculated — 201\", () => { pw.expect(pw.response.status).toBe(201); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"flight_id\": \"TK-1001\", \"cabin\": \"economy\", \"passengers\": 1}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                }
+              ],
+              "requests": [],
+              "auth": {
+                "authType": "none",
+                "authActive": false
+              },
+              "headers": []
+            },
+            {
+              "v": 5,
+              "name": "Passenger Services",
+              "folders": [
+                {
+                  "v": 5,
+                  "name": "Bookings",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "bookings-list",
+                      "name": "List All Bookings",
+                      "method": "GET",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bookings-search",
+                      "name": "Search Bookings",
+                      "method": "GET",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings/search",
+                      "params": [
+                        {
+                          "key": "passenger_id",
+                          "value": "PAX-001",
+                          "active": true
+                        }
+                      ],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bookings-create",
+                      "name": "Create Booking",
+                      "method": "POST",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Booking created — 201\", () => { pw.expect(pw.response.status).toBe(201); });\npw.test(\"Response contains booking_id\", () => { pw.expect(pw.response.body.booking_id).toBeType(\"string\"); });\nhopp.env.global.set(\"test_booking_id\", pw.response.body.booking_id);",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"passenger_id\": \"PAX-001\", \"flight_id\": \"TK-1042\", \"cabin\": \"economy\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bookings-get",
+                      "name": "Get Booking",
+                      "method": "GET",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings/<<test_booking_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://bookings.{{ $domain }}{{ $port }}/v2/bookings\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"passenger_id\": \"PAX-001\", \"flight_id\": \"TK-1042\", \"cabin\": \"economy\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_booking_id\", createData.booking_id || \"BK-NEW\");",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bookings-update",
+                      "name": "Update Booking (PUT)",
+                      "method": "PUT",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings/<<test_booking_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://bookings.{{ $domain }}{{ $port }}/v2/bookings\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"passenger_id\": \"PAX-001\", \"flight_id\": \"TK-1042\", \"cabin\": \"economy\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_booking_id\", createData.booking_id || \"BK-NEW\");",
+                      "testScript": "pw.test(\"Booking updated — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"passenger_id\": \"PAX-001\", \"flight_id\": \"TK-1042\", \"cabin\": \"business\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bookings-delete",
+                      "name": "Cancel Booking (DELETE)",
+                      "method": "DELETE",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings/<<test_booking_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://bookings.{{ $domain }}{{ $port }}/v2/bookings\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"passenger_id\": \"PAX-001\", \"flight_id\": \"TK-1042\", \"cabin\": \"economy\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_booking_id\", createData.booking_id || \"BK-NEW\");",
+                      "testScript": "pw.test(\"Booking cancelled — 204 No Content\", () => { pw.expect(pw.response.status).toBe(204); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bookings-v1",
+                      "name": "List Bookings v1 (Deprecated — check headers)",
+                      "method": "GET",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v1/bookings",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });\nvar depHeader = pw.response.headers.find(function(h) { return h.key === \"deprecation\"; });\nvar sunsetHeader = pw.response.headers.find(function(h) { return h.key === \"sunset\"; });\npw.test(\"Deprecation header set\", () => { pw.expect(depHeader && depHeader.value).toBe(\"true\"); });\npw.test(\"Sunset header present\", () => { pw.expect(sunsetHeader && sunsetHeader.value).toBeType(\"string\"); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Passengers",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "passengers-list",
+                      "name": "List All Passengers",
+                      "method": "GET",
+                      "endpoint": "https://passengers.{{ $domain }}{{ $port }}/v2/passengers",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "passengers-search",
+                      "name": "Search Passengers",
+                      "method": "GET",
+                      "endpoint": "https://passengers.{{ $domain }}{{ $port }}/v2/passengers/search",
+                      "params": [
+                        {
+                          "key": "nationality",
+                          "value": "US",
+                          "active": true
+                        }
+                      ],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "passengers-create",
+                      "name": "Create Passenger",
+                      "method": "POST",
+                      "endpoint": "https://passengers.{{ $domain }}{{ $port }}/v2/passengers",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Passenger created — 201\", () => { pw.expect(pw.response.status).toBe(201); });\nhopp.env.global.set(\"test_pax_id\", pw.response.body.passenger_id || \"PAX-NEW\");",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"first_name\": \"Test\", \"last_name\": \"Passenger\", \"email\": \"test@example.com\", \"nationality\": \"US\", \"passport_number\": \"TP999999\", \"date_of_birth\": \"1990-01-15\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "passengers-get",
+                      "name": "Get Passenger",
+                      "method": "GET",
+                      "endpoint": "https://passengers.{{ $domain }}{{ $port }}/v2/passengers/<<test_pax_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://passengers.{{ $domain }}{{ $port }}/v2/passengers\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"first_name\": \"Test\", \"last_name\": \"Passenger\", \"email\": \"test@example.com\", \"nationality\": \"US\", \"passport_number\": \"TP999999\", \"date_of_birth\": \"1990-01-15\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_pax_id\", createData.passenger_id || \"PAX-NEW\");",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "passengers-delete",
+                      "name": "Delete Passenger",
+                      "method": "DELETE",
+                      "endpoint": "https://passengers.{{ $domain }}{{ $port }}/v2/passengers/<<test_pax_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://passengers.{{ $domain }}{{ $port }}/v2/passengers\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"first_name\": \"Test\", \"last_name\": \"Passenger\", \"email\": \"test@example.com\", \"nationality\": \"US\", \"passport_number\": \"TP999999\", \"date_of_birth\": \"1990-01-15\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_pax_id\", createData.passenger_id || \"PAX-NEW\");",
+                      "testScript": "pw.test(\"Passenger deleted — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "passengers-v1",
+                      "name": "Get Passengers v1 (Deprecated — check headers)",
+                      "method": "GET",
+                      "endpoint": "https://passengers.{{ $domain }}{{ $port }}/v1/passengers/PAX-001",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });\nvar depHeader = pw.response.headers.find(function(h) { return h.key === \"deprecation\"; });\nvar sunsetHeader = pw.response.headers.find(function(h) { return h.key === \"sunset\"; });\npw.test(\"Deprecation header set\", () => { pw.expect(depHeader && depHeader.value).toBe(\"true\"); });\npw.test(\"Sunset header present\", () => { pw.expect(sunsetHeader && sunsetHeader.value).toBeType(\"string\"); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Notifications",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "notifications-list",
+                      "name": "List All Notifications",
+                      "method": "GET",
+                      "endpoint": "https://notifications.{{ $domain }}{{ $port }}/notifications",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "notifications-create",
+                      "name": "Send Notification",
+                      "method": "POST",
+                      "endpoint": "https://notifications.{{ $domain }}{{ $port }}/notifications",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Notification created — 201\", () => { pw.expect(pw.response.status).toBe(201); });\nhopp.env.global.set(\"test_notif_id\", pw.response.body.notification_id || \"NOTIF-NEW\");",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"passenger_id\": \"PAX-001\", \"type\": \"gate-change\", \"title\": \"Gate Change - TK1001\", \"message\": \"Your gate has changed to B25\", \"channel\": \"push\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "notifications-get",
+                      "name": "Get Notification by ID",
+                      "method": "GET",
+                      "endpoint": "https://notifications.{{ $domain }}{{ $port }}/notifications/<<test_notif_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://notifications.{{ $domain }}{{ $port }}/notifications\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"passenger_id\": \"PAX-001\", \"type\": \"gate-change\", \"title\": \"Gate Change - TK1001\", \"message\": \"Your gate has changed to B25\", \"channel\": \"push\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_notif_id\", createData.notification_id || \"NOTIF-NEW\");",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "notifications-delete",
+                      "name": "Delete Notification",
+                      "method": "DELETE",
+                      "endpoint": "https://notifications.{{ $domain }}{{ $port }}/notifications/<<test_notif_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://notifications.{{ $domain }}{{ $port }}/notifications\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"passenger_id\": \"PAX-001\", \"type\": \"gate-change\", \"title\": \"Gate Change - TK1001\", \"message\": \"Your gate has changed to B25\", \"channel\": \"push\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_notif_id\", createData.notification_id || \"NOTIF-NEW\");",
+                      "testScript": "pw.test(\"Notification deleted — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                }
+              ],
+              "requests": [],
+              "auth": {
+                "authType": "none",
+                "authActive": false
+              },
+              "headers": []
+            },
+            {
+              "v": 5,
+              "name": "Airport Operations",
+              "folders": [
+                {
+                  "v": 5,
+                  "name": "Check-in",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "checkin-list",
+                      "name": "List All Check-ins",
+                      "method": "GET",
+                      "endpoint": "https://checkin.{{ $domain }}{{ $port }}/v2/checkin",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "checkin-process",
+                      "name": "Process Check-in",
+                      "method": "POST",
+                      "endpoint": "https://checkin.{{ $domain }}{{ $port }}/v2/checkin",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Check-in processed — 201\", () => { pw.expect(pw.response.status).toBe(201); });\nhopp.env.global.set(\"test_checkin_id\", pw.response.body.checkin_id || pw.response.body.booking_id || \"BK-1001\");",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"booking_id\": \"BK-1001\", \"seat_preference\": \"window\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "checkin-get",
+                      "name": "Get Check-in Record",
+                      "method": "GET",
+                      "endpoint": "https://checkin.{{ $domain }}{{ $port }}/v2/checkin/<<test_checkin_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://checkin.{{ $domain }}{{ $port }}/v2/checkin\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"booking_id\": \"BK-1001\", \"seat_preference\": \"window\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_checkin_id\", createData.checkin_id || createData.booking_id || \"BK-1001\");",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "checkin-boarding",
+                      "name": "Get Boarding Pass",
+                      "method": "GET",
+                      "endpoint": "https://checkin.{{ $domain }}{{ $port }}/v2/checkin/<<test_checkin_id>>/boarding-pass",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://checkin.{{ $domain }}{{ $port }}/v2/checkin\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"booking_id\": \"BK-1001\", \"seat_preference\": \"window\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_checkin_id\", createData.checkin_id || createData.booking_id || \"BK-1001\");",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "checkin-delete",
+                      "name": "Delete Check-in Record",
+                      "method": "DELETE",
+                      "endpoint": "https://checkin.{{ $domain }}{{ $port }}/v2/checkin/<<test_checkin_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://checkin.{{ $domain }}{{ $port }}/v2/checkin\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"booking_id\": \"BK-1001\", \"seat_preference\": \"window\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_checkin_id\", createData.checkin_id || createData.booking_id || \"BK-1001\");",
+                      "testScript": "pw.test(\"Check-in deleted — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Baggage",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "baggage-list",
+                      "name": "List All Baggage",
+                      "method": "GET",
+                      "endpoint": "https://baggage.{{ $domain }}{{ $port }}/v2/baggage",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "baggage-checkin",
+                      "name": "Check In Bag",
+                      "method": "POST",
+                      "endpoint": "https://baggage.{{ $domain }}{{ $port }}/v2/baggage",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Bag checked in — 201\", () => { pw.expect(pw.response.status).toBe(201); });\nvar bags = pw.response.body.baggage;\nhopp.env.global.set(\"test_bag_id\", bags && bags[0] && bags[0].bag_tag || pw.response.body.bag_tag || \"BT-001\");",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"booking_id\": \"BK-1001\", \"weight_kg\": 22.5}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "baggage-delete",
+                      "name": "Remove Baggage Record",
+                      "method": "DELETE",
+                      "endpoint": "https://baggage.{{ $domain }}{{ $port }}/v2/baggage/<<test_bag_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://baggage.{{ $domain }}{{ $port }}/v2/baggage\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"booking_id\": \"BK-1001\", \"weight_kg\": 22.5})\n});\nconst createData = await createRes.json();\nvar bags = createData.baggage;\nhopp.env.global.set(\"test_bag_id\", bags && bags[0] && bags[0].bag_tag || createData.bag_tag || \"BT-001\");",
+                      "testScript": "pw.test(\"Baggage deleted — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "baggage-v1",
+                      "name": "Track Bag v1 (Deprecated — check headers)",
+                      "method": "GET",
+                      "endpoint": "https://baggage.{{ $domain }}{{ $port }}/v1/baggage/track/BT-001",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });\nvar depHeader = pw.response.headers.find(function(h) { return h.key === \"deprecation\"; });\nvar sunsetHeader = pw.response.headers.find(function(h) { return h.key === \"sunset\"; });\npw.test(\"Deprecation header set\", () => { pw.expect(depHeader && depHeader.value).toBe(\"true\"); });\npw.test(\"Sunset header present\", () => { pw.expect(sunsetHeader && sunsetHeader.value).toBeType(\"string\"); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Gates",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "gates-list",
+                      "name": "List All Gates",
+                      "method": "GET",
+                      "endpoint": "https://gates.{{ $domain }}{{ $port }}/gates",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "gates-assign",
+                      "name": "Assign Gate",
+                      "method": "POST",
+                      "endpoint": "https://gates.{{ $domain }}{{ $port }}/gates",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Gate assigned — 201\", () => { pw.expect(pw.response.status).toBe(201); });\nhopp.env.global.set(\"test_gate_id\", pw.response.body.gate_id || \"GATE-NEW\");",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"gate_id\": \"G-B22\", \"flight_id\": \"TK-1042\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "gates-get",
+                      "name": "Get Gate",
+                      "method": "GET",
+                      "endpoint": "https://gates.{{ $domain }}{{ $port }}/gates/<<test_gate_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://gates.{{ $domain }}{{ $port }}/gates\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"gate_id\": \"G-B22\", \"flight_id\": \"TK-1042\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_gate_id\", createData.gate_id || \"GATE-NEW\");",
+                      "testScript": "pw.test(\"Status is 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "gates-update",
+                      "name": "Update Gate (PUT)",
+                      "method": "PUT",
+                      "endpoint": "https://gates.{{ $domain }}{{ $port }}/gates/<<test_gate_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://gates.{{ $domain }}{{ $port }}/gates\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"gate_id\": \"G-B22\", \"flight_id\": \"TK-1042\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_gate_id\", createData.gate_id || \"GATE-NEW\");",
+                      "testScript": "pw.test(\"Gate updated — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"gate_id\": \"G-B22\", \"flight_id\": \"TK-1042\", \"status\": \"boarding\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "gates-delete",
+                      "name": "Release Gate",
+                      "method": "DELETE",
+                      "endpoint": "https://gates.{{ $domain }}{{ $port }}/gates/<<test_gate_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nconst createRes = await fetch(\"https://gates.{{ $domain }}{{ $port }}/gates\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n  body: JSON.stringify({\"gate_id\": \"G-B22\", \"flight_id\": \"TK-1042\"})\n});\nconst createData = await createRes.json();\nhopp.env.global.set(\"test_gate_id\", createData.gate_id || \"GATE-NEW\");",
+                      "testScript": "pw.test(\"Gate released — 200\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                }
+              ],
+              "requests": [],
+              "auth": {
+                "authType": "none",
+                "authActive": false
+              },
+              "headers": []
+            }
+          ],
+          "requests": [],
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "headers": []
+        },
+        {
+          "v": 5,
+          "name": "Traefik Demo",
+          "folders": [
+            {
+              "v": 5,
+              "name": "API Gateway",
+              "folders": [
+                {
+                  "v": 5,
+                  "name": "Request Transformation",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "rt-flights-headers",
+                      "name": "Dispatcher: List Flights — Observe Injected Headers",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "var servedBy = pw.response.headers.find(function(h) { return h.key === \"x-served-by\"; });\npw.test(\"X-Served-By header injected\", () => { pw.expect(servedBy && servedBy.value).toBeType(\"string\"); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "WAF",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "waf-clean",
+                      "name": "Agent: List Bookings — Clean Request (200)",
+                      "method": "GET",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<agent_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=agent&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"agent_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"WAF allows clean traffic\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "waf-sqli",
+                      "name": "Agent: SQL Injection Attack (Expect 403)",
+                      "method": "GET",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings/search",
+                      "params": [
+                        {
+                          "key": "passenger_id",
+                          "value": "1' UNION SELECT username,password FROM users--",
+                          "active": true
+                        }
+                      ],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<agent_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=agent&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"agent_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"WAF blocks SQL injection\", () => { pw.expect(pw.response.status).toBe(403); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "waf-xss",
+                      "name": "Agent: XSS Attack (Expect 403)",
+                      "method": "GET",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings/search",
+                      "params": [
+                        {
+                          "key": "passenger_id",
+                          "value": "<script>alert(document.cookie)</script>",
+                          "active": true
+                        }
+                      ],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<agent_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=agent&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"agent_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"WAF blocks XSS\", () => { pw.expect(pw.response.status).toBe(403); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                }
+              ],
+              "requests": [],
+              "auth": {
+                "authType": "none",
+                "authActive": false
+              },
+              "headers": []
+            },
+            {
+              "v": 5,
+              "name": "AI Gateway",
+              "folders": [],
+              "requests": [],
+              "auth": {
+                "authType": "none",
+                "authActive": false
+              },
+              "headers": []
+            },
+            {
+              "v": 5,
+              "name": "MCP Gateway",
+              "folders": [],
+              "requests": [],
+              "auth": {
+                "authType": "none",
+                "authActive": false
+              },
+              "headers": []
+            },
+            {
+              "v": 5,
+              "name": "Agentic Gateway",
+              "folders": [],
+              "requests": [],
+              "auth": {
+                "authType": "none",
+                "authActive": false
+              },
+              "headers": []
+            },
+            {
+              "v": 5,
+              "name": "API Management",
+              "folders": [
+                {
+                  "v": 5,
+                  "name": "Operation Sets",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "opset-dispatcher-read-flights",
+                      "name": "Dispatcher: Read Flights (200)",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Dispatcher can read flights (read-flights op set)\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "opset-dispatcher-write-flights",
+                      "name": "Dispatcher: Create Flight (201)",
+                      "method": "POST",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Dispatcher can write flights (write-flights op set)\", () => { pw.expect(pw.response.status).toBe(201); });\nhopp.env.global.set(\"opset_flight_id\", pw.response.body.flight_id);",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"flight_number\": \"TK-8801\", \"origin\": \"IST\", \"destination\": \"LAX\", \"departure_time\": \"2026-07-01T10:00:00Z\", \"arrival_time\": \"2026-07-01T20:00:00Z\", \"aircraft\": \"B777-300\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "opset-dispatcher-delete-flights",
+                      "name": "Dispatcher: Delete Flight (403 — no delete-flights)",
+                      "method": "DELETE",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights/<<opset_flight_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);\n\nif (!hopp.env.global.get(\"opset_flight_id\")) {\n  const cr = await fetch(\"https://flights.{{ $domain }}{{ $port }}/v2/flights\", {\n    method: \"POST\",\n    headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n    body: JSON.stringify({\"flight_number\":\"TK-8802\",\"origin\":\"IST\",\"destination\":\"LAX\",\"departure_time\":\"2026-07-01T10:00:00Z\",\"arrival_time\":\"2026-07-01T20:00:00Z\",\"aircraft\":\"B777-300\"})\n  });\n  const cd = await cr.json();\n  hopp.env.global.set(\"opset_flight_id\", cd.flight_id);\n}",
+                      "testScript": "pw.test(\"Dispatcher cannot delete flights — 403 Forbidden\", () => { pw.expect(pw.response.status).toBe(403); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "opset-dispatcher-no-gates",
+                      "name": "Dispatcher: Access Gates API (403 — wrong bundle)",
+                      "method": "GET",
+                      "endpoint": "https://gates.{{ $domain }}{{ $port }}/gates",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Dispatcher cannot access Gates API — 403\", () => { pw.expect(pw.response.status).toBe(403); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "opset-agent-read-bookings",
+                      "name": "Agent: Read Bookings (200)",
+                      "method": "GET",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<agent_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=agent&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"agent_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Agent can read bookings (read-bookings op set)\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "opset-agent-delete-bookings",
+                      "name": "Agent: Delete Booking (403 — no delete-bookings)",
+                      "method": "DELETE",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings/BK-1001",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<agent_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=agent&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"agent_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Agent cannot delete bookings — 403 Forbidden\", () => { pw.expect(pw.response.status).toBe(403); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "opset-handler-read-gates",
+                      "name": "Handler: Read Gates (200)",
+                      "method": "GET",
+                      "endpoint": "https://gates.{{ $domain }}{{ $port }}/gates",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<handler_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=handler&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"handler_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Handler can read gates (read-gates op set)\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "opset-reader-no-flights",
+                      "name": "Reader: Access Flights API (403 — no subscription)",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<reader_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=reader&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"reader_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Reader cannot access Flights API — 403 (no subscription)\", () => { pw.expect(pw.response.status).toBe(403); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "opset-admin-delete-flights",
+                      "name": "Admin: Delete Flight (200 — has delete-flights)",
+                      "method": "DELETE",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights/<<opset_flight_id>>",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<admin_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=admin&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"admin_token\", tokenData.access_token);\n\nif (!hopp.env.global.get(\"opset_flight_id\")) {\n  const cr = await fetch(\"https://flights.{{ $domain }}{{ $port }}/v2/flights\", {\n    method: \"POST\",\n    headers: { \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + tokenData.access_token },\n    body: JSON.stringify({\"flight_number\":\"TK-8803\",\"origin\":\"IST\",\"destination\":\"LAX\",\"departure_time\":\"2026-07-01T10:00:00Z\",\"arrival_time\":\"2026-07-01T20:00:00Z\",\"aircraft\":\"B777-300\"})\n  });\n  const cd = await cr.json();\n  hopp.env.global.set(\"opset_flight_id\", cd.flight_id);\n}",
+                      "testScript": "pw.test(\"Admin can delete flights — 200 OK\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Plans & Quotas",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "quota-exhaust",
+                      "name": "Analyst: Quota Exhausted (Expect 429)",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<analyst_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=analyst&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"analyst_token\", tokenData.access_token);\n\nconst token = tokenData.access_token;\nconst url = \"https://flights.{{ $domain }}{{ $port }}/v2/flights\";\nconst reqs = [];\nfor (let i = 0; i < 5; i++) { reqs.push(fetch(url, { headers: { \"Authorization\": \"Bearer \" + token } })); }\nawait Promise.all(reqs);",
+                      "testScript": "pw.test(\"Quota exhausted returns 429\", () => { pw.expect(pw.response.status).toBe(429); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Request Body Validation",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "bv-valid-flight",
+                      "name": "Dispatcher: Valid Flight Creation (201)",
+                      "method": "POST",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Valid body accepted — 201 Created\", () => { pw.expect(pw.response.status).toBe(201); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"flight_number\": \"TK-9901\", \"origin\": \"IST\", \"destination\": \"JFK\", \"departure_time\": \"2026-06-01T10:00:00Z\", \"arrival_time\": \"2026-06-01T18:00:00Z\", \"aircraft\": \"A350-900\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bv-valid-booking",
+                      "name": "Agent: Valid Booking Creation (201)",
+                      "method": "POST",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<agent_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=agent&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"agent_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Valid body accepted — 201 Created\", () => { pw.expect(pw.response.status).toBe(201); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"passenger_id\": \"PAX-001\", \"flight_id\": \"TK-1042\", \"cabin\": \"business\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bv-missing-field",
+                      "name": "Dispatcher: Missing Required Field (400)",
+                      "method": "POST",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Missing aircraft field rejected — 400 Bad Request\", () => { pw.expect(pw.response.status).toBe(400); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"flight_number\": \"TK-9902\", \"origin\": \"IST\", \"destination\": \"JFK\", \"departure_time\": \"2026-06-01T10:00:00Z\", \"arrival_time\": \"2026-06-01T18:00:00Z\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bv-wrong-type",
+                      "name": "Dispatcher: Wrong Field Type (400)",
+                      "method": "POST",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"String where integer expected — 400 Bad Request\", () => { pw.expect(pw.response.status).toBe(400); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"flight_number\": \"TK-9903\", \"origin\": \"IST\", \"destination\": \"JFK\", \"departure_time\": \"2026-06-01T10:00:00Z\", \"arrival_time\": \"2026-06-01T18:00:00Z\", \"aircraft\": \"A350-900\", \"seats_available\": \"not-a-number\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bv-invalid-enum",
+                      "name": "Agent: Invalid Enum Value (400)",
+                      "method": "POST",
+                      "endpoint": "https://bookings.{{ $domain }}{{ $port }}/v2/bookings",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<agent_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=agent&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"agent_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Invalid cabin value rejected — 400 Bad Request\", () => { pw.expect(pw.response.status).toBe(400); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"passenger_id\": \"PAX-001\", \"flight_id\": \"TK-1042\", \"cabin\": \"first-class\"}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bv-empty-body",
+                      "name": "Handler: Empty Body (400)",
+                      "method": "POST",
+                      "endpoint": "https://checkin.{{ $domain }}{{ $port }}/v2/checkin",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<handler_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=handler&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"handler_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Empty body rejected — 400 Bad Request\", () => { pw.expect(pw.response.status).toBe(400); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "bv-null-field",
+                      "name": "Handler: Null Required Field (400)",
+                      "method": "POST",
+                      "endpoint": "https://checkin.{{ $domain }}{{ $port }}/v2/checkin",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<handler_token>>",
+                          "active": true
+                        },
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=handler&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"handler_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Null required field rejected — 400 Bad Request\", () => { pw.expect(pw.response.status).toBe(400); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": "application/json",
+                        "body": "{\"booking_id\": null}"
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                },
+                {
+                  "v": 5,
+                  "name": "Method & Path Validation",
+                  "folders": [],
+                  "requests": [
+                    {
+                      "v": "5",
+                      "id": "mp-valid",
+                      "name": "Dispatcher: Valid Method + Path (200)",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Valid method and path accepted — 200 OK\", () => { pw.expect(pw.response.status).toBe(200); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "mp-invalid-method",
+                      "name": "Dispatcher: Invalid Method on Valid Path (404)",
+                      "method": "DELETE",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"DELETE on flights list rejected — 404 Not Found\", () => { pw.expect(pw.response.status).toBe(404); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    },
+                    {
+                      "v": "5",
+                      "id": "mp-invalid-path",
+                      "name": "Dispatcher: Path Not in Spec (404)",
+                      "method": "GET",
+                      "endpoint": "https://flights.{{ $domain }}{{ $port }}/v2/flights/internal-status/details",
+                      "params": [],
+                      "headers": [
+                        {
+                          "key": "Authorization",
+                          "value": "Bearer <<dispatcher_token>>",
+                          "active": true
+                        }
+                      ],
+                      "preRequestScript": "const tokenRes = await fetch(\"{{ $oidcUrl }}/protocol/openid-connect/token\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/x-www-form-urlencoded\" },\n  body: \"grant_type=password&client_id=traefik&client_secret=NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0&username=dispatcher&password=topsecretpassword&scope=openid+group\"\n});\nconst tokenData = await tokenRes.json();\nhopp.env.global.set(\"dispatcher_token\", tokenData.access_token);",
+                      "testScript": "pw.test(\"Internal path not in spec blocked — 404 Not Found\", () => { pw.expect(pw.response.status).toBe(404); });",
+                      "auth": {
+                        "authType": "none",
+                        "authActive": false
+                      },
+                      "body": {
+                        "contentType": null,
+                        "body": null
+                      },
+                      "requestVariables": [],
+                      "responses": {}
+                    }
+                  ],
+                  "auth": {
+                    "authType": "none",
+                    "authActive": false
+                  },
+                  "headers": []
+                }
+              ],
+              "requests": [],
+              "auth": {
+                "authType": "none",
+                "authActive": false
+              },
+              "headers": []
+            }
+          ],
+          "requests": [],
+          "auth": {
+            "authType": "none",
+            "authActive": false
+          },
+          "headers": []
+        }
+      ],
+      "requests": [],
+      "auth": {
+        "authType": "none",
+        "authActive": false
+      },
+      "headers": []
+    }
+{{- end }}
+{{- end }}

@@ -1,0 +1,36 @@
+# tfsec configuration for terraform-demo-modules.
+#
+# tfsec is run via `make security`. The rules below are tuned for a
+# demo-modules repo, not a production module library. We disable a
+# handful of checks that would flag every demo (single-AZ, public
+# endpoints) and keep everything that catches real footguns.
+
+# Severity threshold — we want HIGH and CRITICAL to fail CI; MEDIUM is a warning.
+minimum_severity: HIGH
+
+# Rules we suppress repo-wide. Each one includes a reason — don't
+# silently expand this list; document why a rule is off.
+exclude:
+  # Single-AZ resources are fine for demos.
+  - aws-elb-alb-not-public
+  - aws-vpc-no-public-egress-sgr
+
+  # Demo k8s clusters intentionally expose the API server.
+  - aws-eks-no-public-cluster-access
+  - aws-eks-no-public-cluster-access-to-cidr
+  - google-gke-enable-private-cluster
+  - azure-container-use-rbac-permissions
+
+  # Demos run small/cheap; we don't enforce node-level encryption-at-rest.
+  - aws-eks-encrypt-secrets
+  - aws-ec2-enable-at-rest-encryption
+
+  # Open dashboards by design for demos.
+  - aws-vpc-no-public-ingress
+  - aws-vpc-add-description-to-security-group-rule
+
+# Rules we keep (representative; full set runs by default):
+#   - hardcoded-credentials   (catches SEC-01..06)
+#   - any tls/encryption rules on storage that ISN'T the cluster nodes
+#   - IAM wildcards and overly-permissive policies
+#   - public S3 buckets, public storage accounts

@@ -1,0 +1,206 @@
+{{- if .Values.enabled }}
+{{- if include "ai-gateway.mc.isLocalDeploy" . }}
+{{- if .Values.sharedMiddlewares.topicControl.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-topic-control
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  plugin:
+    chat-completion-llm-guard:
+      endpoint: https://{{ .Values.sharedMiddlewares.topicControl.host }}/v1/chat/completions
+      model: {{ .Values.sharedMiddlewares.topicControl.model }}
+      sendReasonAsError: true
+      request:
+        promptTemplate: '{"inputs": "{{ `{{$last := index .messages 0}}{{range .messages}}{{$last = .}}{{end}}{{$last.content}}` }}"}'
+        blockConditions:
+          {{- toYaml .Values.sharedMiddlewares.topicControl.blockConditions | nindent 10 }}
+        systemPrompt: |
+          {{- .Values.sharedMiddlewares.topicControl.systemPrompt | nindent 10 }}
+{{- end }}
+
+{{- if .Values.sharedMiddlewares.contentSafety.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-content-safety
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  plugin:
+    chat-completion-llm-guard:
+      endpoint: https://{{ .Values.sharedMiddlewares.contentSafety.host }}/v1/chat/completions
+      model: {{ .Values.sharedMiddlewares.contentSafety.model }}
+      sendReasonAsError: true
+      request:
+        promptTemplate: '{"inputs": "{{ `{{$last := index .messages 0}}{{range .messages}}{{$last = .}}{{end}}{{$last.content}}` }}"}'
+        blockConditions:
+          {{- toYaml .Values.sharedMiddlewares.contentSafety.blockConditions | nindent 10 }}
+{{- end }}
+
+{{- if .Values.sharedMiddlewares.jailbreakDetection.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-jailbreak-detection
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  plugin:
+    chat-completion-llm-guard-custom:
+      endpoint: https://{{ .Values.sharedMiddlewares.jailbreakDetection.host }}/v1/classify
+      sendReasonAsError: true
+      request:
+        template: '{"input": "{{ `{{$last := index .messages 0}}{{range .messages}}{{$last = .}}{{end}}{{$last.content}}` }}"}'
+        blockConditions:
+          - reason: "jailbreak detected"
+            condition: JSONGt(".score", {{ .Values.sharedMiddlewares.jailbreakDetection.scoreThreshold | quote }})
+        traceConditions:
+          - reason: "jailbreak detected"
+            condition: JSONGt(".score", {{ .Values.sharedMiddlewares.jailbreakDetection.scoreThreshold | quote }})
+{{- end }}
+
+{{- if .Values.sharedMiddlewares.graniteGuardian.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-granite-guardian
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  plugin:
+    chat-completion-llm-guard-custom:
+      endpoint: https://{{ .Values.sharedMiddlewares.graniteGuardian.host }}/v1/chat/completions
+      sendReasonAsError: true
+      clientConfig:
+        headers:
+          Content-Type: application/json
+      request:
+        template: '{"messages": [{"role": "user", "content": "{{ `{{$last := index .messages 0}}{{range .messages}}{{$last = .}}{{end}}{{$last.content}}` }}"}]}'
+        blockConditions:
+          - condition: JSONStringContains(".choices[0].message.content", "yes")
+            reason: request blocked
+{{- end }}
+
+{{- if .Values.sharedMiddlewares.contentGuardPresidio.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-content-guard-presidio
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  plugin:
+    chat-completion-content-guard:
+      engine:
+        presidio:
+          host: {{ include "ai-gateway.fullname" . }}-presidio
+          language: en
+      {{- if .Values.sharedMiddlewares.contentGuardPresidio.request.rules }}
+      request:
+        rules:
+          {{- toYaml .Values.sharedMiddlewares.contentGuardPresidio.request.rules | nindent 10 }}
+      {{- end }}
+      {{- if .Values.sharedMiddlewares.contentGuardPresidio.response.rules }}
+      response:
+        rules:
+          {{- toYaml .Values.sharedMiddlewares.contentGuardPresidio.response.rules | nindent 10 }}
+      {{- end }}
+{{- end }}
+
+{{- if .Values.sharedMiddlewares.contentGuardRegex.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-content-guard-regex
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  plugin:
+    chat-completion-content-guard:
+      request:
+        rules:
+          {{- toYaml .Values.sharedMiddlewares.contentGuardRegex.request.rules | nindent 10 }}
+      response:
+        rules:
+          {{- toYaml .Values.sharedMiddlewares.contentGuardRegex.response.rules | nindent 10 }}
+{{- end }}
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-content-guard-chain
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  chain:
+    middlewares:
+      {{- if .Values.sharedMiddlewares.contentGuardPresidio.enabled }}
+      - name: {{ include "ai-gateway.fullname" . }}-content-guard-presidio
+      {{- end }}
+      {{- if .Values.sharedMiddlewares.contentGuardRegex.enabled }}
+      - name: {{ include "ai-gateway.fullname" . }}-content-guard-regex
+      {{- end }}
+
+{{- if .Values.sharedMiddlewares.parallelGuard.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-parallel-guard
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  plugin:
+    parallel-llm-guard:
+      middlewares:
+        {{- if .Values.sharedMiddlewares.topicControl.enabled }}
+        - name: {{ include "ai-gateway.fullname" . }}-topic-control
+        {{- end }}
+        {{- if .Values.sharedMiddlewares.contentSafety.enabled }}
+        - name: {{ include "ai-gateway.fullname" . }}-content-safety
+        {{- end }}
+        {{- if .Values.sharedMiddlewares.jailbreakDetection.enabled }}
+        - name: {{ include "ai-gateway.fullname" . }}-jailbreak-detection
+        {{- end }}
+        {{- if .Values.sharedMiddlewares.graniteGuardian.enabled }}
+        - name: {{ include "ai-gateway.fullname" . }}-granite-guardian
+        {{- end }}
+{{- end }}
+
+{{- if .Values.sharedMiddlewares.semanticCache.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-semantic-cache
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  plugin:
+    chat-completion-semantic-cache:
+      vectorizer:
+        infinity:
+          baseUrl: http://{{ include "ai-gateway.fullname" . }}-embeddings:{{ .Values.embeddings.service.port }}
+          model: {{ .Values.embeddings.model }}
+      vectorDB:
+        weaviate:
+          host: {{ include "ai-gateway.fullname" . }}-weaviate:{{ .Values.weaviate.service.port | default 80 }}
+          scheme: http
+          collectionName: {{ .Values.sharedMiddlewares.semanticCache.collectionName }}
+      ignoreAssistant: true
+      messageHistory: 4
+      readOnly: false
+      includeCachedUsage: true
+{{- end }}
+{{- end }}{{/* isParentMode */}}
+{{- end }}

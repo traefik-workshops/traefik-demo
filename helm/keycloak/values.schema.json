@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "keycloak chart values",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "operatorVersion": {
+      "type": "string",
+      "default": "26.5.2"
+    },
+    "namespace": {
+      "type": "string",
+      "default": "keycloak"
+    },
+    "postgres": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "default": "keycloak-postgres"
+        },
+        "database": {
+          "type": "string",
+          "default": "keycloak-db"
+        },
+        "password": {
+          "type": "string",
+          "default": "topsecretpassword"
+        }
+      }
+    },
+    "keycloak": {
+      "type": "object",
+      "properties": {
+        "instances": {
+          "type": "integer",
+          "default": 1
+        },
+        "adminUser": {
+          "type": "string",
+          "default": "traefik"
+        },
+        "adminPassword": {
+          "type": "string",
+          "default": "topsecretpassword"
+        },
+        "httpEnabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "hostnameStrict": {
+          "type": "boolean",
+          "default": false
+        },
+        "proxyHeaders": {
+          "type": "string",
+          "default": "xforwarded"
+        }
+      }
+    },
+    "realm": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "name": {
+          "type": "string",
+          "default": "traefik"
+        },
+        "accessTokenLifespan": {
+          "type": "integer",
+          "default": 2419200
+        },
+        "users": {
+          "type": "array",
+          "items": {}
+        },
+        "extraUsers": {
+          "type": "array",
+          "items": {}
+        },
+        "advancedUsers": {
+          "type": "array",
+          "items": {}
+        },
+        "extraAdvancedUsers": {
+          "type": "array",
+          "items": {}
+        },
+        "clientSecret": {
+          "type": "string",
+          "default": "NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0"
+        },
+        "redirectUris": {
+          "type": "array",
+          "items": {}
+        },
+        "extraRedirectUris": {
+          "type": "array",
+          "items": {}
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "string",
+          "default": "bitnami/kubectl:latest"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "domain": {
+          "type": "string",
+          "default": "cloud"
+        },
+        "entrypoint": {
+          "type": "string",
+          "default": "traefik"
+        },
+        "observability": {
+          "type": "boolean",
+          "default": true
+        },
+        "annotations": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

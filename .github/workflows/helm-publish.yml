@@ -1,0 +1,105 @@
+name: helm-publish
+
+# On every repo tag push, package every chart at the tag version (which already
+# matches every Chart.yaml `version:` thanks to the release sweep — see Makefile)
+# and push to ghcr.io/traefik-workshops. The publish list is discovered
+# dynamically from the helm/ tree — no hardcoded chart names.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g. 3.2.0). Defaults to current repo tag."
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  HELM_VERSION: "v3.16.2"
+  OCI_REGISTRY: "oci://ghcr.io/traefik-workshops"
+
+concurrency:
+  group: helm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Package + push every chart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION} }
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Determine version
+        id: ver
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            v="${{ github.event.inputs.version }}"
+          else
+            v="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "Publishing at version: $v"
+
+      - name: helm dep update (resolve subcharts from sibling dirs)
+        run: |
+          set -euo pipefail
+          for c in helm/*/; do
+            if grep -q '^dependencies:' "${c}Chart.yaml" 2>/dev/null; then
+              echo "::group::helm dep update $c"
+              helm dep update "$c"
+              echo "::endgroup::"
+            fi
+          done
+
+      - name: Discover charts
+        id: charts
+        run: |
+          charts=$(find helm -maxdepth 2 -name Chart.yaml | xargs -n1 dirname | sort -u | tr '\n' ' ')
+          echo "list=$charts" >> "$GITHUB_OUTPUT"
+          echo "Charts: $charts"
+
+      - name: Package + push each chart
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          CHARTS: ${{ steps.charts.outputs.list }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for c in $CHARTS; do
+            name=$(basename "$c")
+            echo "::group::package $name @ $VERSION"
+            helm package "$c" --version "$VERSION" --app-version "$VERSION" --destination dist
+            echo "::endgroup::"
+
+            echo "::group::push $name -> ${OCI_REGISTRY}"
+            helm push "dist/${name}-${VERSION}.tgz" "${OCI_REGISTRY}"
+            echo "::endgroup::"
+          done
+
+      - name: Summary
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          CHARTS: ${{ steps.charts.outputs.list }}
+        run: |
+          echo "## Published charts" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          for c in $CHARTS; do
+            name=$(basename "$c")
+            echo "- \`${OCI_REGISTRY}/${name}:${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          done

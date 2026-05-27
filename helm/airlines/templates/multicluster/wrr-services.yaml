@@ -1,0 +1,89 @@
+{{/*
+  WRR TraefikService resources for HA routing.
+  Rendered in parent mode when the group is assigned to a remote provider.
+  Weights: local=3 (75%), remote=1 (25%).
+
+  Local leg (K8s Service): strip-version-v1/v2 are attached at the service level.
+    Traefik wraps kind: Service refs in a generated load-balancer service and
+    applies the adjacent middlewares correctly. A request at /v1/flights or
+    /v2/flights lands on the local Flask backend as /flights.
+
+  Remote leg (@multicluster): path is forwarded unchanged through the uplink.
+    The child cluster's IngressRoute then strips the version prefix at its
+    own per-version route. That keeps version handling a child concern and
+    lets the child apply different policies per version if desired.
+*/}}
+{{- if include "airlines.mc.isRemoteGroup" (dict "root" . "group" "flightOps") }}
+{{- $ep := index .Values.global.multicluster.child.uplinkEntryPoints "flightOps" }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: TraefikService
+metadata:
+  name: flights-ha
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flights
+spec:
+  weighted:
+    services:
+      - name: flights-app
+        namespace: {{ .Release.Namespace }}
+        port: 3000
+        weight: 3
+        middlewares:
+          - name: strip-version-v1
+          - name: strip-version-v2
+      - kind: TraefikService
+        name: {{ $ep }}@multicluster
+        weight: 1
+{{- end }}
+
+{{- if include "airlines.mc.isRemoteGroup" (dict "root" . "group" "passengerSvc") }}
+{{- $ep := index .Values.global.multicluster.child.uplinkEntryPoints "passengerSvc" }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: TraefikService
+metadata:
+  name: bookings-ha
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: bookings
+spec:
+  weighted:
+    services:
+      - name: bookings-app
+        namespace: {{ .Release.Namespace }}
+        port: 3000
+        weight: 3
+        middlewares:
+          - name: strip-version-v1
+          - name: strip-version-v2
+      - kind: TraefikService
+        name: {{ $ep }}@multicluster
+        weight: 1
+{{- end }}
+
+{{- if include "airlines.mc.isRemoteGroup" (dict "root" . "group" "airportOps") }}
+{{- $ep := index .Values.global.multicluster.child.uplinkEntryPoints "airportOps" }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: TraefikService
+metadata:
+  name: checkin-ha
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: checkin
+spec:
+  weighted:
+    services:
+      - name: checkin-app
+        namespace: {{ .Release.Namespace }}
+        port: 3000
+        weight: 3
+        middlewares:
+          - name: strip-version-v1
+          - name: strip-version-v2
+      - kind: TraefikService
+        name: {{ $ep }}@multicluster
+        weight: 1
+{{- end }}

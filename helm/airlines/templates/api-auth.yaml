@@ -1,0 +1,56 @@
+{{- if include "airlines.mc.isParentMode" . }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIAuth
+metadata:
+  name: jwt-auth
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  isDefault: true
+  jwt:
+    appIdClaim: group
+    jwksUrl: {{ include "airlines.oidc.jwksUrl" . }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIPortalAuth
+metadata:
+  name: oidc-portal-auth
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  oidc:
+    issuerUrl: {{ include "airlines.oidc.issuerUrl" . }}
+    secretName: oidc-credentials
+    scopes:
+      - openid
+      - profile
+      - email
+      - group
+    claims:
+      groups: group
+      userId: sub
+      email: email
+      firstname: given_name
+      lastname: family_name
+    syncedAttributes:
+      - groups
+      - email
+      - firstname
+      - lastname
+      - userId
+{{- end }}
+---
+# oidc-credentials is referenced by both the parent's APIPortalAuth and by the
+# dashboard OIDC middlewares rendered on each cluster (parent or child). Always
+# render it so Traefik on child clusters can materialize the OIDC middlewares.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oidc-credentials
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  clientId: {{ include "airlines.oidc.clientId" . }}
+  clientSecret: {{ include "airlines.oidc.clientSecret" . }}

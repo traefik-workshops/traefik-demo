@@ -1,0 +1,6 @@
+output "pods" {
+  description = "Created RunPod pod IDs and metadata."
+  value       = null_resource.this[*].id
+}
+
+# TODO(new-module): expose `endpoint` (string) — the base URL the demo points its client at.

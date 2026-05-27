@@ -1,0 +1,18 @@
+image:
+  repository: michaelfeil/infinity
+  tag: "0.0.75"
+  pullPolicy: IfNotPresent
+
+model: nomic-embed-text
+
+service:
+  type: ClusterIP
+  port: 7997
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi

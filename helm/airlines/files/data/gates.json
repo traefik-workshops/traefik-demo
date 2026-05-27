@@ -1,0 +1,12 @@
+{
+  "Gates": {
+    "A12": {"gate_id": "A12", "terminal": "1", "status": "boarding", "flight_id": "TK-1001", "notes": "Boarding in progress"},
+    "B7":  {"gate_id": "B7",  "terminal": "4", "status": "boarding", "flight_id": "TK-1002", "notes": "Final call"},
+    "C3":  {"gate_id": "C3",  "terminal": "5", "status": "open",     "flight_id": "TK-1003", "notes": "Delayed - new ETD 16:50"},
+    "D15": {"gate_id": "D15", "terminal": "3", "status": "open",     "flight_id": "TK-1004", "notes": ""},
+    "E2":  {"gate_id": "E2",  "terminal": "2", "status": "closed",   "flight_id": "TK-1005", "notes": "Flight departed"},
+    "A5":  {"gate_id": "A5",  "terminal": "3", "status": "open",     "flight_id": "TK-1006", "notes": ""},
+    "B11": {"gate_id": "B11", "terminal": "2E", "status": "available", "flight_id": null,     "notes": ""},
+    "C8":  {"gate_id": "C8",  "terminal": "3", "status": "available", "flight_id": null,     "notes": ""}
+  }
+}

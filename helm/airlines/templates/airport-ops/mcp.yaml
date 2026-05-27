@@ -1,0 +1,252 @@
+{{/*
+  Airport Operations MCP Server.
+
+  Multicluster:
+  - Python ConfigMap + mcpService Deployment: child mode with airportOpsMcp enabled
+  - Hub API CRD + MCP policy Middleware + IngressRoute: parent mode only
+  - When child.mcp.useInternalApiRouting=true: API dict overridden to use internalApiBase
+*/}}
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isMcpDeploy := include "airlines.mc.isChildDeploy" (dict "root" . "group" "airportOpsMcp") -}}
+{{- $isLocalMcpDeploy := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "airportOpsMcp") -}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if $isLocalMcpDeploy }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airport-ops-mcp-server
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: airport-ops-mcp
+data:
+  main.py: |
+    #!/usr/bin/env python3
+    """
+    Airport Operations MCP Server
+
+    Tools for check-in, boarding passes, baggage tracking, and gate management.
+    Backed by stateful Flask APIs in-cluster.
+    """
+
+    import logging, json
+    import httpx, uvicorn
+    from mcp.server.fastmcp import FastMCP
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("airport-ops-mcp")
+
+    {{- if $isMcpDeploy }}
+    _base = "{{ $mc.child.mcp.base }}"
+    API = {
+        "checkin":  _base,
+        "baggage":  _base,
+        "gates":    _base,
+    }
+    {{- else }}
+    API = {
+        "checkin":  "http://checkin-app:3000",
+        "baggage":  "http://baggage-app:3000",
+        "gates":    "http://gates-app:3000",
+    }
+    {{- end }}
+
+    mcp = FastMCP(
+        "Airport Operations",
+        instructions="Perform check-in, generate boarding passes, track baggage, and manage gates for Traefik Airlines.",
+    )
+
+    async def _get(base: str, path: str) -> dict | list:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(f"{API[base]}{path}")
+            r.raise_for_status()
+            return r.json()
+
+    async def _post(base: str, path: str, payload: dict) -> dict:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(f"{API[base]}{path}", json=payload)
+            r.raise_for_status()
+            return r.json()
+
+    @mcp.tool()
+    async def check_in_passenger(booking_id: str, seat_preference: str | None = None) -> str:
+        """Perform online check-in for a booking.
+
+        Args:
+            booking_id: Booking ID (e.g. BK-100201)
+            seat_preference: Optional seat preference (e.g. window, aisle, 14A)
+        """
+        try:
+            payload = {"booking_id": booking_id}
+            if seat_preference:
+                payload["seat_preference"] = seat_preference
+            data = await _post("checkin", "/checkin", payload)
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"check_in_passenger error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def get_boarding_pass(booking_id: str) -> str:
+        """Generate and retrieve a boarding pass for a checked-in booking.
+
+        Args:
+            booking_id: Booking ID (e.g. BK-100201)
+        """
+        try:
+            data = await _get("checkin", f"/checkin/{booking_id}/boarding-pass")
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"get_boarding_pass error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def track_baggage(tag_id: str) -> str:
+        """Track a piece of baggage by its tag ID. Returns current location and full scan history.
+
+        Args:
+            tag_id: Baggage tag ID (e.g. TK-BAG-90001)
+        """
+        try:
+            data = await _get("baggage", f"/baggage/track/{tag_id}")
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"track_baggage error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def check_bag(booking_id: str, weight_kg: float, bag_type: str = "checked") -> str:
+        """Check in a piece of baggage for a booking.
+
+        Args:
+            booking_id: Booking ID (e.g. BK-100201)
+            weight_kg: Bag weight in kilograms
+            bag_type: Type of bag - checked, carry-on, or special
+        """
+        try:
+            payload = {
+                "booking_id": booking_id,
+                "weight_kg": weight_kg,
+                "type": bag_type,
+            }
+            data = await _post("baggage", "/baggage", payload)
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"check_bag error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def get_gate_info(flight_id: str) -> str:
+        """Get gate assignment and status for a flight.
+
+        Args:
+            flight_id: Flight ID (e.g. TK-1042)
+        """
+        try:
+            gates = await _get("gates", "/gates")
+            flight_gate = next((g for g in gates if g.get("flight_id") == flight_id), None)
+            if flight_gate:
+                return json.dumps(flight_gate, indent=2)
+            return json.dumps({"message": f"No gate assigned for flight {flight_id}"})
+        except Exception as e:
+            logger.error(f"get_gate_info error: {e}")
+            return json.dumps({"error": str(e)})
+
+    if __name__ == "__main__":
+        app = mcp.streamable_http_app()
+        uvicorn.run(app, host="0.0.0.0", port=8080)
+
+{{ include "airlines.mcpService" (dict "root" . "name" "airport-ops") }}
+{{- end }}
+{{- if $isParent }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: API
+metadata:
+  name: airport-ops-mcp-api
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+    bundle: airport-ops
+spec:
+  title: "Airport Operations MCP"
+  description: "MCP tools for check-in, boarding passes, baggage tracking, and gate management"
+  cors:
+    allowHeadersList:
+      - "*"
+    allowOriginsList:
+      - "*"
+    allowMethodsList:
+      - "*"
+    allowOriginListRegex:
+      - ".*"
+    maxAge: 86400
+{{- end }}
+{{- if $isLocalMcpDeploy }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: airport-ops-mcp-policy
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+spec:
+  plugin:
+    mcp:
+      gracefulErrors: true
+      policies:
+        - action: allow
+          match: >-
+            Equals(`mcp.method`, `tools/list`) ||
+            Equals(`mcp.method`, `initialize`)
+        - action: allow
+          match: >-
+            Equals(`mcp.params.name`, `check_in_passenger`) ||
+            Equals(`mcp.params.name`, `get_boarding_pass`) ||
+            Equals(`mcp.params.name`, `track_baggage`) ||
+            Equals(`mcp.params.name`, `check_bag`) ||
+            Equals(`mcp.params.name`, `get_gate_info`)
+{{- end }}
+{{- if $isParent }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airport-ops-mcp-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+  annotations:
+    hub.traefik.io/api: airport-ops-mcp-api
+spec:
+  {{- include "airlines.mc.entryPoints" (dict "root" . "group" "airportOpsMcp") | nindent 2 }}
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.airportOpsMcp.hostMatch" . }}
+      services:
+        {{- include "airlines.mc.serviceSpec" (dict "root" . "svcName" "airport-ops-mcp" "port" 8080 "group" "airportOpsMcp" "haName" "") | nindent 8 }}
+      {{- if $isLocalMcpDeploy }}
+      middlewares:
+        - name: airport-ops-mcp-policy
+      {{- end }}
+{{- end }}
+{{- if $isMcpDeploy }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airport-ops-mcp-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+  annotations:
+    {{- include "airlines.mc.uplinkAnnotation" (dict "root" . "group" "airportOpsMcp") | nindent 4 }}
+spec:
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.airportOpsMcp.hostMatch" . }}
+      services:
+        - name: airport-ops-mcp
+          port: 8080
+          passHostHeader: true
+{{- end }}

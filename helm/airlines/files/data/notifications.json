@@ -1,0 +1,15 @@
+{
+  "Notifications": {
+    "NOTIF-001": {"notification_id": "NOTIF-001", "passenger_id": "PAX-001", "type": "flight_update", "channel": "email", "title": "Flight TK-1001 Confirmed", "message": "Your booking BK-100201 for flight TK-1001 on March 15 is confirmed. Gate A12, Terminal 1.", "status": "sent", "created_at": "2026-02-10T09:16:00Z"},
+    "NOTIF-002": {"notification_id": "NOTIF-002", "passenger_id": "PAX-002", "type": "check_in_open", "channel": "sms", "title": "Check-in Open: TK-1002", "message": "Online check-in is now open for your flight TK-1002 on March 15. Check in at traefik.airlines/checkin.", "status": "sent", "created_at": "2026-03-13T08:00:00Z"},
+    "NOTIF-003": {"notification_id": "NOTIF-003", "passenger_id": "PAX-003", "type": "delay", "channel": "push", "title": "Flight Delay: TK-1003", "message": "Your flight TK-1003 from LHR to SIN has been delayed. New departure time: 16:50 UTC. We apologize for the inconvenience.", "status": "sent", "created_at": "2026-03-16T12:30:00Z"},
+    "NOTIF-004": {"notification_id": "NOTIF-004", "passenger_id": "PAX-001", "type": "boarding", "channel": "email", "title": "Boarding Now: Gate A12", "message": "Boarding is now open for TK-1001 at Gate A12. Please have your boarding pass ready.", "status": "sent", "created_at": "2026-03-15T07:45:00Z"}
+  },
+  "templates": {
+    "flight_update": {"subject": "Flight Update", "body": "Your flight {{flight_id}} status has changed."},
+    "check_in_open": {"subject": "Check-in Open", "body": "Online check-in is now available for {{flight_id}}."},
+    "delay": {"subject": "Flight Delay", "body": "Your flight {{flight_id}} has been delayed."},
+    "boarding": {"subject": "Now Boarding", "body": "Boarding has begun for {{flight_id}} at Gate {{gate}}."},
+    "cancellation": {"subject": "Booking Cancelled", "body": "Your booking {{booking_id}} has been cancelled."}
+  }
+}

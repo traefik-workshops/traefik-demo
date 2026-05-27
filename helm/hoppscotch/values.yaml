@@ -1,0 +1,26 @@
+global:
+  domain: ""
+
+# Effective host = subdomain.global.domain
+# Set host directly to override
+subdomain: "test"
+host: ""
+
+image: hoppscotch/hoppscotch:2026.2.0
+
+jwtSecret: "change-me-32-chars-long-exactly!"
+sessionSecret: "change-me-32-chars-long-exactly!"
+dataEncryptionKey: "change-me-32-chars-long-exactly!"
+
+entryPoints:
+  - websecure
+
+# Each entry references a caller-provided ConfigMap.
+# The collection is served at /<name>/collection.json
+#
+# collections:
+#   - name: airlines
+#     title: "Airlines Demo"
+#     configMapName: airlines-hoppscotch-collection
+#     configMapKey: collection.json
+collections: []

@@ -1,0 +1,160 @@
+entryPoints:
+  - websecure
+
+global:
+  domain: demo.traefik.ai
+
+  multicluster:
+    enabled: false
+    mode: "parent"          # parent | child
+
+    parent:
+      # Cluster provider name per group ("" = deploy locally on parent)
+      groups:
+        flightOps: ""
+        flightOpsMcp: ""
+        passengerSvc: ""
+        passengerSvcMcp: ""
+        airportOps: ""
+        airportOpsMcp: ""
+        aiGateway: ""
+
+    child:
+      # Uplink entry point name per group (child uses for Uplink CRD + router.uplinks annotation)
+      uplinkEntryPoints:
+        flightOps: "flight-ops"
+        flightOpsMcp: "flight-ops-mcp"
+        passengerSvc: "passenger-svc"
+        passengerSvcMcp: "passenger-svc-mcp"
+        airportOps: "airport-ops"
+        airportOpsMcp: "airport-ops-mcp"
+        aiGateway: "ai-gateway"
+
+      # Which groups to deploy on this child cluster (child mode only)
+      groups:
+        flightOps: false
+        flightOpsMcp: false
+        passengerSvc: false
+        passengerSvcMcp: false
+        airportOps: false
+        airportOpsMcp: false
+        aiGateway: false
+
+      mcp:
+        base: "http://traefik.traefik.svc.cluster.local"
+        entryPoint: "web"
+        # Provider names as seen from THIS child's multicluster config
+        groups:
+          flightOps: ""
+          passengerSvc: ""
+          airportOps: ""
+
+tools-access:
+  dashboard:
+    token: ""
+    group: "tools"
+
+users-access: []
+
+eventServer:
+  image: python:3.11-slim
+
+aiGateway:
+  enabled: false
+  url: ""         # e.g. https://ai.airlines.example.com
+  token: ""       # bearer token for the AI gateway (optional)
+  mcpServers: []  # list of MCP servers available to toggle in the chat widget
+  # Example:
+  # mcpServers:
+  #   - id: flight-ops-mcp
+  #     label: Flight Ops MCP
+  #     url: https://mcp.airlines.example.com/flight-ops
+  #     tools: [get_flights, create_flight, cancel_flight]
+  multicluster:
+    child:
+      uplinkEntryPoint: "ai-gateway"
+  sharedMiddlewares:
+    topicControl:
+      enabled: true
+    contentSafety:
+      enabled: true
+    jailbreakDetection:
+      enabled: true
+    graniteGuardian:
+      enabled: true
+    contentGuardPresidio:
+      enabled: true
+    contentGuardRegex:
+      enabled: true
+    semanticCache:
+      enabled: false
+
+hoppscotch:
+  enabled: true
+  subdomain: "test"
+  image: hoppscotch/hoppscotch:2026.2.0
+  jwtSecret: "airlines-demo-jwt-secret-32chars!"
+  sessionSecret: "airlines-demo-session-32chars-ok"
+  dataEncryptionKey: "airlines-demo-encrypt-32chars-ok"
+  collections:
+    - name: airlines
+      title: "Airlines Demo"
+      configMapName: airlines-hoppscotch-collection
+      configMapKey: collection.json
+
+keycloak:
+  enabled: true
+  realm:
+    enabled: true
+    name: traefik
+    users:
+      - admin
+    advancedUsers:
+      - username: dispatcher
+        email: dispatcher@traefik-airlines.io
+        password: topsecretpassword
+        groups:
+          - flight-ops
+        claims: {}
+      - username: agent
+        email: agent@traefik-airlines.io
+        password: topsecretpassword
+        groups:
+          - passenger-svc
+        claims: {}
+      - username: handler
+        email: handler@traefik-airlines.io
+        password: topsecretpassword
+        groups:
+          - airport-ops
+        claims: {}
+      - username: analyst
+        email: analyst@traefik-airlines.io
+        password: topsecretpassword
+        groups:
+          - demo
+        claims: {}
+      - username: reader
+        email: reader@traefik-airlines.io
+        password: topsecretpassword
+        groups:
+          - reader
+        claims: {}
+    extraUsers: []
+    extraAdvancedUsers: []
+    redirectUris:
+      - flight-ops.airlines
+      - passenger-svc.airlines
+      - airport-ops.airlines
+      - portal.airlines
+    extraRedirectUris: []
+  ingress:
+    enabled: true
+    domain: ""
+    entrypoint: websecure
+  ingressInternal:
+    enabled: false
+  oidc:
+    clientId: ""
+    clientSecret: ""
+    issuerUrl: ""

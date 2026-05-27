@@ -1,0 +1,87 @@
+{{/*
+  Uplink CRDs — one per enabled child group.
+  Rendered in child mode only. Each exposes a named uplink that the parent
+  cluster references as <exposeName>@<providerName>.
+*/}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if and $mc.enabled (eq $mc.mode "child") -}}
+
+{{- if index $mc.child.groups "flightOps" }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: Uplink
+metadata:
+  name: {{ index $mc.child.uplinkEntryPoints "flightOps" }}
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: uplink
+spec:
+  exposeName: {{ index $mc.child.uplinkEntryPoints "flightOps" }}
+{{- end }}
+
+{{- if index $mc.child.groups "flightOpsMcp" }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: Uplink
+metadata:
+  name: {{ index $mc.child.uplinkEntryPoints "flightOpsMcp" }}
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: uplink
+spec:
+  exposeName: {{ index $mc.child.uplinkEntryPoints "flightOpsMcp" }}
+{{- end }}
+
+{{- if index $mc.child.groups "passengerSvc" }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: Uplink
+metadata:
+  name: {{ index $mc.child.uplinkEntryPoints "passengerSvc" }}
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: uplink
+spec:
+  exposeName: {{ index $mc.child.uplinkEntryPoints "passengerSvc" }}
+{{- end }}
+
+{{- if index $mc.child.groups "passengerSvcMcp" }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: Uplink
+metadata:
+  name: {{ index $mc.child.uplinkEntryPoints "passengerSvcMcp" }}
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: uplink
+spec:
+  exposeName: {{ index $mc.child.uplinkEntryPoints "passengerSvcMcp" }}
+{{- end }}
+
+{{- if index $mc.child.groups "airportOps" }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: Uplink
+metadata:
+  name: {{ index $mc.child.uplinkEntryPoints "airportOps" }}
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: uplink
+spec:
+  exposeName: {{ index $mc.child.uplinkEntryPoints "airportOps" }}
+{{- end }}
+
+{{- if index $mc.child.groups "airportOpsMcp" }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: Uplink
+metadata:
+  name: {{ index $mc.child.uplinkEntryPoints "airportOpsMcp" }}
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: uplink
+spec:
+  exposeName: {{ index $mc.child.uplinkEntryPoints "airportOpsMcp" }}
+{{- end }}
+
+{{- end }}

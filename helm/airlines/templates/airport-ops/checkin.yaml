@@ -1,0 +1,285 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isDeploy := or $isParent (include "airlines.mc.isChildDeploy" (dict "root" . "group" "airportOps")) -}}
+{{- if $isDeploy }}
+{{- range $version := list "v1" "v2" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: checkin-openapi-{{ $version }}
+  labels:
+    {{- include "airlines.labels" $ | nindent 4 }}
+    component: checkin
+    group: airport-ops
+    version: {{ $version }}
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 2.0.0
+      title: Check-in API
+      description: |
+        Traefik Airlines Check-in Service — online check-in, seat selection, and boarding pass generation.
+      contact:
+        name: Airport Operations Team
+        email: ground-ops@traefik-airlines.io
+    servers:
+      - url: {{ include "airlines.checkin.apiUrl" $ }}
+        description: Check-in API {{ $version }}
+    tags:
+      - name: checkin
+        description: Check-in operations
+      - name: boarding
+        description: Boarding pass management
+    paths:
+      /{{ $version }}/checkin:
+        get:
+          summary: List all check-ins
+          operationId: listCheckins
+          tags: [checkin]
+          x-handler: |
+            return [
+              { booking_id: "BK-100201", passenger_name: "Elena Rodriguez", flight_id: "TK-1042", route: "JFK \u2192 CDG", seat: "4A", status: "checked-in", checked_in_at: "2026-03-14T18:00:00Z", boarding_group: "1", gate: "B22" },
+              { booking_id: "BK-100202", passenger_name: "James Chen", flight_id: "TK-2187", route: "CDG \u2192 DXB", seat: "22F", status: "checked-in", checked_in_at: "2026-03-15T08:00:00Z", boarding_group: "3", gate: "A14" },
+              { booking_id: "BK-100203", passenger_name: "Aisha Patel", flight_id: "TK-0553", route: "LAX \u2192 HND", seat: "14C", status: "checked-in", checked_in_at: "2026-03-14T20:30:00Z", boarding_group: "2", gate: "S32" },
+              { booking_id: "BK-100205", passenger_name: "Sophie Laurent", flight_id: "TK-1590", route: "FRA \u2192 JFK", seat: "2K", status: "boarding", checked_in_at: "2026-03-14T22:00:00Z", boarding_group: "1", gate: "D05" },
+              { booking_id: "BK-100206", passenger_name: "Kenji Tanaka", flight_id: "TK-2044", route: "HND \u2192 CDG", seat: "31A", status: "checked-in", checked_in_at: "2026-03-15T16:00:00Z", boarding_group: "4", gate: "H02" },
+              { booking_id: "BK-100207", passenger_name: "Maria Silva", flight_id: "TK-0871", route: "SIN \u2192 SYD", seat: "27D", status: "not-checked-in", checked_in_at: "", boarding_group: "", gate: "C31" },
+              { booking_id: "BK-100208", passenger_name: "Henrik Andersen", flight_id: "TK-3321", route: "DXB \u2192 SIN", seat: "6A", status: "boarded", checked_in_at: "2026-03-14T20:00:00Z", boarding_group: "1", gate: "F12" },
+              { booking_id: "BK-100209", passenger_name: "Fatou Diop", flight_id: "TK-4819", route: "ORD \u2192 LHR", seat: "16A", status: "checked-in", checked_in_at: "2026-03-15T12:30:00Z", boarding_group: "2", gate: "C12" },
+              { booking_id: "BK-100210", passenger_name: "Luca Moretti", flight_id: "TK-1042", route: "JFK \u2192 CDG", seat: "34B", status: "not-checked-in", checked_in_at: "", boarding_group: "", gate: "B22" }
+            ]
+          responses:
+            "200":
+              description: List of check-ins
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Checkin'
+                  example:
+                    - booking_id: "BK-100201"
+                      passenger_name: "Elena Rodriguez"
+                      flight_id: "TK-1042"
+                      route: "JFK → CDG"
+                      seat: "4A"
+                      status: "checked-in"
+                      checked_in_at: "2026-03-14T18:00:00Z"
+                      boarding_group: "1"
+                      gate: "B22"
+                    - booking_id: "BK-100203"
+                      passenger_name: "Aisha Patel"
+                      flight_id: "TK-0553"
+                      route: "LAX → HND"
+                      seat: "14C"
+                      status: "checked-in"
+                      checked_in_at: "2026-03-14T20:30:00Z"
+                      boarding_group: "2"
+                      gate: "G08"
+                    - booking_id: "BK-100205"
+                      passenger_name: "Sophie Laurent"
+                      flight_id: "TK-1590"
+                      route: "FRA → JFK"
+                      seat: "2K"
+                      status: "checked-in"
+                      checked_in_at: "2026-03-14T22:00:00Z"
+                      boarding_group: "1"
+                      gate: "D05"
+                    - booking_id: "BK-100202"
+                      passenger_name: "James Chen"
+                      flight_id: "TK-2187"
+                      route: "CDG → DXB"
+                      seat: ""
+                      status: "not-checked-in"
+                      checked_in_at: ""
+                      boarding_group: ""
+                      gate: "A14"
+        post:
+          summary: Check in a passenger
+          description: Perform online check-in for a booking
+          operationId: performCheckin
+          tags: [checkin]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/CheckinRequest'
+                example:
+                  booking_id: "BK-100202"
+                  seat_preference: "window"
+          responses:
+            "201":
+              description: Check-in successful
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Checkin'
+                  example:
+                    booking_id: "BK-100202"
+                    passenger_name: "James Chen"
+                    flight_id: "TK-2187"
+                    route: "CDG → DXB"
+                    seat: "22A"
+                    status: "checked-in"
+                    checked_in_at: "2026-03-15T08:00:00Z"
+                    boarding_group: "3"
+                    gate: "A14"
+      /{{ $version }}/checkin/{bookingId}:
+        get:
+          summary: Get check-in status
+          operationId: getCheckinStatus
+          tags: [checkin]
+          parameters:
+            - name: bookingId
+              in: path
+              required: true
+              schema:
+                type: string
+                example: "BK-100201"
+          responses:
+            "200":
+              description: Check-in details
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Checkin'
+            "404":
+              description: Booking not found
+        delete:
+          summary: Cancel check-in record
+          operationId: cancelCheckin
+          tags: [checkin]
+          parameters:
+            - name: bookingId
+              in: path
+              required: true
+              schema:
+                type: string
+              example: "BK-100201"
+          responses:
+            "200":
+              description: Check-in cancelled
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+            "404":
+              description: Booking not found
+      /{{ $version }}/checkin/{bookingId}/boarding-pass:
+        get:
+          summary: Get boarding pass
+          description: Generate a boarding pass for a checked-in passenger
+          operationId: getBoardingPass
+          tags: [boarding]
+          parameters:
+            - name: bookingId
+              in: path
+              required: true
+              schema:
+                type: string
+                example: "BK-100201"
+          responses:
+            "200":
+              description: Boarding pass
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/BoardingPass'
+                  example:
+                    booking_id: "BK-100201"
+                    passenger_name: "Elena Rodriguez"
+                    flight_number: "TK1042"
+                    route: "JFK → CDG"
+                    date: "2026-03-15"
+                    departure_time: "08:00"
+                    gate: "B22"
+                    terminal: "1"
+                    seat: "4A"
+                    boarding_group: "1"
+                    boarding_time: "07:20"
+                    barcode: "BPTK1042RODRIGUEZ4A20260315"
+                    status: "ready"
+            "404":
+              description: Not checked in
+    components:
+      schemas:
+        Checkin:
+          type: object
+          properties:
+            booking_id:
+              type: string
+              example: "BK-100201"
+            passenger_name:
+              type: string
+              example: "Elena Rodriguez"
+            flight_id:
+              type: string
+              example: "TK-1042"
+            route:
+              type: string
+              example: "JFK → CDG"
+            seat:
+              type: string
+              example: "4A"
+            status:
+              type: string
+              enum: [checked-in, not-checked-in, boarding, boarded]
+              example: "checked-in"
+            checked_in_at:
+              type: string
+              format: date-time
+            boarding_group:
+              type: string
+              example: "1"
+            gate:
+              type: string
+              example: "B22"
+        CheckinRequest:
+          type: object
+          required: [booking_id]
+          properties:
+            booking_id:
+              type: string
+            seat_preference:
+              type: string
+              enum: [window, aisle, middle, any]
+        BoardingPass:
+          type: object
+          properties:
+            booking_id:
+              type: string
+            passenger_name:
+              type: string
+            flight_number:
+              type: string
+            route:
+              type: string
+            date:
+              type: string
+            departure_time:
+              type: string
+            gate:
+              type: string
+            terminal:
+              type: string
+            seat:
+              type: string
+            boarding_group:
+              type: string
+            boarding_time:
+              type: string
+            barcode:
+              type: string
+            status:
+              type: string
+
+{{- end }}{{/* range versions */}}
+
+{{ include "airlines.flaskService" (dict "root" . "name" "checkin" "versions" (list "v1" "v2")) }}
+
+{{- end }}{{/* $isDeploy */}}

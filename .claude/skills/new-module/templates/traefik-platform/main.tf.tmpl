@@ -1,0 +1,17 @@
+# {{NAME}} — {{PURPOSE}}
+#
+# Traefik on {{PLATFORM}}. Composes from traefik/shared — never duplicate
+# config logic here.
+
+module "shared" {
+  source = "../shared"
+
+  enable_api_gateway    = var.enable_api_gateway
+  enable_ai_gateway     = var.enable_ai_gateway
+  enable_mcp_gateway    = var.enable_mcp_gateway
+  enable_api_management = var.enable_api_management
+  # TODO(new-module): pass through other feature flags the platform supports.
+}
+
+# TODO(new-module): add the platform-specific deployment of Traefik using
+# values from module.shared (e.g. helm_release with module.shared.helm_values_yaml).

@@ -1,0 +1,7 @@
+# chart-testing config for this chart.
+# Overrides apply on top of /helm/ct.yaml at the repo root.
+remote: origin
+target-branch: main
+chart-dirs:
+  - helm
+helm-extra-args: --timeout 600s

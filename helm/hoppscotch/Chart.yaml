@@ -1,0 +1,6 @@
+apiVersion: v2
+name: hoppscotch
+description: Self-hosted Hoppscotch with multi-collection nginx serving
+type: application
+version: 3.2.0
+appVersion: "2026.2.0"

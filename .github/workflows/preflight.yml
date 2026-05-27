@@ -1,27 +1,44 @@
-name: Preflight
+name: preflight
+
+# Fast pre-deploy gate — fmt-check + tflint across every Terraform leaf module.
+# Runs on every PR and every push to main. No cloud credentials, no terraform
+# init/plan/apply. Designed to fail fast before the heavier `ci.yml` runs.
 
 on:
-  push:
-    paths:
-      - "**.tf"
   pull_request:
+    branches: [main]
     paths:
-      - "**.tf"
-  workflow_dispatch:
+      - "terraform/**"
+      - ".tflint.hcl"
+      - ".github/workflows/preflight.yml"
+      - "Makefile"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: preflight-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   preflight:
+    name: terraform fmt + tflint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: latest
+          terraform_version: "1.9.5"
 
       - uses: terraform-linters/setup-tflint@v4
         with:
           tflint_version: latest
 
-      - name: preflight
+      - name: make preflight
         run: make preflight

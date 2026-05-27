@@ -1,0 +1,169 @@
+name: helm-ci
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "helm/**"
+      - ".github/workflows/helm-ci.yml"
+      - "helm/ct.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "helm/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: helm-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HELM_VERSION: "v3.16.2"
+  KUBECONFORM_VERSION: "v0.6.7"
+  CT_VERSION: "v3.11.0"
+  KIND_VERSION: "v0.24.0"
+  KIND_K8S_VERSION: "v1.30.4"
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Static: helm lint --strict + kubeconform on rendered manifests
+  # --------------------------------------------------------------------------
+  lint:
+    name: helm lint + kubeconform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION} }
+
+      - name: Install kubeconform
+        run: |
+          curl -sSL -o /tmp/kc.tgz https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
+          tar -xzf /tmp/kc.tgz -C /tmp
+          sudo mv /tmp/kubeconform /usr/local/bin/
+
+      - name: helm dep update (so file:// subcharts resolve)
+        run: |
+          set -euo pipefail
+          for c in helm/*/; do
+            if grep -q '^dependencies:' "${c}Chart.yaml" 2>/dev/null; then
+              echo "::group::helm dep update $c"
+              helm dep update "$c"
+              echo "::endgroup::"
+            fi
+          done
+
+      - name: helm lint --strict per chart
+        run: |
+          set -euo pipefail
+          fail=0
+          for c in helm/*/; do
+            echo "::group::helm lint $c"
+            helm lint --strict "$c" || fail=1
+            echo "::endgroup::"
+          done
+          exit $fail
+
+      - name: helm template | kubeconform per chart
+        run: |
+          set -euo pipefail
+          fail=0
+          for c in helm/*/; do
+            echo "::group::kubeconform $c"
+            helm template release-name "$c" 2>/dev/null \
+              | kubeconform -strict -summary \
+                  -skip CustomResourceDefinition,IngressRoute,Middleware,ServersTransport,Keycloak,KeycloakRealmImport,Uplink \
+              || fail=1
+            echo "::endgroup::"
+          done
+          exit $fail
+
+  # --------------------------------------------------------------------------
+  # chart-testing: ct lint (full validation per chart)
+  # --------------------------------------------------------------------------
+  ct-lint:
+    name: ct lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION} }
+
+      - uses: helm/chart-testing-action@v2.6.1
+        with:
+          version: ${{ env.CT_VERSION} }
+
+      - name: ct list-changed
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --config helm/ct.yaml --target-branch main || true)
+          echo "changed<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$changed" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          if [ -n "$changed" ]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: ct lint (all charts)
+        if: ${{ github.event_name == 'push' || steps.list-changed.outputs.any == 'true' }}
+        run: ct lint --config helm/ct.yaml --target-branch main
+
+  # --------------------------------------------------------------------------
+  # Install: ct install on a kind cluster (only for charts that changed)
+  # --------------------------------------------------------------------------
+  ct-install:
+    name: ct install (kind)
+    runs-on: ubuntu-latest
+    needs: ct-lint
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION} }
+
+      - uses: helm/chart-testing-action@v2.6.1
+        with:
+          version: ${{ env.CT_VERSION} }
+
+      - name: ct list-changed
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --config helm/ct.yaml --target-branch main || true)
+          echo "changed<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$changed" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          if [ -n "$changed" ]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create kind cluster
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        uses: helm/kind-action@v1.10.0
+        with:
+          version: ${{ env.KIND_VERSION }}
+          node_image: kindest/node:${{ env.KIND_K8S_VERSION }}
+          cluster_name: ct-install
+
+      - name: Install Traefik CRDs (charts assume Traefik is present)
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/traefikio_ingressroutes.yaml 2>/dev/null || true
+          kubectl apply -f https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/traefikio_middlewares.yaml 2>/dev/null || true
+
+      - name: ct install
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        run: ct install --config helm/ct.yaml --target-branch main

@@ -26,32 +26,44 @@ Read the file at the given path before proceeding. If the file does not exist or
 
 ## Step 2 — Map to modules
 
-Read MODULE_CATALOG.md, then map every technical signal:
+Before mapping, ground yourself in the current module set:
+
+- Run `find terraform -name versions.tf -not -path '*/.terraform/*' | xargs dirname | sort` (TF) and `find helm -name Chart.yaml -maxdepth 2 | xargs dirname | sort` (Helm) to list every leaf module that actually exists.
+- Skim [`/CLAUDE.md`](../../CLAUDE.md) for section ownership rules — what belongs in `terraform/ai/` vs `terraform/tools/` vs `terraform/traefik/` etc.
+
+Then map every technical signal in the prospect input to a module that you have confirmed exists. The table below is a starting heuristic — verify each match by reading the module's `variables.tf`:
 
 | Signal in text | Module |
 |---|---|
-| "AWS", "EKS", "Amazon" | compute/aws/eks + compute/aws/vpc |
-| "Azure", "AKS", "Microsoft" | compute/azure/aks |
-| "GCP", "GKE", "Google Cloud" | compute/gcp/gke |
-| "on-prem", "no cloud", "local" | compute/suse/k3d |
-| "Nutanix", "NKP" | compute/nutanix/nkp |
-| (always) | traefik/shared — include in every PoC |
-| "AI", "LLM", "chatbot", "copilot" | ai/ollama/k8s (CPU) or ai/LLMs/runpod (GPU) |
-| "AI gateway", "MCP", "model routing" | ai/ai-gateway-dependencies/k8s |
-| "vector search", "RAG", "embeddings" | ai/milvus/k8s or ai/weaviate/k8s |
-| "SSO", "OIDC", "Azure AD", "EntraID" | security/entraid |
-| "SSO", "OIDC", "Cognito" | security/cognito |
-| "SSO", "OIDC", "Keycloak", "generic" | security/keycloak/k8s |
-| "monitoring", "observability", "Grafana" | observability/grafana-stack/k8s |
-| "tracing", "OpenTelemetry" | observability/opentelemetry/k8s + grafana-tempo/k8s |
-| "AI observability", "LLM tracing" | observability/langfuse/k8s |
-| "database", "PostgreSQL" | tools/postgresql/k8s |
-| "cache", "Redis" | tools/redis/k8s |
-| "DNS", "Cloudflare" | tools/cloudflare |
-| "load test", "k6" | tools/k6-operator/k8s |
-| "GitOps", "ArgoCD" | tools/argocd/k8s |
-| "data masking", "PII", "Presidio" | ai/presidio/k8s |
-| "demo app", "sample app" | apps/whoami/k8s or apps/httpbin/k8s |
+| "AWS", "EKS", "Amazon" | terraform/compute/aws/eks + terraform/compute/aws/vpc |
+| "Azure", "AKS", "Microsoft" | terraform/compute/azure/aks |
+| "GCP", "GKE", "Google Cloud" | terraform/compute/gcp/gke |
+| "on-prem", "no cloud", "local" | terraform/compute/suse/k3d |
+| "Nutanix", "NKP" | terraform/compute/nutanix/nkp |
+| (always) | terraform/traefik/shared — include in every PoC |
+| "AI", "LLM", "chatbot", "copilot" | terraform/ai/ollama/k8s (CPU) or terraform/ai/LLMs/runpod (GPU) |
+| "AI gateway", "MCP", "model routing" | terraform/ai/ai-gateway-dependencies/k8s |
+| "vector search", "RAG", "embeddings" | terraform/ai/milvus/k8s or terraform/ai/weaviate/k8s |
+| "SSO", "OIDC", "Azure AD", "EntraID" | terraform/security/entraid |
+| "SSO", "OIDC", "Cognito" | terraform/security/cognito |
+| "SSO", "OIDC", "Keycloak", "generic" | terraform/security/keycloak/k8s |
+| "monitoring", "observability", "Grafana" | terraform/observability/grafana-stack/k8s |
+| "tracing", "OpenTelemetry" | terraform/observability/opentelemetry/k8s + terraform/observability/grafana-tempo/k8s |
+| "AI observability", "LLM tracing" | terraform/observability/langfuse/k8s |
+| "database", "PostgreSQL" | terraform/tools/postgresql/k8s |
+| "cache", "Redis" | terraform/tools/redis/k8s |
+| "DNS", "Cloudflare" | terraform/tools/cloudflare |
+| "load test", "k6" | terraform/tools/k6-operator/k8s |
+| "GitOps", "ArgoCD" | terraform/tools/argocd/k8s |
+| "data masking", "PII", "Presidio" | terraform/ai/presidio/k8s |
+| "demo app", "sample app" | terraform/apps/whoami/k8s or terraform/apps/httpbin/k8s |
+| "Traefik AI gateway", "AI middleware", "PII guard", "topic control", "content safety" | helm/ai-gateway |
+| "airlines demo", "full demo", "scalar mock", "API management demo" | helm/airlines (umbrella — pulls keycloak + hoppscotch + ai-gateway as subcharts) |
+| "API testing UI", "Hoppscotch", "Postman alternative" | helm/hoppscotch |
+| "self-hosted Keycloak", "in-cluster IdP", "OIDC realm with seeded users" | helm/keycloak |
+| "PII detection backend", "Presidio analyzer" | helm/presidio |
+| "embedding server", "RAG embeddings", "Infinity", "nomic-embed" | helm/embeddings |
+| "wildcard DNS for demos", "*.demo.X domain", "Cloudflare auto record" | helm/dns-traefiker |
 
 ## Step 3 — Identify gaps
 
@@ -72,9 +84,9 @@ Constraints: <list or "none identified">
 Timeline:    <urgency or "not mentioned">
 
 Modules selected:
-  ✅ compute/<path>        — <reason from text>
-  ✅ traefik/shared        — always included
-  ✅ security/<path>       — <reason from text>
+  ✅ terraform/compute/<path>        — <reason from text>
+  ✅ terraform/traefik/shared        — always included
+  ✅ terraform/security/<path>       — <reason from text>
   ✅ <module>              — <reason from text>
 
 Gaps (not covered by available modules):
@@ -87,7 +99,7 @@ Questions before building:
 ## Rules
 
 - Never invent a cloud provider — if not mentioned, ask SA before defaulting
-- Always include `traefik/shared` — it's the point of every demo
+- Always include `terraform/traefik/shared` — it's the point of every demo
 - If transcript mentions multiple clouds, pick the one with strongest signal and flag ambiguity
 - If no AI components mentioned, do not add AI modules — match what was asked
 - Keep gaps list honest — do not map requirements to modules that don't fit

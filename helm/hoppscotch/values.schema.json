@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "hoppscotch chart values",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "subdomain": {
+      "type": "string",
+      "default": "test"
+    },
+    "host": {
+      "type": "string",
+      "default": ""
+    },
+    "image": {
+      "type": "string",
+      "default": "hoppscotch/hoppscotch:2026.2.0"
+    },
+    "jwtSecret": {
+      "type": "string",
+      "default": "change-me-32-chars-long-exactly!"
+    },
+    "sessionSecret": {
+      "type": "string",
+      "default": "change-me-32-chars-long-exactly!"
+    },
+    "dataEncryptionKey": {
+      "type": "string",
+      "default": "change-me-32-chars-long-exactly!"
+    },
+    "entryPoints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "default": "websecure"
+      }
+    },
+    "collections": {
+      "type": "array",
+      "items": {}
+    }
+  },
+  "additionalProperties": false
+}

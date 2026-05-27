@@ -1,0 +1,4 @@
+cluster_name      = "oidc-portal-demo"
+region            = "us-east-1"
+domain            = "portal-demo.example.com"
+traefik_hub_token = "REPLACE_ME"

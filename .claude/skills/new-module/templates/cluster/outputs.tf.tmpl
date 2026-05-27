@@ -1,0 +1,35 @@
+# Standard cluster output set. Every managed-k8s module in this repo exposes
+# these five so downstream helm/kubernetes providers configure uniformly.
+
+output "host" {
+  description = "Kubernetes API server endpoint."
+  # TODO(new-module): wire to cluster resource.
+  value = ""
+}
+
+output "cluster_ca_certificate" {
+  description = "Cluster CA certificate (base64-decoded PEM)."
+  sensitive   = true
+  # TODO(new-module): wire to cluster resource.
+  value = ""
+}
+
+output "token" {
+  description = "Authentication token for the kubernetes/helm providers."
+  sensitive   = true
+  # TODO(new-module): wire to cluster resource (or use cloud-specific auth data source).
+  value = ""
+}
+
+output "kubeconfig" {
+  description = "Full kubeconfig as a YAML string."
+  sensitive   = true
+  # TODO(new-module): assemble from the three values above.
+  value = ""
+}
+
+output "cluster_id" {
+  description = "Cloud-specific cluster identifier."
+  # TODO(new-module): wire to cluster resource.
+  value = ""
+}

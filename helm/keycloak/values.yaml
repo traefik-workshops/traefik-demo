@@ -1,0 +1,84 @@
+# Enable/disable Keycloak deployment
+enabled: true
+
+# Keycloak operator version (must match available releases from keycloak-k8s-resources)
+operatorVersion: "26.5.2"
+
+# Namespace for Keycloak deployment
+namespace: keycloak
+
+# PostgreSQL configuration
+postgres:
+  name: keycloak-postgres
+  database: keycloak-db
+  password: topsecretpassword
+  # Optional: use external postgresql by setting host and port
+  # host: ""
+  # port: 5432
+
+# Keycloak instance configuration
+keycloak:
+  instances: 1
+  adminUser: traefik
+  adminPassword: topsecretpassword
+  httpEnabled: true
+  hostnameStrict: false
+  proxyHeaders: xforwarded
+
+# Realm configuration
+realm:
+  enabled: true
+  name: traefik
+  accessTokenLifespan: 2419200 # 28 days in seconds
+
+  # Simple users list (will be transformed to have email@traefik.io and belong to {username}s group)
+  users: []
+  # Example:
+  # users:
+  #   - admin
+  #   - user
+
+  # Extra simple users - appended to users (populated by parent chart, empty for standalone use)
+  extraUsers: []
+
+  # Advanced users with detailed configuration
+  advancedUsers: []
+  # Example:
+  # advancedUsers:
+  #   - username: user
+  #     email: user@traefik.io
+  #     password: topsecretpassword
+  #     groups: [platform]
+  #     claims: {}
+
+  # Extra advanced users - appended to advancedUsers (populated by parent chart, empty for standalone use)
+  extraAdvancedUsers: []
+
+  # OIDC client secret for the traefik client
+  clientSecret: NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0
+
+  # Redirect URIs for OIDC authentication
+  redirectUris: []
+  # Example:
+  # redirectUris:
+  #   - https://app.example.com
+
+  # Extra redirect URIs - appended to redirectUris (populated by parent chart, empty for standalone use)
+  extraRedirectUris: []
+
+# Validation hook configuration
+validation:
+  image: bitnami/kubectl:latest
+
+# External ingress configuration
+ingress:
+  enabled: true
+  domain: cloud
+  entrypoint: traefik
+  # Emit Traefik observability signals (access logs, metrics, traces) for the
+  # Keycloak ingress router. Set to false to add the three
+  # traefik.ingress.kubernetes.io/router.observability.*: "false" annotations.
+  observability: true
+  # Additional metadata annotations merged onto the Ingress. Useful for custom
+  # router options beyond the three observability toggles.
+  annotations: {}

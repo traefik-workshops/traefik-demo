@@ -1,0 +1,25 @@
+{{- if .Values.collections }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-hoppscotch-nginx-conf
+  labels:
+    {{- include "hoppscotch.labels" . | nindent 4 }}
+data:
+  default.conf: |
+    server {
+      listen 8081;
+      root /data;
+      add_header Access-Control-Allow-Origin *;
+      add_header Access-Control-Allow-Methods "GET, OPTIONS";
+      add_header Access-Control-Allow-Headers "*";
+      {{- range .Values.collections }}
+      location = /{{ .name }}/collection.json {
+        try_files /{{ .name }}/collection.json =404;
+      }
+      {{- end }}
+      location / {
+        return 404;
+      }
+    }
+{{- end }}

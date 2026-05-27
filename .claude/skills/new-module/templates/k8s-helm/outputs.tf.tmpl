@@ -1,0 +1,10 @@
+# Helm-only modules can legitimately have no outputs — the Helm provider exposes
+# release status via helm_release.this.status. If the module surfaces an
+# endpoint, dashboard URL, or credential, declare it here and mark secrets sensitive.
+#
+# Example:
+#
+# output "endpoint" {
+#   value       = "http://${var.name}.${var.namespace}.svc.cluster.local"
+#   description = "In-cluster service URL for {{NAME}}."
+# }

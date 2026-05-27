@@ -1,0 +1,457 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isDeploy := or $isParent (include "airlines.mc.isChildDeploy" (dict "root" . "group" "flightOps")) -}}
+{{- if $isDeploy }}
+{{- range $version := list "v1" "v2" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flights-openapi-{{ $version }}
+  labels:
+    {{- include "airlines.labels" $ | nindent 4 }}
+    component: flights
+    group: flight-ops
+    version: {{ $version }}
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 2.0.0
+      title: Flights API
+      description: |
+        Traefik Airlines Flight Operations — schedules, routes, status, and search.
+        This is the core data source that all other airline services depend on.
+      contact:
+        name: Flight Operations Team
+        email: flight-ops@traefik-airlines.io
+    servers:
+      - url: {{ include "airlines.flights.apiUrl" $ }}
+        description: Flights API {{ $version }}
+    tags:
+      - name: flights
+        description: Flight schedule management
+      - name: search
+        description: Flight search and discovery
+    paths:
+      /{{ $version }}/flights:
+        get:
+          summary: List all flights
+          description: Returns the current flight schedule with optional filters
+          operationId: listFlights
+          tags: [flights]
+          x-handler: |
+            return [
+              { flight_id: "TK-1042", flight_number: "TK1042", origin: "JFK", destination: "CDG", departure_time: "2026-03-15T08:00:00Z", arrival_time: "2026-03-15T19:30:00Z", status: "scheduled", aircraft: "A350-900", gate: "B22", terminal: "1", seats_available: 142, base_fare: 849, currency: "USD" },
+              { flight_id: "TK-2187", flight_number: "TK2187", origin: "CDG", destination: "DXB", departure_time: "2026-03-15T14:30:00Z", arrival_time: "2026-03-15T23:45:00Z", status: "scheduled", aircraft: "B787-9", gate: "A14", terminal: "2", seats_available: 68, base_fare: 1120, currency: "USD" },
+              { flight_id: "TK-0553", flight_number: "TK0553", origin: "LAX", destination: "HND", departure_time: "2026-03-15T11:15:00Z", arrival_time: "2026-03-16T16:30:00Z", status: "boarding", aircraft: "A350-900", gate: "G08", terminal: "B", seats_available: 12, base_fare: 1450, currency: "USD" },
+              { flight_id: "TK-0871", flight_number: "TK0871", origin: "SIN", destination: "SYD", departure_time: "2026-03-15T06:00:00Z", arrival_time: "2026-03-15T16:20:00Z", status: "delayed", aircraft: "B737-800", gate: "C31", terminal: "3", seats_available: 34, base_fare: 580, currency: "USD" },
+              { flight_id: "TK-1590", flight_number: "TK1590", origin: "FRA", destination: "JFK", departure_time: "2026-03-15T09:45:00Z", arrival_time: "2026-03-15T13:20:00Z", status: "scheduled", aircraft: "A320neo", gate: "D05", terminal: "1", seats_available: 87, base_fare: 695, currency: "USD" },
+              { flight_id: "TK-3321", flight_number: "TK3321", origin: "DXB", destination: "SIN", departure_time: "2026-03-14T23:30:00Z", arrival_time: "2026-03-15T12:45:00Z", status: "in-flight", aircraft: "B787-9", gate: "F12", terminal: "3", seats_available: 0, base_fare: 920, currency: "USD" },
+              { flight_id: "TK-0412", flight_number: "TK0412", origin: "AMS", destination: "LAX", departure_time: "2026-03-15T16:00:00Z", arrival_time: "2026-03-16T00:15:00Z", status: "cancelled", aircraft: "A350-900", gate: "", terminal: "", seats_available: 0, base_fare: 785, currency: "USD" },
+              { flight_id: "TK-2044", flight_number: "TK2044", origin: "HND", destination: "CDG", departure_time: "2026-03-15T22:00:00Z", arrival_time: "2026-03-16T05:30:00Z", status: "scheduled", aircraft: "B787-9", gate: "H02", terminal: "INT", seats_available: 95, base_fare: 1280, currency: "USD" },
+              { flight_id: "TK-4819", flight_number: "TK4819", origin: "ORD", destination: "LHR", departure_time: "2026-03-15T17:30:00Z", arrival_time: "2026-03-16T07:00:00Z", status: "scheduled", aircraft: "B777-300ER", gate: "K14", terminal: "5", seats_available: 56, base_fare: 1050, currency: "USD" },
+              { flight_id: "TK-0936", flight_number: "TK0936", origin: "SFO", destination: "NRT", departure_time: "2026-03-15T13:00:00Z", arrival_time: "2026-03-16T17:30:00Z", status: "boarding", aircraft: "A350-900", gate: "G22", terminal: "I", seats_available: 3, base_fare: 1380, currency: "USD" },
+              { flight_id: "TK-7744", flight_number: "TK7744", origin: "MIA", destination: "GRU", departure_time: "2026-03-15T21:00:00Z", arrival_time: "2026-03-16T07:15:00Z", status: "scheduled", aircraft: "B787-9", gate: "J09", terminal: "N", seats_available: 110, base_fare: 720, currency: "USD" },
+              { flight_id: "TK-5201", flight_number: "TK5201", origin: "LHR", destination: "SIN", departure_time: "2026-03-15T20:45:00Z", arrival_time: "2026-03-16T16:00:00Z", status: "delayed", aircraft: "A380", gate: "A01", terminal: "5", seats_available: 45, base_fare: 1560, currency: "USD" }
+            ]
+          parameters:
+            - name: status
+              in: query
+              description: Filter by flight status
+              schema:
+                type: string
+                enum: [scheduled, boarding, departed, in-flight, landed, cancelled, delayed]
+            - name: origin
+              in: query
+              description: Filter by origin airport (IATA code)
+              schema:
+                type: string
+                pattern: '^[A-Z]{3}$'
+            - name: destination
+              in: query
+              description: Filter by destination airport (IATA code)
+              schema:
+                type: string
+                pattern: '^[A-Z]{3}$'
+          responses:
+            "200":
+              description: Flight schedule
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Flight'
+                  example:
+                    - flight_id: "TK-1042"
+                      flight_number: "TK1042"
+                      origin: "JFK"
+                      destination: "CDG"
+                      departure_time: "2026-03-15T08:00:00Z"
+                      arrival_time: "2026-03-15T19:30:00Z"
+                      status: "scheduled"
+                      aircraft: "A350-900"
+                      gate: "B22"
+                      terminal: "1"
+                      seats_available: 142
+                      base_fare: 849.00
+                      currency: "USD"
+                    - flight_id: "TK-2187"
+                      flight_number: "TK2187"
+                      origin: "CDG"
+                      destination: "DXB"
+                      departure_time: "2026-03-15T14:30:00Z"
+                      arrival_time: "2026-03-15T23:45:00Z"
+                      status: "scheduled"
+                      aircraft: "B787-9"
+                      gate: "A14"
+                      terminal: "2"
+                      seats_available: 68
+                      base_fare: 1120.00
+                      currency: "USD"
+                    - flight_id: "TK-0553"
+                      flight_number: "TK0553"
+                      origin: "LAX"
+                      destination: "HND"
+                      departure_time: "2026-03-15T11:15:00Z"
+                      arrival_time: "2026-03-16T16:30:00Z"
+                      status: "boarding"
+                      aircraft: "A350-900"
+                      gate: "G08"
+                      terminal: "B"
+                      seats_available: 12
+                      base_fare: 1450.00
+                      currency: "USD"
+                    - flight_id: "TK-0871"
+                      flight_number: "TK0871"
+                      origin: "SIN"
+                      destination: "SYD"
+                      departure_time: "2026-03-15T06:00:00Z"
+                      arrival_time: "2026-03-15T16:20:00Z"
+                      status: "delayed"
+                      aircraft: "B737-800"
+                      gate: "C31"
+                      terminal: "3"
+                      seats_available: 34
+                      base_fare: 580.00
+                      currency: "USD"
+                    - flight_id: "TK-1590"
+                      flight_number: "TK1590"
+                      origin: "FRA"
+                      destination: "JFK"
+                      departure_time: "2026-03-15T09:45:00Z"
+                      arrival_time: "2026-03-15T13:20:00Z"
+                      status: "scheduled"
+                      aircraft: "A320neo"
+                      gate: "D05"
+                      terminal: "1"
+                      seats_available: 87
+                      base_fare: 695.00
+                      currency: "USD"
+                    - flight_id: "TK-3321"
+                      flight_number: "TK3321"
+                      origin: "DXB"
+                      destination: "SIN"
+                      departure_time: "2026-03-14T23:30:00Z"
+                      arrival_time: "2026-03-15T12:45:00Z"
+                      status: "in-flight"
+                      aircraft: "B787-9"
+                      gate: "F12"
+                      terminal: "3"
+                      seats_available: 0
+                      base_fare: 920.00
+                      currency: "USD"
+                    - flight_id: "TK-0412"
+                      flight_number: "TK0412"
+                      origin: "AMS"
+                      destination: "LAX"
+                      departure_time: "2026-03-15T16:00:00Z"
+                      arrival_time: "2026-03-16T00:15:00Z"
+                      status: "cancelled"
+                      aircraft: "A350-900"
+                      gate: ""
+                      terminal: ""
+                      seats_available: 0
+                      base_fare: 785.00
+                      currency: "USD"
+                    - flight_id: "TK-2044"
+                      flight_number: "TK2044"
+                      origin: "HND"
+                      destination: "CDG"
+                      departure_time: "2026-03-15T22:00:00Z"
+                      arrival_time: "2026-03-16T05:30:00Z"
+                      status: "scheduled"
+                      aircraft: "B787-9"
+                      gate: "H02"
+                      terminal: "INT"
+                      seats_available: 95
+                      base_fare: 1280.00
+                      currency: "USD"
+        post:
+          summary: Create a new flight
+          description: Add a flight to the schedule
+          operationId: createFlight
+          tags: [flights]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/FlightInput'
+                example:
+                  flight_number: "TK4401"
+                  origin: "CDG"
+                  destination: "SFO"
+                  departure_time: "2026-04-01T10:00:00Z"
+                  arrival_time: "2026-04-01T13:30:00Z"
+                  aircraft: "A350-900"
+                  gate: "E11"
+                  terminal: "2E"
+                  seats_available: 280
+                  base_fare: 960.00
+                  currency: "USD"
+          x-handler: |
+            const body = request.body || {};
+            return {
+              flight_id: body.flight_number || "TK-9001",
+              flight_number: body.flight_number || "TK-9001",
+              origin: body.origin || "SFO",
+              destination: body.destination || "NRT",
+              departure_time: body.departure_time || "2026-06-01T10:00:00Z",
+              arrival_time: body.arrival_time || "2026-06-01T18:00:00Z",
+              status: body.status || "scheduled",
+              aircraft: body.aircraft || "A350-900",
+              gate: body.gate || "",
+              terminal: body.terminal || "",
+              seats_available: body.seats_available || 200,
+              base_fare: body.base_fare || 1380.00,
+              currency: body.currency || "USD"
+            }
+          responses:
+            "201":
+              description: Flight created
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Flight'
+                  example:
+                    flight_id: "TK-9001"
+                    flight_number: "TK-9001"
+                    origin: "SFO"
+                    destination: "NRT"
+                    departure_time: "2026-06-01T10:00:00Z"
+                    arrival_time: "2026-06-01T18:00:00Z"
+                    status: "scheduled"
+                    aircraft: "A350-900"
+                    gate: ""
+                    terminal: ""
+                    seats_available: 200
+                    base_fare: 1380.00
+                    currency: "USD"
+      /{{ $version }}/flights/search:
+        get:
+          summary: Search flights
+          description: Search for flights between two airports on a specific date
+          operationId: searchFlights
+          tags: [search]
+          parameters:
+            - name: origin
+              in: query
+              required: true
+              schema:
+                type: string
+                pattern: '^[A-Z]{3}$'
+                example: "JFK"
+            - name: destination
+              in: query
+              required: true
+              schema:
+                type: string
+                pattern: '^[A-Z]{3}$'
+                example: "CDG"
+            - name: date
+              in: query
+              description: Travel date (YYYY-MM-DD)
+              schema:
+                type: string
+                format: date
+                example: "2026-03-15"
+          responses:
+            "200":
+              description: Matching flights
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Flight'
+                  example:
+                    - flight_id: "TK-1042"
+                      flight_number: "TK1042"
+                      origin: "JFK"
+                      destination: "CDG"
+                      departure_time: "2026-03-15T08:00:00Z"
+                      arrival_time: "2026-03-15T19:30:00Z"
+                      status: "scheduled"
+                      aircraft: "A350-900"
+                      gate: "B22"
+                      terminal: "1"
+                      seats_available: 142
+                      base_fare: 849.00
+                      currency: "USD"
+      /{{ $version }}/flights/{flightId}:
+        get:
+          summary: Get flight details
+          operationId: getFlightById
+          tags: [flights]
+          parameters:
+            - name: flightId
+              in: path
+              required: true
+              schema:
+                type: string
+                example: "TK-1042"
+          responses:
+            "200":
+              description: Flight details
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Flight'
+                  example:
+                    flight_id: "TK-1042"
+                    flight_number: "TK1042"
+                    origin: "JFK"
+                    destination: "CDG"
+                    departure_time: "2026-03-15T08:00:00Z"
+                    arrival_time: "2026-03-15T19:30:00Z"
+                    status: "scheduled"
+                    aircraft: "A350-900"
+                    gate: "B22"
+                    terminal: "1"
+                    seats_available: 142
+                    base_fare: 849.00
+                    currency: "USD"
+            "404":
+              description: Flight not found
+        put:
+          summary: Update a flight
+          operationId: updateFlight
+          tags: [flights]
+          parameters:
+            - name: flightId
+              in: path
+              required: true
+              schema:
+                type: string
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/FlightInput'
+          responses:
+            "200":
+              description: Flight updated
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Flight'
+        delete:
+          summary: Cancel a flight
+          operationId: deleteFlight
+          tags: [flights]
+          parameters:
+            - name: flightId
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            "204":
+              description: Flight cancelled
+    components:
+      schemas:
+        Flight:
+          type: object
+          properties:
+            flight_id:
+              type: string
+              description: Unique flight identifier
+              example: "TK-1042"
+            flight_number:
+              type: string
+              description: IATA flight number
+              example: "TK1042"
+            origin:
+              type: string
+              description: Origin airport IATA code
+              example: "JFK"
+            destination:
+              type: string
+              description: Destination airport IATA code
+              example: "CDG"
+            departure_time:
+              type: string
+              format: date-time
+              example: "2026-03-15T08:00:00Z"
+            arrival_time:
+              type: string
+              format: date-time
+              example: "2026-03-15T19:30:00Z"
+            status:
+              type: string
+              enum: [scheduled, boarding, departed, in-flight, landed, cancelled, delayed]
+              example: "scheduled"
+            aircraft:
+              type: string
+              example: "A350-900"
+            gate:
+              type: string
+              example: "B22"
+            terminal:
+              type: string
+              example: "1"
+            seats_available:
+              type: integer
+              example: 142
+            base_fare:
+              type: number
+              format: float
+              example: 849.00
+            currency:
+              type: string
+              example: "USD"
+        FlightInput:
+          type: object
+          required: [flight_number, origin, destination, departure_time, arrival_time, aircraft]
+          properties:
+            flight_number:
+              type: string
+            origin:
+              type: string
+            destination:
+              type: string
+            departure_time:
+              type: string
+              format: date-time
+            arrival_time:
+              type: string
+              format: date-time
+            aircraft:
+              type: string
+            gate:
+              type: string
+            terminal:
+              type: string
+            seats_available:
+              type: integer
+            base_fare:
+              type: number
+            currency:
+              type: string
+
+{{- end }}{{/* range versions */}}
+
+{{ include "airlines.flaskService" (dict "root" . "name" "flights" "versions" (list "v1" "v2")) }}
+
+{{- end }}{{/* $isDeploy */}}

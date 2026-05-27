@@ -1,0 +1,80 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    name: terraform fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+      - run: terraform fmt -recursive -check -diff
+
+  validate:
+    name: terraform validate
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+      - name: terraform init + validate per module
+        run: |
+          set -euo pipefail
+          # Find every directory containing .tf files directly (leaf modules).
+          mapfile -t mods < <(find . -name '*.tf' -not -path '*/.terraform/*' \
+            -exec dirname {} \; | sort -u)
+          fail=0
+          for d in "${mods[@]}"; do
+            echo "::group::validate $d"
+            (
+              cd "$d"
+              terraform init -backend=false -input=false -no-color > /dev/null
+              terraform validate -no-color
+            ) || fail=1
+            echo "::endgroup::"
+          done
+          exit "$fail"
+
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+      - name: tflint --init
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: tflint --recursive
+        run: tflint --recursive --config "$PWD/.tflint.hcl"
+
+  tfsec:
+    name: tfsec
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          additional_args: --config-file=.tfsec.yml --soft-fail=false

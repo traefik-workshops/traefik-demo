@@ -1,0 +1,16 @@
+{{NAME_HUMAN}} deployed!
+{{========}}===================
+
+Release:   {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+Service: {{ include "{{NAME}}.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+Next steps:
+
+  # Watch resources come up
+  kubectl get all -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+  # TODO(new-chart): add real URLs, credentials to rotate, and any post-install commands here.
+
+For more, see: {{ .Chart.Sources | first | default "<no source URL set>" }}

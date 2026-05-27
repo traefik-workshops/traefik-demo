@@ -1,0 +1,44 @@
+variable "name" {
+  type        = string
+  description = "Helm release name."
+  default     = "{{NAME}}"
+}
+
+variable "namespace" {
+  type        = string
+  description = "Namespace to install into."
+  default     = "{{NAME}}"
+}
+
+variable "create_namespace" {
+  type        = bool
+  description = "Create the namespace before installing. Set to false if the caller already manages it."
+  default     = true
+}
+
+variable "chart_repository" {
+  type        = string
+  description = "Helm chart repository URL."
+  # TODO(new-module): set this to the upstream chart repo.
+  default = ""
+}
+
+variable "chart_name" {
+  type        = string
+  description = "Helm chart name."
+  # TODO(new-module): set this to the chart name within the repository.
+  default = "{{NAME}}"
+}
+
+variable "chart_version" {
+  type        = string
+  description = "Helm chart version. Pin to a known-good version; bump deliberately."
+  # TODO(new-module): pin to a real chart version.
+  default = ""
+}
+
+variable "values" {
+  type        = any
+  description = "Additional Helm values, merged on top of the chart defaults."
+  default     = {}
+}

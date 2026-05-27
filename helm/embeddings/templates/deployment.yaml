@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "embeddings.fullname" . }}
+  labels:
+    {{- include "embeddings.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "embeddings.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "embeddings.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: embeddings
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - v2
+            - --model-id
+            - {{ .Values.model | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

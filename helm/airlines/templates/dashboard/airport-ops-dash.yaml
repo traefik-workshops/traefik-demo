@@ -1,0 +1,188 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isAirportOps := or $isParent (include "airlines.mc.isChildDeploy" (dict "root" . "group" "airportOps")) -}}
+{{- $isLocalAirportOps := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "airportOps") -}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if $isLocalAirportOps }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airport-ops-dash-nginx-conf
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: airport-ops-dash
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Airport Operations APIs
+        location /api/checkin/  { proxy_pass http://checkin-app:3000/;  proxy_set_header Host $host; }
+        location /api/baggage/  { proxy_pass http://baggage-app:3000/;  proxy_set_header Host $host; }
+        location /api/gates/    { proxy_pass http://gates-app:3000/;    proxy_set_header Host $host; }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airport-ops-dash-html
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: airport-ops-dash
+data:
+  index.html: |
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Traefik Airlines - Airport Operations</title>
+        <link rel="stylesheet" href="/assets/index.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <script>
+          window.AI_GATEWAY_ENABLED = {{ .Values.aiGateway.enabled | toString | lower }};
+          window.AI_GATEWAY_URL = "{{ .Values.aiGateway.url }}";
+          window.AI_GATEWAY_TOKEN = "{{ .Values.aiGateway.token }}";
+          window.MCP_SERVERS = {{ .Values.aiGateway.mcpServers | toJson }};
+          window.__DASHBOARD_ROUTE__ = "/airport-ops";
+        </script>
+        <script type="module" src="/assets/index.js"></script>
+      </head>
+      <body>
+        <div id="root"></div>
+      </body>
+    </html>
+
+{{ include "airlines.dashboardService" (dict "root" . "name" "airport-ops-dash") }}
+{{- end }}
+{{- if $isLocalAirportOps }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: airport-ops-dash-oidc
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: airport-ops-dash
+spec:
+  plugin:
+    oidc:
+      issuer: {{ include "airlines.oidc.issuerUrl" . }}
+      clientId: "urn:k8s:secret:oidc-credentials:clientId"
+      clientSecret: "urn:k8s:secret:oidc-credentials:clientSecret"
+      redirectUrl: https://airport-ops.{{ include "airlines.domain" . }}{{ include "airlines.portSuffix" . }}/callback
+      scopes:
+        - openid
+        - profile
+        - email
+        - group
+      claims: >-
+        Contains(`id_token.group`, `airport-ops`) ||
+        Contains(`id_token.group`, `admins`)
+      forwardHeaders:
+        X-User-Group: group
+        X-User-Email: email
+        X-User-Name: preferred_username
+      session:
+        expiry: 86400
+        refresh: true
+{{- end }}
+{{- $isRemoteAirportOps := include "airlines.mc.isRemoteGroup" (dict "root" . "group" "airportOps") -}}
+{{- $isChildAirportOps := include "airlines.mc.isChildDeploy" (dict "root" . "group" "airportOps") -}}
+{{/*
+  Parent IngressRoute — Host(...)-matched, on the public entrypoint.
+    - Local parent (single-cluster or local group): direct service to local
+      backend with the OIDC middleware applied here.
+    - Remote parent: service is the @multicluster TraefikService with an
+      addPrefix middleware so the child's PathPrefix(/airport-ops) match
+      catches it. OIDC middleware runs on the child (where it's defined).
+*/}}
+{{- if $isParent }}
+{{- if $isRemoteAirportOps }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: addprefix-airport-ops-dash
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: airport-ops-dash
+spec:
+  addPrefix:
+    prefix: /airport-ops
+{{- end }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airport-ops-dash-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: airport-ops-dash
+spec:
+  {{- include "airlines.mc.entryPoints" (dict "root" . "group" "airportOps") | nindent 2 }}
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.airportOpsDash.hostMatch" . }}
+      {{- if $isRemoteAirportOps }}
+      middlewares:
+        - name: addprefix-airport-ops-dash
+      services:
+        - kind: TraefikService
+          name: {{ index $mc.child.uplinkEntryPoints "airportOps" }}@multicluster
+      {{- else }}
+      middlewares:
+        - name: airport-ops-dash-oidc
+      services:
+        - name: airport-ops-dash
+          port: 80
+          passHostHeader: true
+      {{- end }}
+{{- end }}
+{{/*
+  Child IngressRoute — PathPrefix(/airport-ops)-matched, on the uplink.
+  Strips the prefix, runs OIDC, forwards to the local dashboard service.
+*/}}
+{{- if $isChildAirportOps }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: stripprefix-airport-ops-dash
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: airport-ops-dash
+spec:
+  stripPrefix:
+    prefixes:
+      - /airport-ops
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airport-ops-dash-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: airport-ops-dash
+  annotations:
+    hub.traefik.io/router.uplinks: {{ index $mc.child.uplinkEntryPoints "airportOps" | quote }}
+spec:
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/airport-ops`)
+      middlewares:
+        - name: stripprefix-airport-ops-dash
+        - name: airport-ops-dash-oidc
+      services:
+        - name: airport-ops-dash
+          port: 80
+          passHostHeader: true
+{{- end }}

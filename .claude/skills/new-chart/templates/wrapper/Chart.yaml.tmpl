@@ -1,0 +1,26 @@
+apiVersion: v2
+name: {{NAME}}
+description: {{PURPOSE}}
+type: application
+
+version: {{REPO_VERSION}}
+appVersion: "{{APP_VERSION}}"
+
+kubeVersion: ">= 1.27.0-0"
+
+maintainers:
+  - name: Traefik SA team
+    email: sa@traefik.io
+
+home: https://github.com/traefik-workshops/terraform-demo-modules/tree/main/helm/{{NAME}}
+
+keywords:
+  - traefik
+  - wrapper
+
+dependencies:
+  # TODO(new-chart): replace with the actual upstream chart you're wrapping.
+  - name: upstream-chart-name
+    version: 1.0.0
+    repository: "https://example.com/charts"
+    # condition: enabled    # uncomment to make optional

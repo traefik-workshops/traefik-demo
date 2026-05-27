@@ -1,0 +1,10 @@
+{
+  "Crew": {
+    "CR-001": {"crew_id": "CR-001", "name": "Captain Marcus Reid", "role": "captain", "rank": "Captain", "flight_id": "TK-1001", "license_number": "FAA-C-88219", "nationality": "American", "status": "active", "base": "JFK"},
+    "CR-002": {"crew_id": "CR-002", "name": "First Officer Yuki Sato", "role": "first_officer", "rank": "First Officer", "flight_id": "TK-1001", "license_number": "JCAB-FO-33471", "nationality": "Japanese", "status": "active", "base": "NRT"},
+    "CR-003": {"crew_id": "CR-003", "name": "Purser Elena Vasquez", "role": "purser", "rank": "Senior Cabin Crew", "flight_id": "TK-1002", "license_number": "EASA-CC-55832", "nationality": "Spanish", "status": "active", "base": "LHR"},
+    "CR-004": {"crew_id": "CR-004", "name": "Captain Anika Johansson", "role": "captain", "rank": "Captain", "flight_id": "TK-1003", "license_number": "EASA-C-77441", "nationality": "Swedish", "status": "active", "base": "LHR"},
+    "CR-005": {"crew_id": "CR-005", "name": "Flight Attendant Ahmed Hassan", "role": "cabin_crew", "rank": "Cabin Crew", "flight_id": "TK-1002", "license_number": "GCAA-CC-21093", "nationality": "Emirati", "status": "active", "base": "DXB"},
+    "CR-006": {"crew_id": "CR-006", "name": "First Officer Liu Wei", "role": "first_officer", "rank": "First Officer", "flight_id": "TK-1003", "license_number": "CAAC-FO-96312", "nationality": "Chinese", "status": "standby", "base": "SIN"}
+  }
+}

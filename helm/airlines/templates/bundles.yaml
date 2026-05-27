@@ -1,0 +1,42 @@
+{{- if include "airlines.mc.isParentMode" . }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIBundle
+metadata:
+  name: flight-ops-bundle
+spec:
+  title: "Flight Operations"
+  apiSelector:
+    matchLabels:
+      bundle: flight-ops
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIBundle
+metadata:
+  name: passenger-svc-bundle
+spec:
+  title: "Passenger Services"
+  apiSelector:
+    matchLabels:
+      bundle: passenger-svc
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIBundle
+metadata:
+  name: airport-ops-bundle
+spec:
+  title: "Airport Operations"
+  apiSelector:
+    matchLabels:
+      bundle: airport-ops
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIBundle
+metadata:
+  name: ai-gateway-bundle
+spec:
+  title: "AI Gateway"
+  apiSelector:
+    matchLabels:
+      bundle: ai-gateway
+{{- end }}

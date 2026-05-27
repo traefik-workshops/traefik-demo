@@ -1,0 +1,267 @@
+{{/*
+  Flight Operations MCP Server.
+
+  Multicluster:
+  - Python ConfigMap + mcpService Deployment: child mode with flightOpsMcp enabled
+  - Hub API CRD + MCP policy Middleware + IngressRoute: parent mode only
+    (Hub manages MCP gateway on the parent cluster)
+  - When child.mcp.useInternalApiRouting=true: API dict overridden to use internalApiBase
+    so MCPs can reach APIs on a remote cluster via internal routing
+*/}}
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isMcpDeploy := include "airlines.mc.isChildDeploy" (dict "root" . "group" "flightOpsMcp") -}}
+{{- $isLocalMcpDeploy := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "flightOpsMcp") -}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if $isLocalMcpDeploy }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-ops-mcp-server
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-ops-mcp
+data:
+  main.py: |
+    #!/usr/bin/env python3
+    """
+    Flight Operations MCP Server
+
+    Tools for flight search, status, pricing, crew assignments, and connections.
+    Backed by stateful Flask APIs in-cluster.
+    """
+
+    import logging, json
+    import httpx, uvicorn
+    from mcp.server.fastmcp import FastMCP
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("flight-ops-mcp")
+
+    {{- if $isMcpDeploy }}
+    _base = "{{ $mc.child.mcp.base }}"
+    API = {
+        "flights":  _base,
+        "pricing":  _base,
+        "crew":     _base,
+    }
+    {{- else }}
+    API = {
+        "flights":  "http://flights-app:3000",
+        "pricing":  "http://pricing-app:3000",
+        "crew":     "http://crew-app:3000",
+    }
+    {{- end }}
+
+    mcp = FastMCP(
+        "Flight Operations",
+        instructions="Search flights, check status, get pricing, and view crew assignments for Traefik Airlines.",
+    )
+
+    async def _get(base: str, path: str) -> dict | list:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(f"{API[base]}{path}")
+            r.raise_for_status()
+            return r.json()
+
+    @mcp.tool()
+    async def search_flights(origin: str, destination: str, date: str | None = None) -> str:
+        """Search for available flights between two cities.
+
+        Args:
+            origin: Origin airport IATA code (e.g. JFK, CDG, LAX)
+            destination: Destination airport IATA code
+            date: Optional departure date (YYYY-MM-DD)
+        """
+        params = f"?origin={origin}&destination={destination}"
+        if date:
+            params += f"&date={date}"
+        try:
+            data = await _get("flights", f"/flights/search{params}")
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"search_flights error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def get_flight_status(flight_id: str) -> str:
+        """Get real-time status of a specific flight.
+
+        Args:
+            flight_id: Flight ID (e.g. TK-1042)
+        """
+        try:
+            data = await _get("flights", f"/flights/{flight_id}")
+            status = {
+                "flight_id": data.get("flight_id"),
+                "flight_number": data.get("flight_number"),
+                "origin": data.get("origin"),
+                "destination": data.get("destination"),
+                "status": data.get("status"),
+                "departure_time": data.get("departure_time"),
+                "arrival_time": data.get("arrival_time"),
+                "gate": data.get("gate"),
+                "terminal": data.get("terminal"),
+            }
+            return json.dumps(status, indent=2)
+        except Exception as e:
+            logger.error(f"get_flight_status error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def get_flight_pricing(flight_id: str) -> str:
+        """Get fare breakdown by cabin class for a flight.
+
+        Args:
+            flight_id: Flight ID (e.g. TK-1042)
+        """
+        try:
+            data = await _get("pricing", f"/pricing/{flight_id}")
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"get_flight_pricing error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def get_crew_assignments(flight_id: str) -> str:
+        """Get cockpit and cabin crew assigned to a flight.
+
+        Args:
+            flight_id: Flight ID (e.g. TK-1042)
+        """
+        try:
+            data = await _get("crew", f"/crew/{flight_id}")
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"get_crew_assignments error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def find_connections(origin: str, destination: str, date: str | None = None) -> str:
+        """Find connecting flight options between two cities that may not have direct routes.
+        Returns available one-stop itineraries.
+
+        Args:
+            origin: Origin airport IATA code
+            destination: Destination airport IATA code
+            date: Optional departure date (YYYY-MM-DD)
+        """
+        try:
+            all_flights = await _get("flights", "/flights")
+            from_origin = [f for f in all_flights if f.get("origin") == origin]
+            to_dest = [f for f in all_flights if f.get("destination") == destination]
+            connections = []
+            for leg1 in from_origin:
+                hub = leg1.get("destination")
+                for leg2 in to_dest:
+                    if leg2.get("origin") == hub:
+                        connections.append({
+                            "leg1": {"flight": leg1.get("flight_number"), "route": f"{origin}-{hub}", "departure": leg1.get("departure_time")},
+                            "leg2": {"flight": leg2.get("flight_number"), "route": f"{hub}-{destination}", "departure": leg2.get("departure_time")},
+                            "connection_airport": hub,
+                        })
+            if not connections:
+                return json.dumps({"message": f"No connections found from {origin} to {destination}. Try a direct flight search."})
+            return json.dumps(connections, indent=2)
+        except Exception as e:
+            logger.error(f"find_connections error: {e}")
+            return json.dumps({"error": str(e)})
+
+    if __name__ == "__main__":
+        app = mcp.streamable_http_app()
+        uvicorn.run(app, host="0.0.0.0", port=8080)
+
+{{ include "airlines.mcpService" (dict "root" . "name" "flight-ops") }}
+{{- end }}
+{{- if $isParent }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: API
+metadata:
+  name: flight-ops-mcp-api
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+    bundle: flight-ops
+spec:
+  title: "Flight Operations MCP"
+  description: "MCP tools for flight search, status, pricing, crew assignments, and connections"
+  cors:
+    allowHeadersList:
+      - "*"
+    allowOriginsList:
+      - "*"
+    allowMethodsList:
+      - "*"
+    allowOriginListRegex:
+      - ".*"
+    maxAge: 86400
+{{- end }}
+{{- if $isLocalMcpDeploy }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: flight-ops-mcp-policy
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+spec:
+  plugin:
+    mcp:
+      gracefulErrors: true
+      policies:
+        - action: allow
+          match: >-
+            Equals(`mcp.method`, `tools/list`) ||
+            Equals(`mcp.method`, `initialize`)
+        - action: allow
+          match: >-
+            Equals(`mcp.params.name`, `search_flights`) ||
+            Equals(`mcp.params.name`, `get_flight_status`) ||
+            Equals(`mcp.params.name`, `get_flight_pricing`) ||
+            Equals(`mcp.params.name`, `get_crew_assignments`) ||
+            Equals(`mcp.params.name`, `find_connections`)
+{{- end }}
+{{- if $isParent }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: flight-ops-mcp-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+  annotations:
+    hub.traefik.io/api: flight-ops-mcp-api
+spec:
+  {{- include "airlines.mc.entryPoints" (dict "root" . "group" "flightOpsMcp") | nindent 2 }}
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.flightOpsMcp.hostMatch" . }}
+      services:
+        {{- include "airlines.mc.serviceSpec" (dict "root" . "svcName" "flight-ops-mcp" "port" 8080 "group" "flightOpsMcp" "haName" "") | nindent 8 }}
+      {{- if $isLocalMcpDeploy }}
+      middlewares:
+        - name: flight-ops-mcp-policy
+      {{- end }}
+{{- end }}
+{{- if $isMcpDeploy }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: flight-ops-mcp-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+  annotations:
+    {{- include "airlines.mc.uplinkAnnotation" (dict "root" . "group" "flightOpsMcp") | nindent 4 }}
+spec:
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.flightOpsMcp.hostMatch" . }}
+      services:
+        - name: flight-ops-mcp
+          port: 8080
+          passHostHeader: true
+{{- end }}

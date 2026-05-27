@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-onboarding
+  labels:
+    {{- include "hoppscotch.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-onboarding
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: onboarding
+          image: postgres:16-alpine
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-hoppscotch-postgresql
+                  key: DATABASE_URL
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+
+              echo "Waiting for PostgreSQL..."
+              until pg_isready -h {{ .Release.Name }}-hoppscotch-postgresql -U hoppscotch -d hoppscotch; do
+                sleep 2
+              done
+              echo "PostgreSQL is ready."
+
+              echo "Waiting for Prisma migrations (InfraConfig table)..."
+              until psql "$DATABASE_URL" -c "SELECT 1 FROM \"InfraConfig\" LIMIT 0" 2>/dev/null; do
+                echo "  still waiting..."
+                sleep 3
+              done
+              echo "Migrations complete."
+
+              echo "Bypassing onboarding wizard..."
+              psql "$DATABASE_URL" <<SQL
+                UPDATE "InfraConfig" SET value = 'true'  WHERE name = 'ONBOARDING_COMPLETED';
+                UPDATE "InfraConfig" SET value = 'false' WHERE name = 'IS_FIRST_TIME_INFRA_SETUP';
+              SQL
+
+              echo "Done."

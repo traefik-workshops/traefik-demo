@@ -1,0 +1,48 @@
+{{- if .Values.enabled }}
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  instances: {{ .Values.keycloak.instances }}
+  additionalOptions:
+    - name: http-relative-path
+      value: /
+    - name: cache
+      value: local
+  unsupported:
+    podTemplate:
+      metadata:
+        annotations:
+          realm-checksum: {{ include (print $.Template.BasePath "/realm.yaml") . | sha256sum | quote }}
+  bootstrapAdmin:
+    user:
+      secret: keycloak-secret
+  db:
+    vendor: postgres
+    {{- if .Values.postgres.host }}
+    host: {{ .Values.postgres.host }}
+    port: {{ .Values.postgres.port | default 5432 }}
+    {{- else }}
+    host: {{ .Values.postgres.name }}
+    port: 5432
+    {{- end }}
+    database: {{ .Values.postgres.database }}
+    usernameSecret:
+      name: keycloak-db-secret
+      key: username
+    passwordSecret:
+      name: keycloak-db-secret
+      key: password
+  http:
+    httpEnabled: {{ .Values.keycloak.httpEnabled }}
+  hostname:
+    strict: {{ .Values.keycloak.hostnameStrict }}
+  proxy:
+    headers: {{ .Values.keycloak.proxyHeaders }}
+  ingress:
+    enabled: false
+{{- end }}

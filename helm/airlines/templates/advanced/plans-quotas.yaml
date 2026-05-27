@@ -1,0 +1,43 @@
+{{- if include "airlines.mc.isParentMode" . }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIPlan
+metadata:
+  name: airlines-demo-access
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  title: "Airlines Demo Access"
+  description: "Restricted demo plan — 5 requests per hour to showcase live quota exhaustion"
+  rateLimit:
+    limit: 100
+    period: 1s
+  quota:
+    limit: 5
+    period: 5m
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: ManagedApplication
+metadata:
+  name: analyst-application
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  appId: "demo"
+  owner: "analyst"
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: ManagedSubscription
+metadata:
+  name: demo-subscription
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  managedApplications:
+    - name: analyst-application
+  apiBundles:
+    - name: flight-ops-bundle
+  apiPlan:
+    name: airlines-demo-access
+  weight: 50
+{{- end }}

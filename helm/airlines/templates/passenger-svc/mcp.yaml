@@ -1,0 +1,265 @@
+{{/*
+  Passenger Services MCP Server.
+
+  Multicluster:
+  - Python ConfigMap + mcpService Deployment: child mode with passengerSvcMcp enabled
+  - Hub API CRD + MCP policy Middleware + IngressRoute: parent mode only
+  - When child.mcp.useInternalApiRouting=true: API dict overridden to use internalApiBase
+*/}}
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isMcpDeploy := include "airlines.mc.isChildDeploy" (dict "root" . "group" "passengerSvcMcp") -}}
+{{- $isLocalMcpDeploy := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "passengerSvcMcp") -}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if $isLocalMcpDeploy }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: passenger-svc-mcp-server
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: passenger-svc-mcp
+data:
+  main.py: |
+    #!/usr/bin/env python3
+    """
+    Passenger Services MCP Server
+
+    Tools for booking management, passenger lookup, notification delivery,
+    and booking history. Backed by stateful Flask APIs in-cluster.
+    """
+
+    import logging, json
+    import httpx, uvicorn
+    from mcp.server.fastmcp import FastMCP
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("passenger-svc-mcp")
+
+    {{- if $isMcpDeploy }}
+    _base = "{{ $mc.child.mcp.base }}"
+    API = {
+        "bookings":      _base,
+        "passengers":    _base,
+        "notifications": _base,
+    }
+    {{- else }}
+    API = {
+        "bookings":      "http://bookings-app:3000",
+        "passengers":    "http://passengers-app:3000",
+        "notifications": "http://notifications-app:3000",
+    }
+    {{- end }}
+
+    mcp = FastMCP(
+        "Passenger Services",
+        instructions="Manage bookings, look up passengers, send notifications, and review booking history for Traefik Airlines.",
+    )
+
+    async def _get(base: str, path: str) -> dict | list:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(f"{API[base]}{path}")
+            r.raise_for_status()
+            return r.json()
+
+    async def _post(base: str, path: str, payload: dict) -> dict:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(f"{API[base]}{path}", json=payload)
+            r.raise_for_status()
+            return r.json()
+
+    @mcp.tool()
+    async def lookup_booking(booking_id: str) -> str:
+        """Look up a booking by its ID. Returns full booking details including passenger, flight, cabin, seat, and ticket info.
+
+        Args:
+            booking_id: Booking ID (e.g. BK-100201)
+        """
+        try:
+            data = await _get("bookings", f"/bookings/{booking_id}")
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"lookup_booking error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def create_booking(passenger_id: str, flight_id: str, cabin: str = "economy") -> str:
+        """Create a new flight booking for a passenger.
+
+        Args:
+            passenger_id: Passenger ID (e.g. PAX-001)
+            flight_id: Flight ID (e.g. TK-1042)
+            cabin: Cabin class - economy, premium-economy, or business
+        """
+        try:
+            payload = {
+                "passenger_id": passenger_id,
+                "flight_id": flight_id,
+                "cabin": cabin,
+            }
+            data = await _post("bookings", "/bookings", payload)
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"create_booking error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def get_passenger(passenger_id: str) -> str:
+        """Get passenger profile including contact info, frequent flyer status, and tier.
+
+        Args:
+            passenger_id: Passenger ID (e.g. PAX-001)
+        """
+        try:
+            data = await _get("passengers", f"/passengers/{passenger_id}")
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"get_passenger error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def send_notification(passenger_id: str, notification_type: str, title: str, message: str, channel: str = "push", flight_id: str | None = None, booking_id: str | None = None) -> str:
+        """Send a notification to a passenger.
+
+        Args:
+            passenger_id: Passenger ID (e.g. PAX-001)
+            notification_type: Type: booking-confirmation, delay-alert, gate-change, boarding-reminder, cancellation
+            title: Short notification title
+            message: Full notification message
+            channel: Delivery channel - email, push, or sms
+            flight_id: Optional related flight ID
+            booking_id: Optional related booking ID
+        """
+        try:
+            payload = {
+                "passenger_id": passenger_id,
+                "type": notification_type,
+                "title": title,
+                "message": message,
+                "channel": channel,
+            }
+            if flight_id:
+                payload["flight_id"] = flight_id
+            if booking_id:
+                payload["booking_id"] = booking_id
+            data = await _post("notifications", "/notifications", payload)
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"send_notification error: {e}")
+            return json.dumps({"error": str(e)})
+
+    @mcp.tool()
+    async def get_booking_history(passenger_id: str) -> str:
+        """Get all bookings for a specific passenger.
+
+        Args:
+            passenger_id: Passenger ID (e.g. PAX-001)
+        """
+        try:
+            data = await _get("bookings", f"/bookings/search?passenger_id={passenger_id}")
+            return json.dumps(data, indent=2)
+        except Exception as e:
+            logger.error(f"get_booking_history error: {e}")
+            return json.dumps({"error": str(e)})
+
+    if __name__ == "__main__":
+        app = mcp.streamable_http_app()
+        uvicorn.run(app, host="0.0.0.0", port=8080)
+
+{{ include "airlines.mcpService" (dict "root" . "name" "passenger-svc") }}
+{{- end }}
+{{- if $isParent }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: API
+metadata:
+  name: passenger-svc-mcp-api
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+    bundle: passenger-svc
+spec:
+  title: "Passenger Services MCP"
+  description: "MCP tools for booking management, passenger lookup, notifications, and booking history"
+  cors:
+    allowHeadersList:
+      - "*"
+    allowOriginsList:
+      - "*"
+    allowMethodsList:
+      - "*"
+    allowOriginListRegex:
+      - ".*"
+    maxAge: 86400
+{{- end }}
+{{- if $isLocalMcpDeploy }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: passenger-svc-mcp-policy
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+spec:
+  plugin:
+    mcp:
+      gracefulErrors: true
+      policies:
+        - action: allow
+          match: >-
+            Equals(`mcp.method`, `tools/list`) ||
+            Equals(`mcp.method`, `initialize`)
+        - action: allow
+          match: >-
+            Equals(`mcp.params.name`, `lookup_booking`) ||
+            Equals(`mcp.params.name`, `get_passenger`) ||
+            Equals(`mcp.params.name`, `get_booking_history`) ||
+            Equals(`mcp.params.name`, `send_notification`)
+        - action: allow
+          match: >-
+            Equals(`mcp.params.name`, `create_booking`)
+          reason: "Booking creation requires authorization"
+{{- end }}
+{{- if $isParent }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: passenger-svc-mcp-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+  annotations:
+    hub.traefik.io/api: passenger-svc-mcp-api
+spec:
+  {{- include "airlines.mc.entryPoints" (dict "root" . "group" "passengerSvcMcp") | nindent 2 }}
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.passengerSvcMcp.hostMatch" . }}
+      services:
+        {{- include "airlines.mc.serviceSpec" (dict "root" . "svcName" "passenger-svc-mcp" "port" 8080 "group" "passengerSvcMcp" "haName" "") | nindent 8 }}
+      {{- if $isLocalMcpDeploy }}
+      middlewares:
+        - name: passenger-svc-mcp-policy
+      {{- end }}
+{{- end }}
+{{- if $isMcpDeploy }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: passenger-svc-mcp-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: mcp
+  annotations:
+    {{- include "airlines.mc.uplinkAnnotation" (dict "root" . "group" "passengerSvcMcp") | nindent 4 }}
+spec:
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.passengerSvcMcp.hostMatch" . }}
+      services:
+        - name: passenger-svc-mcp
+          port: 8080
+          passHostHeader: true
+{{- end }}

@@ -1,0 +1,9 @@
+{
+  "Passengers": {
+    "PAX-001": {"passenger_id": "PAX-001", "first_name": "Alice", "last_name": "Chen", "email": "alice.chen@example.com", "phone": "+1-555-0101", "passport_number": "US-8821947", "nationality": "American", "date_of_birth": "1988-04-12", "frequent_flyer_number": "FF-8821947", "tier": "gold", "seat_preference": "window", "meal_preference": "vegetarian", "special_requests": ""},
+    "PAX-002": {"passenger_id": "PAX-002", "first_name": "James", "last_name": "Okafor", "email": "james.okafor@example.com", "phone": "+44-7700-900123", "passport_number": "GB-5543218", "nationality": "British", "date_of_birth": "1975-11-03", "frequent_flyer_number": "FF-5543218", "tier": "platinum", "seat_preference": "aisle", "meal_preference": "halal", "special_requests": "wheelchair assistance"},
+    "PAX-003": {"passenger_id": "PAX-003", "first_name": "Sofia", "last_name": "Müller", "email": "sofia.muller@example.com", "phone": "+49-30-123456", "passport_number": "DE-7734892", "nationality": "German", "date_of_birth": "1993-07-22", "frequent_flyer_number": "FF-7734892", "tier": "standard", "seat_preference": "window", "meal_preference": "vegan", "special_requests": ""},
+    "PAX-004": {"passenger_id": "PAX-004", "first_name": "Hiroshi", "last_name": "Tanaka", "email": "h.tanaka@example.jp", "phone": "+81-3-5555-0104", "passport_number": "JP-3318845", "nationality": "Japanese", "date_of_birth": "1965-01-15", "frequent_flyer_number": "FF-3318845", "tier": "silver", "seat_preference": "aisle", "meal_preference": "kosher", "special_requests": ""},
+    "PAX-005": {"passenger_id": "PAX-005", "first_name": "Layla", "last_name": "Al-Rashid", "email": "l.alrashid@example.ae", "phone": "+971-50-555-0105", "passport_number": "AE-9912334", "nationality": "Emirati", "date_of_birth": "1990-09-08", "frequent_flyer_number": "FF-9912334", "tier": "gold", "seat_preference": "window", "meal_preference": "standard", "special_requests": ""}
+  }
+}

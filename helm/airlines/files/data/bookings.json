@@ -1,0 +1,10 @@
+{
+  "Bookings": {
+    "BK-100201": {"booking_id": "BK-100201", "passenger_id": "PAX-001", "flight_id": "TK-1001", "cabin": "business", "cabin_class": "business", "seat_number": "12A", "status": "confirmed", "total_price": 2550.00, "ticket_number": "TKT-881001", "created_at": "2026-02-10T09:15:00Z"},
+    "BK-100202": {"booking_id": "BK-100202", "passenger_id": "PAX-002", "flight_id": "TK-1002", "cabin": "economy", "cabin_class": "economy", "seat_number": "34C", "status": "confirmed", "total_price": 864.00, "ticket_number": "TKT-881002", "created_at": "2026-02-11T14:30:00Z"},
+    "BK-100203": {"booking_id": "BK-100203", "passenger_id": "PAX-003", "flight_id": "TK-1003", "cabin": "premium-economy", "cabin_class": "premium-economy", "seat_number": "21F", "status": "confirmed", "total_price": 1456.00, "ticket_number": "TKT-881003", "created_at": "2026-02-12T11:00:00Z"},
+    "BK-100204": {"booking_id": "BK-100204", "passenger_id": "PAX-004", "flight_id": "TK-1004", "cabin": "economy", "cabin_class": "economy", "seat_number": "45B", "status": "confirmed", "total_price": 768.00, "ticket_number": "TKT-881004", "created_at": "2026-02-14T08:45:00Z"},
+    "BK-100205": {"booking_id": "BK-100205", "passenger_id": "PAX-005", "flight_id": "TK-1001", "cabin": "first", "cabin_class": "first", "seat_number": "3A", "status": "confirmed", "total_price": 4200.00, "ticket_number": "TKT-881005", "created_at": "2026-02-15T16:20:00Z"},
+    "BK-100206": {"booking_id": "BK-100206", "passenger_id": "PAX-001", "flight_id": "TK-1005", "cabin": "business", "cabin_class": "business", "seat_number": "8D", "status": "cancelled", "total_price": 0, "ticket_number": "TKT-881006", "created_at": "2026-02-16T12:00:00Z"}
+  }
+}

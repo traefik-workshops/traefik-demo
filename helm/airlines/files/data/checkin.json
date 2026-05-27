@@ -1,0 +1,8 @@
+{
+  "Checkin": {
+    "BK-100201": {"booking_id": "BK-100201", "passenger_id": "PAX-001", "flight_id": "TK-1001", "passenger_name": "Alice Chen", "seat": "12A", "status": "checked-in", "checked_in_at": "2026-03-15T06:00:00Z", "boarding_pass_issued": true, "gate": "A12", "terminal": "1"},
+    "BK-100202": {"booking_id": "BK-100202", "passenger_id": "PAX-002", "flight_id": "TK-1002", "passenger_name": "James Okafor", "seat": "34C", "status": "checked-in", "checked_in_at": "2026-03-15T08:45:00Z", "boarding_pass_issued": true, "gate": "B7", "terminal": "4"},
+    "BK-100203": {"booking_id": "BK-100203", "passenger_id": "PAX-003", "flight_id": "TK-1003", "passenger_name": "Sofia Müller", "seat": "21F", "status": "pending", "checked_in_at": null, "boarding_pass_issued": false, "gate": "C3", "terminal": "5"},
+    "BK-100204": {"booking_id": "BK-100204", "passenger_id": "PAX-004", "flight_id": "TK-1004", "passenger_name": "Hiroshi Tanaka", "seat": "45B", "status": "pending", "checked_in_at": null, "boarding_pass_issued": false, "gate": "D15", "terminal": "3"}
+  }
+}

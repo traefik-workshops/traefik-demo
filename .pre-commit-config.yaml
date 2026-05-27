@@ -1,0 +1,62 @@
+# Pre-commit hooks for terraform-demo-modules.
+#
+# Install once:
+#   pip install pre-commit
+#   pre-commit install
+#
+# Run on all files:
+#   pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=512']
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.92.1
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+        args:
+          - --hook-config=--retry-once-with-cleanup=true
+      - id: terraform_tflint
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+      - id: terraform_tfsec
+        args:
+          - --args=--config-file=__GIT_WORKING_DIR__/.tfsec.yml
+      # Regenerate the auto-generated tables in every leaf module README.
+      # See the `<!-- BEGIN_TF_DOCS -->` / `<!-- END_TF_DOCS -->` markers.
+      - id: terraform_docs
+        args:
+          - --hook-config=--path-to-file=README.md
+          - --hook-config=--add-to-existing-file=true
+          - --hook-config=--create-file-if-not-exist=true
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  # ----- Helm -----
+  - repo: https://github.com/norwoodj/helm-docs
+    rev: v1.13.1
+    hooks:
+      # Regenerates the <!-- BEGIN_HELM_DOCS --> ... <!-- END_HELM_DOCS --> block
+      # in every helm/<chart>/README.md from Chart.yaml + values.yaml.
+      - id: helm-docs
+        args:
+          - --chart-search-root=helm
+          - --template-files=README.md.gotmpl
+          - --skip-version-footer
+
+  - repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.23
+    hooks:
+      - id: helmlint

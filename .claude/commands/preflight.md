@@ -32,12 +32,10 @@ make validate MODULE=<path>
 If SA says "validate all":
 
 ```bash
-for module in $(find . -name "versions.tf" | xargs -I{} dirname {} | sed 's|^\./||' | sort); do
-  make validate MODULE=$module
-done
+make validate
 ```
 
-Warn SA this will take several minutes across 57 modules before running.
+(With no `MODULE=`, the Makefile iterates every leaf module — `terraform init -backend=false` + `terraform validate` per module. This takes several minutes across the ~69 leaf modules. Warn SA before running.)
 
 ## Output format
 
@@ -47,9 +45,9 @@ Warn SA this will take several minutes across 57 modules before running.
 ✅ tflint passed
 
 ── Tier 2: make validate ──────────────────────────────
-compute/azure/aks      ✅ valid
-compute/aws/eks        ✅ valid
-ai/ollama/k8s          ❌ Error: unsupported argument
+terraform/compute/azure/aks      ✅ valid
+terraform/compute/aws/eks        ✅ valid
+terraform/ai/ollama/k8s          ❌ Error: unsupported argument
                           on main.tf line 12: An argument named "replicas"
                           is not expected here.
 ```

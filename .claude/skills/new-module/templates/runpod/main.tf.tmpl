@@ -1,0 +1,23 @@
+# {{NAME}} — {{PURPOSE}}
+#
+# RunPod modules use the GraphQL API via null_resource + curl. See ai/LLMs/runpod
+# for the canonical pattern.
+
+# TODO(new-module): replace this stub with the GraphQL mutation that creates the pod.
+
+resource "null_resource" "this" {
+  count = var.enable_{{NAME}} ? 1 : 0
+
+  triggers = {
+    # TODO(new-module): list every variable that should force a recreate.
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      # TODO(new-module): curl call against https://api.runpod.io/graphql
+    EOT
+    environment = {
+      RUNPOD_API_KEY = var.runpod_api_key
+    }
+  }
+}

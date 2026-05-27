@@ -1,0 +1,181 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isFlightOps := or $isParent (include "airlines.mc.isChildDeploy" (dict "root" . "group" "flightOps")) -}}
+{{- $isLocalFlightOps := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "flightOps") -}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if $isLocalFlightOps }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-ops-dash-nginx-conf
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-ops-dash
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Flight Operations APIs
+        location /api/flights/ { proxy_pass http://flights-app:3000/; proxy_set_header Host $host; }
+        location /api/pricing/ { proxy_pass http://pricing-app:3000/; proxy_set_header Host $host; }
+        location /api/crew/    { proxy_pass http://crew-app:3000/;    proxy_set_header Host $host; }
+
+        # Flight board SSE bridge (for real-time updates when adding flights)
+        location /api/board/   { proxy_pass http://flight-board/api/board/; proxy_set_header Host $host; }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-ops-dash-html
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-ops-dash
+data:
+  index.html: |
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Traefik Airlines - Flight Operations</title>
+        <link rel="stylesheet" href="/assets/index.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <script>
+          window.AI_GATEWAY_ENABLED = {{ .Values.aiGateway.enabled | toString | lower }};
+          window.AI_GATEWAY_URL = "{{ .Values.aiGateway.url }}";
+          window.AI_GATEWAY_TOKEN = "{{ .Values.aiGateway.token }}";
+          window.MCP_SERVERS = {{ .Values.aiGateway.mcpServers | toJson }};
+          window.__DASHBOARD_ROUTE__ = "/flight-ops";
+        </script>
+        <script type="module" src="/assets/index.js"></script>
+      </head>
+      <body>
+        <div id="root"></div>
+      </body>
+    </html>
+
+{{ include "airlines.dashboardService" (dict "root" . "name" "flight-ops-dash") }}
+{{- end }}
+{{- if $isLocalFlightOps }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: flight-ops-dash-oidc
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-ops-dash
+spec:
+  plugin:
+    oidc:
+      issuer: {{ include "airlines.oidc.issuerUrl" . }}
+      clientId: "urn:k8s:secret:oidc-credentials:clientId"
+      clientSecret: "urn:k8s:secret:oidc-credentials:clientSecret"
+      redirectUrl: https://flight-ops.{{ include "airlines.domain" . }}{{ include "airlines.portSuffix" . }}/callback
+      scopes:
+        - openid
+        - profile
+        - email
+        - group
+      claims: >-
+        Contains(`id_token.group`, `flight-ops`) ||
+        Contains(`id_token.group`, `admins`)
+      forwardHeaders:
+        X-User-Group: group
+        X-User-Email: email
+        X-User-Name: preferred_username
+      session:
+        expiry: 86400
+        refresh: true
+{{- end }}
+{{- $isRemoteFlightOps := include "airlines.mc.isRemoteGroup" (dict "root" . "group" "flightOps") -}}
+{{- $isChildFlightOps := include "airlines.mc.isChildDeploy" (dict "root" . "group" "flightOps") -}}
+{{/* Parent IngressRoute — see airport-ops-dash.yaml for the full pattern. */}}
+{{- if $isParent }}
+{{- if $isRemoteFlightOps }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: addprefix-flight-ops-dash
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-ops-dash
+spec:
+  addPrefix:
+    prefix: /flight-ops
+{{- end }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: flight-ops-dash-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-ops-dash
+spec:
+  {{- include "airlines.mc.entryPoints" (dict "root" . "group" "flightOps") | nindent 2 }}
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.flightOpsDash.hostMatch" . }}
+      {{- if $isRemoteFlightOps }}
+      middlewares:
+        - name: addprefix-flight-ops-dash
+      services:
+        - kind: TraefikService
+          name: {{ index $mc.child.uplinkEntryPoints "flightOps" }}@multicluster
+      {{- else }}
+      middlewares:
+        - name: flight-ops-dash-oidc
+      services:
+        - name: flight-ops-dash
+          port: 80
+          passHostHeader: true
+      {{- end }}
+{{- end }}
+{{/* Child IngressRoute */}}
+{{- if $isChildFlightOps }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: stripprefix-flight-ops-dash
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-ops-dash
+spec:
+  stripPrefix:
+    prefixes:
+      - /flight-ops
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: flight-ops-dash-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-ops-dash
+  annotations:
+    hub.traefik.io/router.uplinks: {{ index $mc.child.uplinkEntryPoints "flightOps" | quote }}
+spec:
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/flight-ops`)
+      middlewares:
+        - name: stripprefix-flight-ops-dash
+        - name: flight-ops-dash-oidc
+      services:
+        - name: flight-ops-dash
+          port: 80
+          passHostHeader: true
+{{- end }}

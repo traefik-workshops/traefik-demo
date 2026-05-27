@@ -1,0 +1,52 @@
+image:
+  repository: zalbiraw/dns-traefiker
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65532
+
+secretName: "domain-secret"
+traefikServiceName: "traefik"
+traefikServiceNamespace: "traefik"
+ipOverride: ""
+retryInterval: "30s"
+maxRetries: 5
+proxied: true
+
+# Domain Generation
+uniqueDomain: false
+domain: ""
+enableAirlinesSubdomain: false
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
