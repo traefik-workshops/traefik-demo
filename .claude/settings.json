@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make fmt-check)",
+      "Bash(make fmt)",
+      "Bash(make lint)",
+      "Bash(make preflight)",
+      "Bash(make validate*)",
+      "Bash(terraform fmt*)",
+      "Bash(terraform validate)",
+      "Bash(terraform init -backend=false*)",
+      "Bash(tflint --recursive)"
+    ]
+  }
+}
