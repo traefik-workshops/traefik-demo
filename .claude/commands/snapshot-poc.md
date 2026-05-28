@@ -1,65 +1,111 @@
 # Snapshot PoC
 
-Capture what was deployed for the prospect record. Run after all modules deployed successfully.
+SA confirms the PoC is running and the prospect is happy. Collect all artifacts, render a human-readable summary, and push to a dedicated git repository that can be shared with the prospect.
 
 ## Invocation
 
 ```
 /snapshot-poc
+/snapshot-poc <path-to-poc.yaml>
 ```
 
-Reads the current deploy context (prospect name, modules deployed, outputs).
+With no argument: reads `poc.yaml` from the current working directory.
 
-## Output location
+## Step 1 — Verify deployment
 
-Write to `~/poc-snapshots/<prospect-name>-<YYYY-MM>/` — always outside this repo.
+Read `deployment.status` from `poc.yaml`. If `rendered` (not deployed): ask SA to confirm whether to snapshot anyway (useful for render-only reviews). If `failed`: warn and ask SA to confirm before snapshotting a partial deployment.
 
-If the directory does not exist, create it. One snapshot per prospect+month — do not overwrite existing snapshots.
+## Step 2 — Collect artifacts
 
-## Snapshot structure
+Gather:
+- `poc.yaml` — the full progressive build record
+- `~/poc-scenarios/<slug>/manifests/` — all rendered Terraform + Helm files
+- `~/poc-scenarios/<slug>/intake/normalized.md` — source material
 
-```
-~/poc-snapshots/<prospect-name>-<YYYY-MM>/
-  DEMO.md          ← human-readable summary
-  modules.tf       ← exact module sources + versions used
-  inputs.tfvars    ← all var values used (passwords/tokens redacted)
-  outputs.md       ← endpoints, URLs, credentials produced
-```
+Redact all sensitive values from `inputs.vars` (`sensitive: true`) in all files before writing to snapshot.
 
-## DEMO.md template
+## Step 3 — Generate DEMO.md
+
+Write a human-readable summary to `~/poc-scenarios/<slug>/DEMO.md`:
 
 ```markdown
 # PoC — <Prospect Name>
 
 **Date**: <YYYY-MM-DD>
 **Cloud**: <provider>
-**Built by**: SA agent
+**Industry**: <industry>
 
-## What was deployed
+## What was built
 
-<one paragraph describing the scenario>
+<one paragraph: scenario, modules used, what the prospect can see>
 
-## Modules used
+## Architecture
 
-| Module | Purpose |
-|---|---|
-| terraform/compute/PROVIDER/VARIANT | cluster type |
-| traefik/shared | Traefik Hub |
-| terraform/security/MODULE | identity provider |
+| Layer | Module / Chart | Purpose |
+|---|---|---|
+| Cluster | terraform/compute/<path> | <description> |
+| Gateway | terraform/traefik/k8s | Traefik Hub — API gateway |
+| Auth | terraform/security/<path> | <IdP name> |
+| ... | ... | ... |
 
 ## Access points
 
-| Service | URL | Notes |
-|---|---|---|
-| Traefik Dashboard | https://... | admin/admin |
-| Keycloak | https://... | |
+| Service | URL |
+|---|---|
+| Traefik Dashboard | https://... |
+| <other services> | https://... |
 
-## Credentials
+## Reproduce this PoC
 
-See inputs.tfvars (passwords redacted in this file).
+See `manifests/` for all rendered Terraform and Helm invocations.
+All sensitive values (tokens, passwords) are redacted — SA holds the originals.
+```
+
+## Step 4 — Discuss git push with SA
+
+```
+Snapshot ready at: ~/poc-scenarios/<slug>/
+
+Contents:
+  DEMO.md          — human-readable summary
+  poc.yaml         — full build record (sensitive values redacted)
+  manifests/       — rendered Terraform + Helm files
+  intake/          — normalized source documents
+
+Push to a git repo?
+  1. Push to existing repo: <url>
+  2. Create new repo and push (provide org/name)
+  3. Keep local only
+```
+
+Wait for SA choice.
+
+## Step 5 — Push to git (if SA chose)
+
+```bash
+cd ~/poc-scenarios/<slug>
+git init
+git add .
+git commit -m "PoC snapshot — <prospect name> — <date>"
+git remote add origin <repo-url>
+git push -u origin main
+```
+
+If repo doesn't exist yet and SA chose "create new": use `gh repo create` with SA-provided org/name, then push.
+
+## Step 6 — Append to poc.yaml
+
+```yaml
+snapshot:
+  timestamp: <ISO-8601>
+  status: pushed             # pushed | local-only
+  repo: <repo-url or "">
+  demo_md: ~/poc-scenarios/<slug>/DEMO.md
+  sensitive_values: redacted
 ```
 
 ## Rules
 
-- Never store raw secrets — redact or omit all passwords, tokens, API keys
-- One snapshot per prospect+month — do not overwrite existing snapshots
+- Never commit raw secrets — redact all `sensitive: true` values before any git operation.
+- Never push without SA confirmation.
+- If repo already contains a snapshot for this prospect: do not force-push — create a new branch named `<date>-<slug>` and let SA decide.

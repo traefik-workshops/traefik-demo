@@ -6,6 +6,19 @@ This is **not** a production-ready module library. The bar is: "an SA can stand 
 
 ---
 
+## Working with AI in this repo
+
+| You are… | Entry point |
+|---|---|
+| SA building a prospect demo | Activate the `sa-assistant` skill: *"build a PoC for [prospect]"* or *"I have a prospect transcript"* |
+| Dev adding a module or chart | Read [`CONTRIBUTING.md`](./CONTRIBUTING.md), then use the `new-module` or `new-chart` skill |
+| Cutting a release | Use the `bump` skill or `make release-bug/feature/major` |
+
+Full SA workflow: `/intake` → `/extract-scenario` → `/feasibility-check` → `/preflight` → `/collect-inputs` → `build-poc` → `/snapshot-poc`.
+See [`sa-assistant` skill](./.claude/skills/sa-assistant/README.md) for the step-by-step flow and key files.
+
+---
+
 ## Layout
 
 This repo holds two kinds of building blocks consumed by demos:
@@ -35,8 +48,9 @@ Each section has its own `README.md` and `AGENTS.md` — start with those when y
 - [Contributing guide](./CONTRIBUTING.md) — how to add a module or chart
 - Terraform sections: [ai](./terraform/ai/README.md) · [apps](./terraform/apps/README.md) · [compute](./terraform/compute/README.md) · [observability](./terraform/observability/README.md) · [security](./terraform/security/README.md) · [tools](./terraform/tools/README.md) · [traefik](./terraform/traefik/README.md)
 - Helm charts: [helm/](./helm/README.md)
-- Agent skills: [`new-module`](./.claude/skills/new-module/README.md), [`new-chart`](./.claude/skills/new-chart/README.md), [`bump`](./.claude/skills/bump/README.md), [`sa-assistant`](./.claude/skills/sa-assistant/SKILL.md)
-- Slash commands: [`/extract-scenario`](./.claude/commands/extract-scenario.md), [`/preflight`](./.claude/commands/preflight.md), [`/build-poc`](./.claude/commands/build-poc.md), [`/snapshot-poc`](./.claude/commands/snapshot-poc.md)
+- Agent skills (dev): [`new-module`](./.claude/skills/new-module/README.md), [`new-chart`](./.claude/skills/new-chart/README.md), [`bump`](./.claude/skills/bump/README.md)
+- Agent skills (SA): [`sa-assistant`](./.claude/skills/sa-assistant/SKILL.md), [`build-poc`](./.claude/skills/build-poc/SKILL.md)
+- Slash commands: [`/intake`](./.claude/commands/intake.md), [`/extract-scenario`](./.claude/commands/extract-scenario.md), [`/feasibility-check`](./.claude/commands/feasibility-check.md), [`/preflight`](./.claude/commands/preflight.md), [`/collect-inputs`](./.claude/commands/collect-inputs.md), [`/snapshot-poc`](./.claude/commands/snapshot-poc.md)
 
 ## Consuming an artifact
 

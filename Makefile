@@ -226,6 +226,14 @@ catalog-check: ## X: Fail if catalog.json is out of sync with the current tree (
 	fi
 	@echo "$(GREEN)catalog.json: in sync$(RESET)"
 
+.PHONY: catalog-markdown
+catalog-markdown: ## X: Regenerate CATALOG.md (human-readable module index) from catalog.json.
+	@python3 scripts/catalog_markdown.py
+
+.PHONY: catalog-markdown-check
+catalog-markdown-check: ## X: Fail if CATALOG.md is out of sync with catalog.json (CI gate).
+	@python3 scripts/catalog_markdown.py --check
+
 # ============================================================================
 # 4. Release machinery
 # ============================================================================
