@@ -81,8 +81,9 @@ jobs:
         with:
           # Scan terraform/ only — demos/ pull modules via git:: refs, which tfsec
           # would resolve and scan (incl. upstream third-party modules we don't own).
+          # The action runs from the repo root, so the config path is repo-root-relative.
           working_directory: terraform
-          additional_args: --config-file=../.tfsec.yml --soft-fail=false
+          additional_args: --config-file=.tfsec.yml --soft-fail=false
 
   catalog-check:
     name: catalog.json in sync
