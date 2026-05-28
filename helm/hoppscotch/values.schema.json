@@ -26,15 +26,15 @@
     },
     "jwtSecret": {
       "type": "string",
-      "default": "change-me-32-chars-long-exactly!"
+      "default": "demo0demo0demo0demo0demo0demojwt"
     },
     "sessionSecret": {
       "type": "string",
-      "default": "change-me-32-chars-long-exactly!"
+      "default": "demo0demo0demo0demo0demo0demoses"
     },
     "dataEncryptionKey": {
       "type": "string",
-      "default": "change-me-32-chars-long-exactly!"
+      "default": "demo0demo0demo0demo0demo0demodek"
     },
     "entryPoints": {
       "type": "array",

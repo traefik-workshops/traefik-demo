@@ -11,7 +11,7 @@ namespace: keycloak
 postgres:
   name: keycloak-postgres
   database: keycloak-db
-  password: ""  # DEMO DEFAULT empty — set per install (see NOTES.txt)
+  password: topsecretpassword
   # Optional: use external postgresql by setting host and port
   # host: ""
   # port: 5432
@@ -20,7 +20,7 @@ postgres:
 keycloak:
   instances: 1
   adminUser: traefik
-  adminPassword: ""  # DEMO DEFAULT empty — set per install (see NOTES.txt)
+  adminPassword: topsecretpassword
   httpEnabled: true
   hostnameStrict: false
   proxyHeaders: xforwarded
@@ -55,7 +55,7 @@ realm:
   extraAdvancedUsers: []
 
   # OIDC client secret for the traefik client
-  clientSecret: ""  # DEMO DEFAULT empty — set per install (see NOTES.txt)
+  clientSecret: NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0
 
   # Redirect URIs for OIDC authentication
   redirectUris: []

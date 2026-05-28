@@ -112,31 +112,31 @@ keycloak:
     advancedUsers:
       - username: dispatcher
         email: dispatcher@traefik-airlines.io
-        password: ""  # set per install
+        password: topsecretpassword
         groups:
           - flight-ops
         claims: {}
       - username: agent
         email: agent@traefik-airlines.io
-        password: ""  # set per install
+        password: topsecretpassword
         groups:
           - passenger-svc
         claims: {}
       - username: handler
         email: handler@traefik-airlines.io
-        password: ""  # set per install
+        password: topsecretpassword
         groups:
           - airport-ops
         claims: {}
       - username: analyst
         email: analyst@traefik-airlines.io
-        password: ""  # set per install
+        password: topsecretpassword
         groups:
           - demo
         claims: {}
       - username: reader
         email: reader@traefik-airlines.io
-        password: ""  # set per install
+        password: topsecretpassword
         groups:
           - reader
         claims: {}

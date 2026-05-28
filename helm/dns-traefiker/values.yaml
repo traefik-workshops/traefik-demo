@@ -1,7 +1,7 @@
 image:
   repository: zalbiraw/dns-traefiker
-  pullPolicy: IfNotPresent
-  tag: "v1.0.2"
+  pullPolicy: Always
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""

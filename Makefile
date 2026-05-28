@@ -171,7 +171,7 @@ helm-push: ## H: push every dist/*.tgz to $(OCI_REGISTRY). Requires `helm regist
 # ============================================================================
 
 .PHONY: check
-check: tf-fmt-check tf-validate tf-lint tf-security helm-lint helm-template helm-test ## X: Run every quality check (CI).
+check: tf-fmt-check tf-validate tf-lint tf-security helm-lint helm-template helm-test catalog-check ## X: Run every quality check (CI).
 
 .PHONY: fmt
 fmt: tf-fmt ## X: Run all formatters.
@@ -179,6 +179,22 @@ fmt: tf-fmt ## X: Run all formatters.
 .PHONY: discover
 discover: ## X: Emit JSON inventory of every leaf TF module + Helm chart (stdout). Agent's first read.
 	@scripts/discover.sh
+
+.PHONY: catalog
+catalog: ## X: Regenerate catalog.json at the repo root from the current tree.
+	@scripts/discover.sh > catalog.json
+	@echo "$(GREEN)catalog.json regenerated$(RESET) ($$(wc -l < catalog.json) lines)"
+
+.PHONY: catalog-check
+catalog-check: ## X: Fail if catalog.json is out of sync with the current tree (CI gate).
+	@set -euo pipefail
+	@scripts/discover.sh > /tmp/catalog.expected.json
+	@if ! diff -u catalog.json /tmp/catalog.expected.json > /dev/null; then \
+		echo "$(RED)catalog.json is stale.$(RESET) Run \`make catalog\` and commit the result."; \
+		diff -u catalog.json /tmp/catalog.expected.json | head -50; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)catalog.json: in sync$(RESET)"
 
 # ============================================================================
 # 4. Release machinery
@@ -305,6 +321,10 @@ _release:
 			rm -f "$$c/charts"/*.tgz 2>/dev/null || true; \
 		fi; \
 	done
+
+	@# 7.5: Regenerate catalog.json with the new tag baked in
+	@echo "$(BOLD)Regenerating catalog.json @ $$new_tag...$(RESET)"
+	@TRAEFIK_DEMO_TAG="$$new_tag" scripts/discover.sh > catalog.json
 
 	@# 8: Commit the sweep
 	@if [ -n "$$(git status --porcelain)" ]; then \

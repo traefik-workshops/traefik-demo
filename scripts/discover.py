@@ -239,6 +239,11 @@ def section_and_platform(rel_path: str) -> tuple[str, str]:
 
 
 def current_tag() -> str:
+    """Use $TRAEFIK_DEMO_TAG if set (the release sweep uses this); else read git tags."""
+    import os
+    override = os.environ.get("TRAEFIK_DEMO_TAG")
+    if override:
+        return override
     try:
         out = subprocess.check_output(
             ["git", "tag", "--list", "v*"], text=True, cwd=ROOT

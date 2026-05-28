@@ -78,3 +78,16 @@ jobs:
       - uses: aquasecurity/tfsec-action@v1.0.3
         with:
           additional_args: --config-file=.tfsec.yml --soft-fail=false
+
+  catalog-check:
+    name: catalog.json in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yq
+        run: |
+          sudo curl -sSL -o /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+      - name: make catalog-check
+        run: make catalog-check

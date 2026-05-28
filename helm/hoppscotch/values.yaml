@@ -8,9 +8,9 @@ host: ""
 
 image: hoppscotch/hoppscotch:2026.2.0
 
-jwtSecret: ""  # 32-char secret required; set per install
-sessionSecret: ""  # 32-char secret required; set per install
-dataEncryptionKey: ""  # 32-char secret required; set per install
+jwtSecret: "demo0demo0demo0demo0demo0demojwt"
+sessionSecret: "demo0demo0demo0demo0demo0demoses"
+dataEncryptionKey: "demo0demo0demo0demo0demo0demodek"
 
 entryPoints:
   - websecure
