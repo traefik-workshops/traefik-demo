@@ -7,6 +7,12 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys an Oracle Database 23ai (Free) StatefulSet with a matching Service into a Kubernetes cluster, optionally fronted by a Traefik Ingress.",
+      "keywords": [
+        "oracle",
+        "23ai",
+        "database",
+        "vector"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -102,6 +108,16 @@
       "platform": "runpod",
       "name": "runpod",
       "description": "Provisions a set of LLM pods (Llama 3.1 8B, GPT OSS 20B) on RunPod, gated by per-model enable flags.",
+      "keywords": [
+        "ai",
+        "llm",
+        "chatbot",
+        "copilot",
+        "gpu",
+        "runpod",
+        "llama",
+        "gpt-oss"
+      ],
       "required_inputs": [
         {
           "name": "runpod_api_key",
@@ -148,6 +164,14 @@
       "platform": "runpod",
       "name": "runpod",
       "description": "Provisions NVIDIA NIM safety microservices (Topic Control, Content Safety, Jailbreak Detection) on RunPod, gated by per-NIM enable flags.",
+      "keywords": [
+        "nim",
+        "nvidia",
+        "topic control",
+        "content safety",
+        "jailbreak detection",
+        "safety"
+      ],
       "required_inputs": [
         {
           "name": "runpod_api_key",
@@ -206,6 +230,13 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Installs the in-cluster dependencies required by the AI Gateway demo (Helm-based bundle).",
+      "keywords": [
+        "ai gateway",
+        "mcp",
+        "model routing",
+        "dependencies",
+        "crds"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -222,6 +253,12 @@
       "platform": "runpod",
       "name": "runpod",
       "description": "Provisions an IBM Granite Guardian safety model pod on RunPod.",
+      "keywords": [
+        "granite guardian",
+        "ibm",
+        "safety",
+        "content moderation"
+      ],
       "required_inputs": [
         {
           "name": "runpod_api_key",
@@ -262,6 +299,11 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Installs Knative Serving on a Kubernetes cluster (Helm + kubectl CRDs) for the AI Gateway demo.",
+      "keywords": [
+        "knative",
+        "scale to zero",
+        "serverless"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -302,6 +344,13 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys the Milvus vector database into a Kubernetes cluster via Helm.",
+      "keywords": [
+        "vector search",
+        "rag",
+        "embeddings",
+        "milvus",
+        "vector db"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -325,6 +374,16 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Ollama on a Kubernetes cluster via Helm and optionally pre-pulls a selection of models (Qwen, DeepSeek, Llama).",
+      "keywords": [
+        "ai",
+        "llm",
+        "chatbot",
+        "copilot",
+        "ollama",
+        "model",
+        "local model",
+        "cpu"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -366,6 +425,12 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Open WebUI on a Kubernetes cluster via Helm, with optional Traefik ingress, OpenAI-compatible backends, and MCP connection configuration.",
+      "keywords": [
+        "open webui",
+        "chatbot",
+        "chat ui",
+        "model frontend"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -443,6 +508,13 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Microsoft Presidio (PII detection / anonymization) into a Kubernetes cluster via Helm.",
+      "keywords": [
+        "data masking",
+        "pii",
+        "presidio",
+        "anonymization",
+        "pii detection"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -466,6 +538,12 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys the SQLcl MCP server as a Kubernetes Deployment + Service, optionally fronted by a Traefik Ingress.",
+      "keywords": [
+        "sqlcl",
+        "oracle",
+        "sql",
+        "mcp"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -543,6 +621,13 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys the Weaviate vector database into a Kubernetes cluster via Helm.",
+      "keywords": [
+        "vector search",
+        "rag",
+        "embeddings",
+        "weaviate",
+        "vector db"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -566,6 +651,12 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "> **Status:** stub module. Intentionally minimal; expand only if a demo needs it. Documented at this minimum scope rather than removed because demo wrappers reference it.",
+      "keywords": [
+        "demo app",
+        "sample app",
+        "httpbin",
+        "http testing"
+      ],
       "required_inputs": [],
       "optional_inputs": [],
       "outputs": []
@@ -576,6 +667,7 @@
       "platform": "cloud-init",
       "name": "cloud-init",
       "description": "> **Status:** stub module. Intentionally minimal; expand only if a demo needs it. Documented at this minimum scope rather than removed because demo wrappers reference it.",
+      "keywords": [],
       "required_inputs": [],
       "optional_inputs": [],
       "outputs": []
@@ -586,6 +678,12 @@
       "platform": "ec2",
       "name": "ec2",
       "description": "Provisions one or more Traefik `whoami` instances on AWS EC2, wrapping `compute/aws/ec2` and the `whoami/cloud-init` template.",
+      "keywords": [
+        "demo app",
+        "sample app",
+        "whoami",
+        "ec2"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -657,6 +755,12 @@
       "platform": "ecs",
       "name": "ecs",
       "description": "Provisions Traefik `whoami` services across one or more ECS clusters, wrapping `compute/aws/ecs`.",
+      "keywords": [
+        "demo app",
+        "sample app",
+        "whoami",
+        "ecs"
+      ],
       "required_inputs": [
         {
           "name": "name",
@@ -716,6 +820,11 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys one or more Traefik `whoami` instances on Kubernetes as Deployments + Services, with optional Traefik `IngressRoute`, `Middleware` (strip-prefix), and Traefik Hub `Uplink` resources.",
+      "keywords": [
+        "demo app",
+        "sample app",
+        "whoami"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -780,6 +889,12 @@
       "platform": "nutanix",
       "name": "nutanix",
       "description": "Provisions a Traefik `whoami` VM on Nutanix AHV via `compute/nutanix/vm`, with cloud-init and Prism Central category-based service discovery.",
+      "keywords": [
+        "demo app",
+        "sample app",
+        "whoami",
+        "nutanix"
+      ],
       "required_inputs": [
         {
           "name": "vm_name",
@@ -860,6 +975,7 @@
       "platform": "nutanix",
       "name": "image_builder",
       "description": "Builds a Whoami qcow2 image with Packer (via `local-exec`) and uploads it to Nutanix as a `nutanix_image`.",
+      "keywords": [],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -895,6 +1011,13 @@
       "platform": "akamai",
       "name": "lke",
       "description": "Provisions an Akamai/Linode Kubernetes Engine (LKE) cluster with optional GPU pool, HA control plane, and extra worker pools.",
+      "keywords": [
+        "linode",
+        "lke",
+        "akamai",
+        "kubernetes",
+        "k8s"
+      ],
       "required_inputs": [
         {
           "name": "cluster_name",
@@ -1010,6 +1133,12 @@
       "platform": "aws",
       "name": "ec2",
       "description": "Provisions a fleet of EC2 instances from an `apps` map (each app supports replicas, Docker-based user-data, optional VPC creation).",
+      "keywords": [
+        "aws",
+        "ec2",
+        "amazon",
+        "vm"
+      ],
       "required_inputs": [
         {
           "name": "apps",
@@ -1127,6 +1256,13 @@
       "platform": "aws",
       "name": "ecs",
       "description": "Provisions one or more ECS clusters and the underlying task definitions/services from a nested `clusters` map.",
+      "keywords": [
+        "aws",
+        "ecs",
+        "fargate",
+        "amazon",
+        "containers"
+      ],
       "required_inputs": [
         {
           "name": "name",
@@ -1185,6 +1321,13 @@
       "platform": "aws",
       "name": "eks",
       "description": "Provisions an EKS cluster (and node groups) via the upstream community EKS module, with demo-friendly defaults.",
+      "keywords": [
+        "aws",
+        "eks",
+        "amazon",
+        "kubernetes",
+        "k8s"
+      ],
       "required_inputs": [
         {
           "name": "cluster_name",
@@ -1294,6 +1437,12 @@
       "platform": "aws",
       "name": "vpc",
       "description": "Provisions an AWS VPC with public and private subnets (via the community `terraform-aws-modules/vpc` module) and a demo security group.",
+      "keywords": [
+        "aws",
+        "vpc",
+        "amazon",
+        "networking"
+      ],
       "required_inputs": [
         {
           "name": "name",
@@ -1366,6 +1515,13 @@
       "platform": "azure",
       "name": "aks",
       "description": "Provisions an Azure Kubernetes Service (AKS) cluster with optional GPU node pool and extra worker pools (one per `worker_nodes` entry).",
+      "keywords": [
+        "azure",
+        "aks",
+        "microsoft",
+        "kubernetes",
+        "k8s"
+      ],
       "required_inputs": [
         {
           "name": "resource_group_name",
@@ -1463,6 +1619,13 @@
       "platform": "digitalocean",
       "name": "doks",
       "description": "Provisions a DigitalOcean Kubernetes (DOKS) cluster with optional autoscaling and extra worker pools.",
+      "keywords": [
+        "digitalocean",
+        "doks",
+        "do kubernetes",
+        "kubernetes",
+        "k8s"
+      ],
       "required_inputs": [
         {
           "name": "cluster_name",
@@ -1586,6 +1749,14 @@
       "platform": "gcp",
       "name": "gke",
       "description": "Provisions a Google Kubernetes Engine (GKE) cluster with optional GPU pool and extra worker pools.",
+      "keywords": [
+        "gcp",
+        "gke",
+        "google cloud",
+        "kubernetes",
+        "k8s",
+        "google"
+      ],
       "required_inputs": [
         {
           "name": "cluster_name",
@@ -1685,6 +1856,11 @@
       "platform": "nutanix",
       "name": "categories",
       "description": "Creates Nutanix Prism Central categories and their values from a map.",
+      "keywords": [
+        "nutanix",
+        "categories",
+        "tagging"
+      ],
       "required_inputs": [
         {
           "name": "categories",
@@ -1701,6 +1877,11 @@
       "platform": "nutanix",
       "name": "fip",
       "description": "Allocates a Nutanix Floating IP and associates it with a VM NIC or a VPC private IP.",
+      "keywords": [
+        "nutanix",
+        "floating ip",
+        "fip"
+      ],
       "required_inputs": [
         {
           "name": "name",
@@ -1757,6 +1938,13 @@
       "platform": "nutanix",
       "name": "nkp",
       "description": "Provisions a Nutanix Kubernetes Platform (NKP) cluster end-to-end: bastion VM, control plane VIP, optional FIP, Kommander, and kubeconfig extraction.",
+      "keywords": [
+        "nutanix",
+        "nkp",
+        "on-prem",
+        "hybrid",
+        "private cloud"
+      ],
       "required_inputs": [
         {
           "name": "cluster_name",
@@ -1983,6 +2171,7 @@
       "platform": "nutanix",
       "name": "bastion_image",
       "description": "Extracts the NKP bastion image from the NKP bundle and uploads it to Nutanix as a `nutanix_image`.",
+      "keywords": [],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -2018,6 +2207,7 @@
       "platform": "nutanix",
       "name": "kommander",
       "description": "Provisions a Floating IP for the Kommander/Traefik LoadBalancer service on an NKP cluster and wires the in-cluster `LoadBalancer` Service to it.",
+      "keywords": [],
       "required_inputs": [
         {
           "name": "external_subnet_uuid",
@@ -2039,6 +2229,7 @@
       "platform": "nutanix",
       "name": "registry",
       "description": "Provisions a self-hosted container registry VM on Nutanix for use as an NKP registry mirror.",
+      "keywords": [],
       "required_inputs": [
         {
           "name": "cluster_name",
@@ -2112,6 +2303,7 @@
       "platform": "nutanix",
       "name": "registry_image",
       "description": "Extracts the NKP registry image from the NKP bundle and uploads it to Nutanix as a `nutanix_image`.",
+      "keywords": [],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -2147,6 +2339,10 @@
       "platform": "nutanix",
       "name": "storage_container",
       "description": "Creates a Nutanix storage container with configurable replication factor, compression, and erasure coding.",
+      "keywords": [
+        "nutanix",
+        "storage"
+      ],
       "required_inputs": [
         {
           "name": "name",
@@ -2203,6 +2399,11 @@
       "platform": "nutanix",
       "name": "subnet",
       "description": "Creates a Nutanix subnet (VLAN-backed) with optional external flag and DNS configuration.",
+      "keywords": [
+        "nutanix",
+        "subnet",
+        "vlan"
+      ],
       "required_inputs": [
         {
           "name": "name",
@@ -2264,6 +2465,12 @@
       "platform": "nutanix",
       "name": "vm",
       "description": "Provisions a Nutanix VM from a source image, with optional cloud-init user data, static IP, and Prism Central categories.",
+      "keywords": [
+        "nutanix",
+        "vm",
+        "on-prem",
+        "private cloud"
+      ],
       "required_inputs": [
         {
           "name": "name",
@@ -2354,6 +2561,12 @@
       "platform": "nutanix",
       "name": "vpc",
       "description": "Creates a Nutanix VPC and a map of overlay subnets, with configurable DNS and externally routable prefixes.",
+      "keywords": [
+        "nutanix",
+        "vpc",
+        "on-prem",
+        "networking"
+      ],
       "required_inputs": [
         {
           "name": "vpc_name",
@@ -2411,6 +2624,14 @@
       "platform": "oracle",
       "name": "oke",
       "description": "Provisions an Oracle Kubernetes Engine (OKE) cluster with optional extra node pools.",
+      "keywords": [
+        "oracle",
+        "oke",
+        "oci",
+        "kubernetes",
+        "k8s",
+        "always free"
+      ],
       "required_inputs": [
         {
           "name": "cluster_name",
@@ -2500,6 +2721,11 @@
       "platform": "runpod",
       "name": "auth",
       "description": "Creates a RunPod registry auth (using NGC credentials) via the RunPod GraphQL API.",
+      "keywords": [
+        "runpod",
+        "ngc",
+        "registry credentials"
+      ],
       "required_inputs": [
         {
           "name": "runpod_api_key",
@@ -2534,6 +2760,11 @@
       "platform": "runpod",
       "name": "pod",
       "description": "Creates a set of RunPod pods from a map definition, optionally using a registry auth for private images and forwarding HuggingFace / NGC tokens.",
+      "keywords": [
+        "runpod",
+        "gpu",
+        "pod"
+      ],
       "required_inputs": [
         {
           "name": "runpod_api_key",
@@ -2580,6 +2811,16 @@
       "platform": "suse",
       "name": "k3d",
       "description": "Provisions a local k3d (k3s-in-Docker) cluster using the `SneakyBugs/k3d` provider, with configurable workers, ports, volumes, host aliases, and registry mirroring.",
+      "keywords": [
+        "on-prem",
+        "local",
+        "no cloud",
+        "k3d",
+        "kind",
+        "kubernetes",
+        "k8s",
+        "suse"
+      ],
       "required_inputs": [
         {
           "name": "cluster_name",
@@ -2660,6 +2901,11 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Grafana on Kubernetes via Helm, with wired Prometheus / Tempo / Loki datasources, optional Traefik ingress, optional image renderer, and toggleable demo dashboards.",
+      "keywords": [
+        "grafana",
+        "dashboards",
+        "visualization"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -2768,6 +3014,7 @@
       "platform": "k8s",
       "name": "aigateway",
       "description": "> **Status:** dashboard fragment. Not a conventional module \u2014 emits a single Kubernetes ConfigMap that Grafana's dashboard sidecar picks up. Kept under `dashboards/<topic>/` to mirror the file layout consumers expect.",
+      "keywords": [],
       "required_inputs": [],
       "optional_inputs": [],
       "outputs": []
@@ -2778,6 +3025,11 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Grafana Loki on Kubernetes via Helm.",
+      "keywords": [
+        "loki",
+        "logs",
+        "logging"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -2813,6 +3065,14 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys a full Grafana + Prometheus stack (kube-prometheus-stack) with optional Traefik ingress and demo dashboards.",
+      "keywords": [
+        "monitoring",
+        "observability",
+        "grafana",
+        "prometheus",
+        "dashboards",
+        "metrics"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -2907,6 +3167,11 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Grafana Tempo on Kubernetes via Helm.",
+      "keywords": [
+        "tracing",
+        "tempo",
+        "distributed tracing"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -2942,6 +3207,12 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Langfuse (LLM observability) on Kubernetes via the `langfuse/langfuse-k8s` Helm chart, with headless org/project/admin seeding and an optional Traefik IngressRoute.",
+      "keywords": [
+        "ai observability",
+        "llm tracing",
+        "langfuse",
+        "model tracing"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -3116,6 +3387,13 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys the OpenTelemetry Collector via Helm, configured with per-backend pipelines (Prometheus, Loki, Tempo, New Relic, Dash0, Honeycomb, LangSmith, Langfuse).",
+      "keywords": [
+        "tracing",
+        "opentelemetry",
+        "otel",
+        "telemetry",
+        "collector"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -3319,6 +3597,11 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Prometheus on Kubernetes via Helm (kube-prometheus-stack), with an optional Traefik scrape job and ingress.",
+      "keywords": [
+        "prometheus",
+        "metrics",
+        "kube-prometheus"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -3407,6 +3690,14 @@
       "platform": "",
       "name": "cognito",
       "description": "Provisions an AWS Cognito User Pool, a domain, an App Client, and a set of demo users.",
+      "keywords": [
+        "sso",
+        "oidc",
+        "cognito",
+        "aws",
+        "user pool",
+        "auth"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -3462,6 +3753,15 @@
       "platform": "",
       "name": "entraid",
       "description": "Provisions an Azure AD (Entra ID) Application, a client secret, and a set of demo users.",
+      "keywords": [
+        "sso",
+        "oidc",
+        "azure ad",
+        "entraid",
+        "entra",
+        "microsoft",
+        "auth"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -3517,6 +3817,15 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Keycloak on Kubernetes, seeds users + groups + claims, mints per-user access tokens, and stores them as Kubernetes Secrets. Optionally exposes the Keycloak UI via Traefik IngressRoute.",
+      "keywords": [
+        "sso",
+        "oidc",
+        "keycloak",
+        "in-cluster idp",
+        "generic",
+        "auth",
+        "realm"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -3628,6 +3937,12 @@
       "platform": "",
       "name": "oci-instance-principal",
       "description": "Creates an OCI dynamic group and policy so instances in a compartment can authenticate as instance principals (no static API keys).",
+      "keywords": [
+        "oci",
+        "oracle",
+        "instance principal",
+        "iam"
+      ],
       "required_inputs": [
         {
           "name": "compartment_id",
@@ -3644,6 +3959,12 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys ArgoCD on Kubernetes via Helm with an explicit admin password and optional Traefik ingress.",
+      "keywords": [
+        "gitops",
+        "argocd",
+        "continuous deployment",
+        "cd"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -3723,6 +4044,13 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys cert-manager on Kubernetes via Helm.",
+      "keywords": [
+        "tls",
+        "certificates",
+        "cert-manager",
+        "lets-encrypt",
+        "acme"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -3746,6 +4074,11 @@
       "platform": "",
       "name": "cloudflare",
       "description": "Creates a single Cloudflare DNS record (A or CNAME) with optional proxying.",
+      "keywords": [
+        "dns",
+        "cloudflare",
+        "dns record"
+      ],
       "required_inputs": [
         {
           "name": "zone_id",
@@ -3792,6 +4125,13 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys the Grafana k6 Operator on Kubernetes via Helm.",
+      "keywords": [
+        "load test",
+        "k6",
+        "performance test",
+        "stress test",
+        "grafana"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -3833,6 +4173,7 @@
       "platform": "k8s",
       "name": "aigateway",
       "description": "Renders k6 `TestRun` manifests for the AI-Gateway load test (per-user JWT, multi-turn conversations across one or more model APIs).",
+      "keywords": [],
       "required_inputs": [
         {
           "name": "apis",
@@ -3882,6 +4223,11 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys the MCP Inspector UI on Kubernetes as a Deployment + Service, optionally fronted by a Traefik Ingress.",
+      "keywords": [
+        "mcp",
+        "mcp inspector",
+        "debugger"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -3957,6 +4303,10 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys NGINX on Kubernetes via Helm.",
+      "keywords": [
+        "nginx",
+        "ingress controller"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -3980,6 +4330,13 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys PostgreSQL on Kubernetes via Helm with a configurable password and database name.",
+      "keywords": [
+        "database",
+        "postgresql",
+        "postgres",
+        "db",
+        "sql"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -4021,6 +4378,12 @@
       "platform": "k8s",
       "name": "k8s",
       "description": "Deploys Redis on Kubernetes via Helm with a configurable password and replica count.",
+      "keywords": [
+        "cache",
+        "redis",
+        "kv",
+        "key-value"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -4062,6 +4425,11 @@
       "platform": "",
       "name": "cloud-init",
       "description": "Renders a cloud-init template that installs and starts Traefik Hub on a VM, with optional Keepalived VRRP, OTLP export, performance tuning, and DNS Traefiker registration. No resources \u2014 output-only.",
+      "keywords": [
+        "traefik",
+        "cloud-init",
+        "vm"
+      ],
       "required_inputs": [
         {
           "name": "traefik_hub_version",
@@ -4175,6 +4543,12 @@
       "platform": "",
       "name": "ec2",
       "description": "Provisions one or more Traefik Hub instances on AWS EC2, wiring in `traefik/shared` (config extraction) and `traefik/cloud-init` (boot script). Optional Elastic IP and ACME sync.",
+      "keywords": [
+        "traefik",
+        "hub",
+        "ec2",
+        "aws"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -4286,6 +4660,13 @@
       "platform": "",
       "name": "ecs",
       "description": "Provisions Traefik Hub on AWS ECS, wiring in `traefik/shared` (config extraction) and `compute/aws/ecs` (service deployment).",
+      "keywords": [
+        "traefik",
+        "hub",
+        "ecs",
+        "fargate",
+        "aws"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -4333,6 +4714,15 @@
       "platform": "",
       "name": "k8s",
       "description": "Deploys Traefik Hub on Kubernetes via Helm, with the full feature-flag matrix (API Gateway, AI Gateway, MCP Gateway, API Management, Knative provider, etc.) wired through `traefik/shared`.",
+      "keywords": [
+        "traefik",
+        "hub",
+        "kubernetes",
+        "api gateway",
+        "ai gateway",
+        "mcp gateway",
+        "api management"
+      ],
       "required_inputs": [
         {
           "name": "namespace",
@@ -4474,6 +4864,12 @@
       "platform": "",
       "name": "nutanix",
       "description": "Provisions a Traefik Hub VM on Nutanix AHV via `compute/nutanix/vm`, wiring in `traefik/shared` (config) and `traefik/cloud-init` (boot script). Supports Keepalived VRRP for high availability.",
+      "keywords": [
+        "traefik",
+        "hub",
+        "nutanix",
+        "on-prem"
+      ],
       "required_inputs": [
         {
           "name": "vm_name",
@@ -4589,6 +4985,10 @@
       "platform": "",
       "name": "shared",
       "description": "Helm-template-extraction module that renders the upstream Traefik Helm chart and exposes the CLI args, env vars, ports, image refs, and static config as outputs. Consumed by `traefik/ec2`, `traefik/ecs`, `traefik/k8s`, and `traefik/nutanix` so they all agree on what Traefik configuration looks like.",
+      "keywords": [
+        "traefik",
+        "hub"
+      ],
       "required_inputs": [],
       "optional_inputs": [
         {
@@ -5058,7 +5458,13 @@
         "traefik",
         "ai-gateway",
         "llm",
-        "demo"
+        "demo",
+        "traefik ai gateway",
+        "ai middleware",
+        "pii guard",
+        "topic control",
+        "content safety",
+        "shared middlewares"
       ],
       "required_values": [],
       "dependencies": [
@@ -5076,7 +5482,11 @@
         "traefik",
         "airlines",
         "demo",
-        "umbrella"
+        "umbrella",
+        "airlines demo",
+        "full demo",
+        "scalar mock",
+        "api management demo"
       ],
       "required_values": [],
       "dependencies": [
@@ -5094,7 +5504,11 @@
         "traefik",
         "dns",
         "cloudflare",
-        "automation"
+        "automation",
+        "wildcard dns for demos",
+        "*.demo domain",
+        "cloudflare auto record",
+        "dns-traefiker"
       ],
       "required_values": [],
       "dependencies": []
@@ -5108,7 +5522,10 @@
         "traefik",
         "ai",
         "embeddings",
-        "infinity"
+        "infinity",
+        "embedding server",
+        "rag embeddings",
+        "nomic-embed"
       ],
       "required_values": [],
       "dependencies": []
@@ -5122,7 +5539,11 @@
         "traefik",
         "api",
         "testing",
-        "demo"
+        "demo",
+        "api testing ui",
+        "hoppscotch",
+        "postman alternative",
+        "api client"
       ],
       "required_values": [],
       "dependencies": []
@@ -5137,7 +5558,11 @@
         "keycloak",
         "oidc",
         "auth",
-        "demo"
+        "demo",
+        "self-hosted keycloak",
+        "in-cluster idp",
+        "oidc realm with seeded users",
+        "keycloak operator"
       ],
       "required_values": [],
       "dependencies": []
@@ -5152,7 +5577,9 @@
         "ai",
         "pii",
         "presidio",
-        "demo"
+        "demo",
+        "pii detection backend",
+        "presidio analyzer"
       ],
       "required_values": [],
       "dependencies": []

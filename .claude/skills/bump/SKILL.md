@@ -47,9 +47,10 @@ Internally, each target:
 6. **Sweeps** in-repo `file://` subchart dep versions inside each `Chart.yaml`.
 7. **Sweeps** every terraform leaf-module README `?ref=vX.Y.Z` example line.
 8. Runs `helm dep update` on every chart with `dependencies:` (refreshes `Chart.lock`).
-9. Commits the sweep + locks as `release(<label>): vX.Y.Z`.
-10. Tags `vX.Y.Z` annotated.
-11. Pushes both the branch and the tag to `origin`.
+9. **Regenerates** `catalog.json` with the new tag baked into the `tag:` field (`TRAEFIK_DEMO_TAG=$new_tag make catalog`).
+10. Commits the sweep + locks + catalog as `release(<label>): vX.Y.Z`.
+11. Tags `vX.Y.Z` annotated.
+12. Pushes both the branch and the tag to `origin`.
 
 CI picks up the tag and publishes every chart to `oci://ghcr.io/traefik-workshops/<chart>:X.Y.Z`.
 

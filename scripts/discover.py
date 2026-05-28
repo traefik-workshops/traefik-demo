@@ -262,7 +262,28 @@ def current_tag() -> str:
     return sorted(out, key=key)[-1]
 
 
+def load_signals() -> dict[str, list[str]]:
+    """Return {path: [keyword, ...]} for every module + chart entry in signals.yaml."""
+    sig_yaml = ROOT / "signals.yaml"
+    if not sig_yaml.exists():
+        return {}
+    raw = _yq(".", sig_yaml)
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw) or {}
+    except json.JSONDecodeError:
+        return {}
+    out = {}
+    for top_key in ("modules", "charts"):
+        for path, kws in (data.get(top_key) or {}).items():
+            out[path] = [str(k).lower() for k in (kws or [])]
+    return out
+
+
 def main() -> int:
+    signals = load_signals()
+
     modules = []
     for mod in find_tf_modules():
         rel = mod.relative_to(ROOT).as_posix()
@@ -274,6 +295,7 @@ def main() -> int:
             "platform": platform,
             "name": mod.name,
             "description": first_paragraph(mod / "README.md"),
+            "keywords": signals.get(rel, []),
             "required_inputs": required,
             "optional_inputs": optional,
             "outputs": tf_outputs(mod / "outputs.tf"),
@@ -283,12 +305,20 @@ def main() -> int:
     for chart in find_helm_charts():
         rel = chart.relative_to(ROOT).as_posix()
         meta = chart_meta(chart / "Chart.yaml")
+        # Merge Chart.yaml keywords + signals.yaml synonyms, lowercase, dedup, preserve order
+        seen = set()
+        merged_keywords = []
+        for k in [*meta["keywords"], *signals.get(rel, [])]:
+            kl = str(k).lower()
+            if kl not in seen:
+                seen.add(kl)
+                merged_keywords.append(kl)
         charts.append({
             "path": rel,
             "name": chart.name,
             "description": meta["description"],
             "app_version": meta["app_version"],
-            "keywords": meta["keywords"],
+            "keywords": merged_keywords,
             "required_values": helm_required_values(chart / "values.schema.json"),
             "dependencies": meta["dependencies"],
         })
