@@ -1,0 +1,13 @@
+{{/*
+Library helpers reusable by consumer charts.
+
+Usage from a consumer chart:
+
+    {{- include "{{NAME}}.commonLabels" . }}
+
+# TODO(new-chart): add the actual library functions this chart exposes.
+*/}}
+
+{{- define "{{NAME}}.commonLabels" -}}
+helm.sh/chart-library: {{NAME}}-{{ .Chart.Version }}
+{{- end }}

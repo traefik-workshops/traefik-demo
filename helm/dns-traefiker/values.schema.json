@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "dns-traefiker chart values",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "default": "zalbiraw/dns-traefiker"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "default": "Always"
+        },
+        "tag": {
+          "type": "string",
+          "default": "latest"
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {}
+    },
+    "nameOverride": {
+      "type": "string",
+      "default": ""
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "default": ""
+    },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean",
+          "default": true
+        },
+        "annotations": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "properties": {}
+    },
+    "podSecurityContext": {
+      "type": "object",
+      "properties": {}
+    },
+    "securityContext": {
+      "type": "object",
+      "properties": {
+        "capabilities": {
+          "type": "object",
+          "properties": {
+            "drop": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "default": "ALL"
+              }
+            }
+          }
+        },
+        "readOnlyRootFilesystem": {
+          "type": "boolean",
+          "default": true
+        },
+        "runAsNonRoot": {
+          "type": "boolean",
+          "default": true
+        },
+        "runAsUser": {
+          "type": "integer",
+          "default": 65532
+        }
+      }
+    },
+    "secretName": {
+      "type": "string",
+      "default": "domain-secret"
+    },
+    "traefikServiceName": {
+      "type": "string",
+      "default": "traefik"
+    },
+    "traefikServiceNamespace": {
+      "type": "string",
+      "default": "traefik"
+    },
+    "ipOverride": {
+      "type": "string",
+      "default": ""
+    },
+    "retryInterval": {
+      "type": "string",
+      "default": "30s"
+    },
+    "maxRetries": {
+      "type": "integer",
+      "default": 5
+    },
+    "proxied": {
+      "type": "boolean",
+      "default": true
+    },
+    "uniqueDomain": {
+      "type": "boolean",
+      "default": false
+    },
+    "domain": {
+      "type": "string",
+      "default": ""
+    },
+    "enableAirlinesSubdomain": {
+      "type": "boolean",
+      "default": false
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "100m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "128Mi"
+            }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "100m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "128Mi"
+            }
+          }
+        }
+      }
+    },
+    "nodeSelector": {
+      "type": "object",
+      "properties": {}
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {}
+    },
+    "affinity": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  "additionalProperties": false
+}

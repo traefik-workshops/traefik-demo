@@ -1,0 +1,39 @@
+apiVersion: v2
+name: airlines
+description: Airlines Demo - Scalar Mock Server APIs with Traefik Hub API Management
+type: application
+version: 4.0.0
+appVersion: "2.0.0"
+
+
+kubeVersion: ">= 1.27.0-0"
+
+maintainers:
+  - name: Traefik SA team
+    email: sa@traefik.io
+
+sources:
+  - https://github.com/traefik-workshops/traefik-demo
+
+home: https://github.com/traefik-workshops/traefik-demo/tree/main/helm/airlines
+
+keywords:
+  - traefik
+  - airlines
+  - demo
+  - umbrella
+
+dependencies:
+  - name: keycloak
+    version: 4.0.0
+    repository: "file://../keycloak"
+    condition: keycloak.enabled
+  - name: hoppscotch
+    version: 4.0.0
+    repository: "file://../hoppscotch"
+    condition: hoppscotch.enabled
+  - name: ai-gateway
+    alias: aiGateway
+    version: 4.0.0
+    repository: "file://../ai-gateway"
+    condition: aiGateway.enabled

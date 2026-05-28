@@ -1,0 +1,99 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    name: terraform fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+      - run: terraform fmt -recursive -check -diff
+
+  validate:
+    name: terraform validate
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+      - name: terraform init + validate per module
+        run: |
+          set -euo pipefail
+          # Leaf modules live under terraform/. demos/ holds root example configs
+          # (provider blocks, git:: module sources) that are not library modules and
+          # aren't gated here — mirrors `make tf-validate` (LEAF_MODULES = find terraform).
+          mapfile -t mods < <(find terraform -name '*.tf' -not -path '*/.terraform/*' \
+            -exec dirname {} \; | sort -u)
+          fail=0
+          for d in "${mods[@]}"; do
+            echo "::group::validate $d"
+            (
+              cd "$d"
+              terraform init -backend=false -input=false -no-color > /dev/null
+              terraform validate -no-color
+            ) || fail=1
+            echo "::endgroup::"
+          done
+          exit "$fail"
+
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+      - name: tflint --init
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: tflint --recursive (terraform/ only; demos/ are root configs, not modules)
+        run: tflint --chdir=terraform --recursive --config "$PWD/.tflint.hcl"
+
+  tfsec:
+    name: tfsec
+    runs-on: ubuntu-latest
+    needs: fmt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          # Scan terraform/ only — demos/ pull modules via git:: refs, which tfsec
+          # would resolve and scan (incl. upstream third-party modules we don't own).
+          # The action runs from the repo root, so the config path is repo-root-relative.
+          working_directory: terraform
+          additional_args: --config-file=.tfsec.yml --soft-fail=false
+
+  catalog-check:
+    name: catalog.json in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yq
+        run: |
+          sudo curl -sSL -o /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+      - name: make catalog-check
+        run: make catalog-check

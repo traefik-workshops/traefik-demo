@@ -1,0 +1,23 @@
+apiVersion: v2
+name: hoppscotch
+description: Self-hosted Hoppscotch with multi-collection nginx serving
+type: application
+version: 4.0.0
+appVersion: "2026.2.0"
+kubeVersion: ">= 1.27.0-0"
+
+maintainers:
+  - name: Traefik SA team
+    email: sa@traefik.io
+
+sources:
+  - https://github.com/traefik-workshops/traefik-demo
+  - https://github.com/hoppscotch/hoppscotch
+
+home: https://github.com/traefik-workshops/traefik-demo/tree/main/helm/hoppscotch
+
+keywords:
+  - traefik
+  - api
+  - testing
+  - demo

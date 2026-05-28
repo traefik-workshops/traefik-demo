@@ -1,0 +1,25 @@
+{{- $host := include "hoppscotch.host" . }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Release.Name }}-hoppscotch
+  labels:
+    {{- include "hoppscotch.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    {{- toYaml .Values.entryPoints | nindent 4 }}
+  routes:
+    {{- range .Values.collections }}
+    - kind: Rule
+      match: Host(`{{ $host }}`) && Path(`/{{ .name }}/collection.json`)
+      priority: 1000
+      services:
+        - name: {{ $.Release.Name }}-hoppscotch
+          port: 8081
+    {{- end }}
+    - kind: Rule
+      match: Host(`{{ $host }}`)
+      services:
+        - name: {{ .Release.Name }}-hoppscotch
+          port: 3000
+          passHostHeader: true

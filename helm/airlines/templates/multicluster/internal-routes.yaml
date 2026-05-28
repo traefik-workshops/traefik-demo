@@ -1,0 +1,98 @@
+{{/*
+  Internal API routing IngressRoutes — child mode only.
+  When child.internalApiRouting.enabled=true, path-based IngressRoutes on the
+  web entrypoint allow MCP servers on this child to reach APIs on remote clusters
+  (e.g. NAI MCPs calling NKP APIs) without an external hop.
+
+  MCPs call http://{internalApiBase}/{service-path}/... and this Traefik routes
+  to the remote provider via multicluster uplink.
+*/}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if and $mc.enabled (eq $mc.mode "child") -}}
+{{- $ep := $mc.child.mcp.entryPoint -}}
+
+{{- if index $mc.child.mcp.groups "flightOps" }}
+{{- $provider := index $mc.child.mcp.groups "flightOps" }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airlines-internal-flight-ops
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: internal-routing
+spec:
+  entryPoints:
+    - {{ $ep }}
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/flights`)
+      services:
+        - name: {{ $provider }}
+    - kind: Rule
+      match: PathPrefix(`/pricing`)
+      services:
+        - name: {{ $provider }}
+    - kind: Rule
+      match: PathPrefix(`/crew`)
+      services:
+        - name: {{ $provider }}
+{{- end }}
+
+{{- if index $mc.child.mcp.groups "passengerSvc" }}
+{{- $provider := index $mc.child.mcp.groups "passengerSvc" }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airlines-internal-passenger-svc
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: internal-routing
+spec:
+  entryPoints:
+    - {{ $ep }}
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/bookings`)
+      services:
+        - name: {{ $provider }}
+    - kind: Rule
+      match: PathPrefix(`/passengers`)
+      services:
+        - name: {{ $provider }}
+    - kind: Rule
+      match: PathPrefix(`/notifications`)
+      services:
+        - name: {{ $provider }}
+{{- end }}
+
+{{- if index $mc.child.mcp.groups "airportOps" }}
+{{- $provider := index $mc.child.mcp.groups "airportOps" }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airlines-internal-airport-ops
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: internal-routing
+spec:
+  entryPoints:
+    - {{ $ep }}
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/checkin`)
+      services:
+        - name: {{ $provider }}
+    - kind: Rule
+      match: PathPrefix(`/baggage`)
+      services:
+        - name: {{ $provider }}
+    - kind: Rule
+      match: PathPrefix(`/gates`)
+      services:
+        - name: {{ $provider }}
+{{- end }}
+
+{{- end }}

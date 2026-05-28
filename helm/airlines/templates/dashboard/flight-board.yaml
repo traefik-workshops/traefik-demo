@@ -1,0 +1,430 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isFlightOps := or $isParent (include "airlines.mc.isChildDeploy" (dict "root" . "group" "flightOps")) -}}
+{{- $isLocalFlightOps := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "flightOps") -}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if $isLocalFlightOps }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-board-nginx-conf
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Flights API — read-only public access
+        location /api/flights/ { proxy_pass http://flights-app:3000/; proxy_set_header Host $host; }
+
+        # Board event server sidecar (add/modify/delete flights, SSE stream)
+        location /api/board/ { proxy_pass http://127.0.0.1:8081/; proxy_set_header Host $host; proxy_http_version 1.1; proxy_set_header Connection ''; proxy_buffering off; proxy_cache off; chunked_transfer_encoding off; }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-board-events-server
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+data:
+  server.py: |
+    #!/usr/bin/env python3
+    """
+    Flight Board Event Server
+
+    A tiny in-memory event server that accepts flight CRUD operations
+    and broadcasts changes to connected dashboards via SSE.
+    """
+
+    import json, time, threading, queue, logging
+    from http.server import HTTPServer, BaseHTTPRequestHandler, ThreadingHTTPServer
+    from urllib.parse import urlparse
+
+    logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger("board-events")
+
+    # In-memory state
+    flight_overrides = {}   # flight_id -> flight dict (additions + modifications)
+    deleted_ids = set()     # flight_ids that have been "deleted"
+    sse_clients = []        # list of queue.Queue for SSE push
+    lock = threading.Lock()
+
+    def broadcast(event):
+        """Push an event to all connected SSE clients."""
+        data = json.dumps(event)
+        dead = []
+        for q in sse_clients:
+            try:
+                q.put_nowait(data)
+            except Exception:
+                dead.append(q)
+        for q in dead:
+            try: sse_clients.remove(q)
+            except: pass
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, fmt, *args):
+            log.info(fmt % args)
+
+        def _cors(self):
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+        def _json_response(self, code, data):
+            body = json.dumps(data).encode()
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self._cors()
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_OPTIONS(self):
+            self.send_response(204)
+            self._cors()
+            self.end_headers()
+
+        def do_GET(self):
+            path = urlparse(self.path).path.rstrip("/")
+
+            if path == "/events":
+                # SSE endpoint
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream")
+                self.send_header("Cache-Control", "no-cache")
+                self._cors()
+                self.end_headers()
+
+                q = queue.Queue()
+                sse_clients.append(q)
+                log.info("SSE client connected (%d total)", len(sse_clients))
+
+                # Send current state as initial event
+                with lock:
+                    init = {
+                        "type": "init",
+                        "additions": list(flight_overrides.values()),
+                        "deletions": list(deleted_ids),
+                    }
+                self.wfile.write(f"data: {json.dumps(init)}\n\n".encode())
+                self.wfile.flush()
+
+                try:
+                    while True:
+                        try:
+                            data = q.get(timeout=15)
+                            self.wfile.write(f"data: {data}\n\n".encode())
+                            self.wfile.flush()
+                        except queue.Empty:
+                            # keepalive
+                            self.wfile.write(b": keepalive\n\n")
+                            self.wfile.flush()
+                except Exception:
+                    pass
+                finally:
+                    try: sse_clients.remove(q)
+                    except: pass
+                    log.info("SSE client disconnected (%d remaining)", len(sse_clients))
+                return
+
+            if path == "/state":
+                with lock:
+                    self._json_response(200, {
+                        "additions": list(flight_overrides.values()),
+                        "deletions": list(deleted_ids),
+                    })
+                return
+
+            self._json_response(200, {"status": "ok", "endpoints": [
+                "GET  /events  - SSE stream",
+                "GET  /state   - current overlay state",
+                "POST /flights - add a flight",
+                "PUT  /flights/{id} - modify a flight",
+                "DELETE /flights/{id} - remove a flight",
+                "DELETE /reset - clear all overrides",
+            ]})
+
+        def do_POST(self, _method="POST"):
+            path = urlparse(self.path).path.rstrip("/")
+            length = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(length)) if length > 0 else {}
+
+            if path == "/flights":
+                fid = body.get("flight_id")
+                if not fid:
+                    self._json_response(400, {"error": "flight_id is required"})
+                    return
+                with lock:
+                    flight_overrides[fid] = body
+                    deleted_ids.discard(fid)
+                broadcast({"type": "add", "flight": body})
+                log.info("Flight added: %s", fid)
+                self._json_response(201, body)
+                return
+
+            self._json_response(404, {"error": "not found"})
+
+        def do_PUT(self):
+            path = urlparse(self.path).path.rstrip("/")
+            parts = path.split("/")
+            # PUT /flights/{id}
+            if len(parts) >= 3 and parts[1] == "flights":
+                fid = parts[2]
+                length = int(self.headers.get("Content-Length", 0))
+                updates = json.loads(self.rfile.read(length)) if length > 0 else {}
+                with lock:
+                    existing = flight_overrides.get(fid, {"flight_id": fid})
+                    existing.update(updates)
+                    existing["flight_id"] = fid
+                    flight_overrides[fid] = existing
+                    deleted_ids.discard(fid)
+                broadcast({"type": "modify", "flight": flight_overrides[fid]})
+                log.info("Flight modified: %s -> %s", fid, updates)
+                self._json_response(200, flight_overrides[fid])
+                return
+
+            self._json_response(404, {"error": "not found"})
+
+        def do_DELETE(self):
+            path = urlparse(self.path).path.rstrip("/")
+
+            if path == "/reset":
+                with lock:
+                    flight_overrides.clear()
+                    deleted_ids.clear()
+                broadcast({"type": "reset"})
+                log.info("All overrides cleared")
+                self._json_response(200, {"status": "reset"})
+                return
+
+            parts = path.split("/")
+            if len(parts) >= 3 and parts[1] == "flights":
+                fid = parts[2]
+                with lock:
+                    flight_overrides.pop(fid, None)
+                    deleted_ids.add(fid)
+                broadcast({"type": "delete", "flight_id": fid})
+                log.info("Flight deleted: %s", fid)
+                self._json_response(200, {"deleted": fid})
+                return
+
+            self._json_response(404, {"error": "not found"})
+
+    if __name__ == "__main__":
+        server = ThreadingHTTPServer(("0.0.0.0", 8081), Handler)
+        log.info("Board event server listening on :8081")
+        server.serve_forever()
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-board-html
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+data:
+  index.html: |
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Traefik Airlines - Departures & Arrivals</title>
+        <link rel="stylesheet" href="/assets/index.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <script>
+          window.AI_GATEWAY_ENABLED = {{ .Values.aiGateway.enabled | toString | lower }};
+          window.AI_GATEWAY_URL = "{{ .Values.aiGateway.url }}";
+          window.AI_GATEWAY_TOKEN = "{{ .Values.aiGateway.token }}";
+          window.MCP_SERVERS = {{ .Values.aiGateway.mcpServers | toJson }};
+          window.__DASHBOARD_ROUTE__ = "/flight-board";
+        </script>
+        <script type="module" src="/assets/index.js"></script>
+      </head>
+      <body>
+        <div id="root"></div>
+      </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flight-board
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flight-board
+  template:
+    metadata:
+      labels:
+        app: flight-board
+        component: dashboard
+    spec:
+      initContainers:
+        - name: build
+          image: node:20-alpine
+          env:
+            - name: DASHBOARD
+              value: flight-board
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /workspace && \
+              tar -xzf /src/src.tar.gz -C /workspace && \
+              cd /workspace && \
+              npm ci --prefer-offline && \
+              npx vite build --outDir /tmp/dist && \
+              cp /tmp/dist/assets/index.js /tmp/dist/assets/index.css /assets/
+          volumeMounts:
+            - name: build-src
+              mountPath: /src
+              readOnly: true
+            - name: assets
+              mountPath: /assets
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+            - name: assets
+              mountPath: /usr/share/nginx/html/assets
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+        - name: events
+          image: {{ .Values.eventServer.image | default "python:3.11-slim" }}
+          command: ["python3", "/app/server.py"]
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: events-server
+              mountPath: /app
+      volumes:
+        - name: html
+          configMap:
+            name: flight-board-html
+        - name: assets
+          emptyDir: {}
+        - name: build-src
+          configMap:
+            name: dashboard-build-src
+        - name: nginx-conf
+          configMap:
+            name: flight-board-nginx-conf
+        - name: events-server
+          configMap:
+            name: flight-board-events-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flight-board
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+  selector:
+    app: flight-board
+{{- end }}
+{{- $isRemoteFlightOps := include "airlines.mc.isRemoteGroup" (dict "root" . "group" "flightOps") -}}
+{{- $isChildFlightOps := include "airlines.mc.isChildDeploy" (dict "root" . "group" "flightOps") -}}
+{{/* Parent IngressRoute — public, no OIDC. See airport-ops-dash.yaml for the pattern. */}}
+{{- if $isParent }}
+{{- if $isRemoteFlightOps }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: addprefix-board
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+spec:
+  addPrefix:
+    prefix: /board
+{{- end }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: flight-board-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+spec:
+  {{- include "airlines.mc.entryPoints" (dict "root" . "group" "flightOps") | nindent 2 }}
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.board.hostMatch" . }}
+      {{- if $isRemoteFlightOps }}
+      middlewares:
+        - name: addprefix-board
+      services:
+        - kind: TraefikService
+          name: {{ index $mc.child.uplinkEntryPoints "flightOps" }}@multicluster
+      {{- else }}
+      services:
+        - name: flight-board
+          port: 80
+          passHostHeader: true
+      {{- end }}
+{{- end }}
+{{/* Child IngressRoute */}}
+{{- if $isChildFlightOps }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: stripprefix-board
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+spec:
+  stripPrefix:
+    prefixes:
+      - /board
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: flight-board-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: flight-board
+  annotations:
+    hub.traefik.io/router.uplinks: {{ index $mc.child.uplinkEntryPoints "flightOps" | quote }}
+spec:
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/board`)
+      middlewares:
+        - name: stripprefix-board
+      services:
+        - name: flight-board
+          port: 80
+          passHostHeader: true
+{{- end }}

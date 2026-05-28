@@ -1,0 +1,20 @@
+variable "name" {
+  type        = string
+  description = "Name for the IdP resource (user pool / app registration / realm)."
+  default     = "{{NAME}}"
+}
+
+variable "users" {
+  type = list(object({
+    email = string
+    name  = optional(string)
+  }))
+  description = "Users to seed in the IdP. Each user gets a random password exposed via the `users` output."
+  default     = []
+}
+
+variable "redirect_uris" {
+  type        = list(string)
+  description = "OAuth/OIDC redirect URIs registered on the app client."
+  default     = []
+}

@@ -1,0 +1,304 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isDeploy := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "passengerSvc") -}}
+{{- if $isDeploy }}
+{{- range $version := list "v1" "v2" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: passengers-openapi-{{ $version }}
+  labels:
+    {{- include "airlines.labels" $ | nindent 4 }}
+    component: passengers
+    group: passenger-svc
+    version: {{ $version }}
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 2.0.0
+      title: Passengers API
+      description: |
+        Traefik Airlines Passenger Management — traveler profiles, preferences, and contact information.
+      contact:
+        name: Passenger Services Team
+        email: passengers@traefik-airlines.io
+    servers:
+      - url: {{ include "airlines.passengers.apiUrl" $ }}
+        description: Passengers API {{ $version }}
+    tags:
+      - name: passengers
+        description: Passenger profile management
+      - name: search
+        description: Passenger search
+    paths:
+      /{{ $version }}/passengers:
+        get:
+          summary: List all passengers
+          operationId: listPassengers
+          tags: [passengers]
+          x-handler: |
+            return [
+              { passenger_id: "PAX-001", first_name: "Elena", last_name: "Rodriguez", email: "elena.rodriguez@email.com", phone: "+1-212-555-0142", nationality: "US", passport_number: "US98234571", date_of_birth: "1988-06-15", frequent_flyer: "TK-FF-100201", tier: "gold" },
+              { passenger_id: "PAX-002", first_name: "Aisha", last_name: "Patel", email: "aisha.patel@email.com", phone: "+44-20-7946-0958", nationality: "GB", passport_number: "GB82736451", date_of_birth: "1992-11-23", frequent_flyer: "TK-FF-100202", tier: "silver" },
+              { passenger_id: "PAX-003", first_name: "James", last_name: "Chen", email: "james.chen@email.com", phone: "+86-21-5888-1234", nationality: "CN", passport_number: "CN19284756", date_of_birth: "1985-03-08", frequent_flyer: "", tier: "standard" },
+              { passenger_id: "PAX-004", first_name: "Sophie", last_name: "Laurent", email: "sophie.laurent@email.com", phone: "+33-1-42-68-5300", nationality: "FR", passport_number: "FR34567891", date_of_birth: "1990-09-02", frequent_flyer: "TK-FF-100204", tier: "platinum" },
+              { passenger_id: "PAX-005", first_name: "Marcus", last_name: "Johnson", email: "marcus.johnson@email.com", phone: "+1-310-555-0198", nationality: "US", passport_number: "US45678234", date_of_birth: "1995-01-30", frequent_flyer: "", tier: "standard" },
+              { passenger_id: "PAX-006", first_name: "Kenji", last_name: "Tanaka", email: "kenji.tanaka@email.com", phone: "+81-3-5555-0147", nationality: "JP", passport_number: "JP78901234", date_of_birth: "1987-12-10", frequent_flyer: "TK-FF-100206", tier: "gold" },
+              { passenger_id: "PAX-007", first_name: "Maria", last_name: "Silva", email: "maria.silva@email.com", phone: "+55-11-9876-5432", nationality: "BR", passport_number: "BR12345678", date_of_birth: "1993-04-17", frequent_flyer: "", tier: "standard" },
+              { passenger_id: "PAX-008", first_name: "Henrik", last_name: "Andersen", email: "henrik.andersen@email.com", phone: "+45-33-12-8800", nationality: "DK", passport_number: "DK56789012", date_of_birth: "1980-07-22", frequent_flyer: "TK-FF-100208", tier: "platinum" },
+              { passenger_id: "PAX-009", first_name: "Fatou", last_name: "Diop", email: "fatou.diop@email.com", phone: "+221-33-821-5500", nationality: "SN", passport_number: "SN34567890", date_of_birth: "1991-02-14", frequent_flyer: "TK-FF-100209", tier: "silver" },
+              { passenger_id: "PAX-010", first_name: "Luca", last_name: "Moretti", email: "luca.moretti@email.com", phone: "+39-06-4959-2100", nationality: "IT", passport_number: "IT67890123", date_of_birth: "1983-10-05", frequent_flyer: "TK-FF-100210", tier: "bronze" }
+            ]
+          responses:
+            "200":
+              description: List of passengers
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Passenger'
+                  example:
+                    - passenger_id: "PAX-001"
+                      first_name: "Elena"
+                      last_name: "Rodriguez"
+                      email: "elena.rodriguez@email.com"
+                      phone: "+1-212-555-0142"
+                      nationality: "US"
+                      passport_number: "US98234571"
+                      date_of_birth: "1988-06-15"
+                      frequent_flyer: "TK-FF-100201"
+                      tier: "gold"
+                    - passenger_id: "PAX-002"
+                      first_name: "Aisha"
+                      last_name: "Patel"
+                      email: "aisha.patel@email.com"
+                      phone: "+44-20-7946-0958"
+                      nationality: "GB"
+                      passport_number: "GB82736451"
+                      date_of_birth: "1992-11-23"
+                      frequent_flyer: "TK-FF-100202"
+                      tier: "silver"
+                    - passenger_id: "PAX-003"
+                      first_name: "James"
+                      last_name: "Chen"
+                      email: "james.chen@email.com"
+                      phone: "+86-21-5888-1234"
+                      nationality: "CN"
+                      passport_number: "CN19284756"
+                      date_of_birth: "1985-03-08"
+                      frequent_flyer: ""
+                      tier: "standard"
+                    - passenger_id: "PAX-004"
+                      first_name: "Sophie"
+                      last_name: "Laurent"
+                      email: "sophie.laurent@email.com"
+                      phone: "+33-1-42-68-5300"
+                      nationality: "FR"
+                      passport_number: "FR34567891"
+                      date_of_birth: "1990-09-02"
+                      frequent_flyer: "TK-FF-100204"
+                      tier: "platinum"
+                    - passenger_id: "PAX-005"
+                      first_name: "Marcus"
+                      last_name: "Johnson"
+                      email: "marcus.johnson@email.com"
+                      phone: "+1-310-555-0198"
+                      nationality: "US"
+                      passport_number: "US45678234"
+                      date_of_birth: "1995-01-30"
+                      frequent_flyer: ""
+                      tier: "standard"
+                    - passenger_id: "PAX-006"
+                      first_name: "Kenji"
+                      last_name: "Tanaka"
+                      email: "kenji.tanaka@email.com"
+                      phone: "+81-3-5555-0147"
+                      nationality: "JP"
+                      passport_number: "JP78901234"
+                      date_of_birth: "1987-12-10"
+                      frequent_flyer: "TK-FF-100206"
+                      tier: "gold"
+        post:
+          summary: Register a new passenger
+          operationId: createPassenger
+          tags: [passengers]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/PassengerInput'
+                example:
+                  first_name: "Maria"
+                  last_name: "Silva"
+                  email: "maria.silva@email.com"
+                  phone: "+55-11-9876-5432"
+                  nationality: "BR"
+                  passport_number: "BR12345678"
+                  date_of_birth: "1993-04-17"
+          responses:
+            "201":
+              description: Passenger registered
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Passenger'
+                  example:
+                    passenger_id: "PAX-007"
+                    first_name: "Maria"
+                    last_name: "Silva"
+                    email: "maria.silva@email.com"
+                    phone: "+55-11-9876-5432"
+                    nationality: "BR"
+                    passport_number: "BR12345678"
+                    date_of_birth: "1993-04-17"
+                    frequent_flyer: ""
+                    tier: "standard"
+      /{{ $version }}/passengers/search:
+        get:
+          summary: Search passengers
+          operationId: searchPassengers
+          tags: [search]
+          parameters:
+            - name: email
+              in: query
+              schema:
+                type: string
+            - name: last_name
+              in: query
+              schema:
+                type: string
+            - name: nationality
+              in: query
+              schema:
+                type: string
+          responses:
+            "200":
+              description: Matching passengers
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Passenger'
+      /{{ $version }}/passengers/{passengerId}:
+        get:
+          summary: Get passenger profile
+          operationId: getPassenger
+          tags: [passengers]
+          parameters:
+            - name: passengerId
+              in: path
+              required: true
+              schema:
+                type: string
+                example: "PAX-001"
+          responses:
+            "200":
+              description: Passenger profile
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Passenger'
+            "404":
+              description: Passenger not found
+        patch:
+          summary: Update passenger profile
+          operationId: updatePassenger
+          tags: [passengers]
+          parameters:
+            - name: passengerId
+              in: path
+              required: true
+              schema:
+                type: string
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/PassengerInput'
+          responses:
+            "200":
+              description: Passenger updated
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Passenger'
+        delete:
+          summary: Remove passenger
+          operationId: deletePassenger
+          tags: [passengers]
+          parameters:
+            - name: passengerId
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            "204":
+              description: Passenger removed
+    components:
+      schemas:
+        Passenger:
+          type: object
+          properties:
+            passenger_id:
+              type: string
+              example: "PAX-001"
+            first_name:
+              type: string
+              example: "Elena"
+            last_name:
+              type: string
+              example: "Rodriguez"
+            email:
+              type: string
+              format: email
+              example: "elena.rodriguez@email.com"
+            phone:
+              type: string
+              example: "+1-212-555-0142"
+            nationality:
+              type: string
+              example: "US"
+            passport_number:
+              type: string
+              example: "US98234571"
+            date_of_birth:
+              type: string
+              format: date
+              example: "1988-06-15"
+            frequent_flyer:
+              type: string
+              example: "TK-FF-100201"
+            tier:
+              type: string
+              enum: [standard, silver, gold, platinum]
+              example: "gold"
+        PassengerInput:
+          type: object
+          required: [first_name, last_name, email, nationality, passport_number, date_of_birth]
+          properties:
+            first_name:
+              type: string
+            last_name:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+            nationality:
+              type: string
+            passport_number:
+              type: string
+            date_of_birth:
+              type: string
+              format: date
+
+{{- end }}{{/* range versions */}}
+
+{{ include "airlines.flaskService" (dict "root" . "name" "passengers" "versions" (list "v1" "v2")) }}
+
+{{- end }}{{/* $isDeploy */}}

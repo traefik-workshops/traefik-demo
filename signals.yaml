@@ -1,0 +1,99 @@
+# signals.yaml — keyword index for catalog.json
+#
+# Maps every leaf module / chart path to the keywords that should trigger it
+# when /extract-scenario reads a prospect's email or transcript. Agents
+# should compare normalized prospect tokens against these keywords and rank
+# matches.
+#
+# Keep entries lower-case. Multi-word phrases are matched as substrings.
+# When a module is added, add its keywords here (CI will warn on drift).
+#
+# Charts also get their official `keywords:` from Chart.yaml — discover.py
+# merges both. This file is for the *extra* synonyms (prospect lingo,
+# common typos, marketing names) that don't belong in Chart.yaml.
+
+modules:
+  # compute — clouds
+  terraform/compute/aws/eks: [aws, eks, amazon, kubernetes, k8s]
+  terraform/compute/aws/vpc: [aws, vpc, amazon, networking]
+  terraform/compute/aws/ec2: [aws, ec2, amazon, vm]
+  terraform/compute/aws/ecs: [aws, ecs, fargate, amazon, containers]
+  terraform/compute/azure/aks: [azure, aks, microsoft, kubernetes, k8s]
+  terraform/compute/gcp/gke: [gcp, gke, "google cloud", kubernetes, k8s, google]
+  terraform/compute/digitalocean/doks: [digitalocean, doks, "do kubernetes", kubernetes, k8s]
+  terraform/compute/akamai/lke: [linode, lke, akamai, kubernetes, k8s]
+  terraform/compute/oracle/oke: [oracle, oke, oci, kubernetes, k8s, "always free"]
+  terraform/compute/nutanix/nkp: [nutanix, nkp, on-prem, hybrid, "private cloud"]
+  terraform/compute/nutanix/vm: [nutanix, vm, on-prem, "private cloud"]
+  terraform/compute/nutanix/vpc: [nutanix, vpc, on-prem, networking]
+  terraform/compute/nutanix/subnet: [nutanix, subnet, vlan]
+  terraform/compute/nutanix/fip: [nutanix, "floating ip", fip]
+  terraform/compute/nutanix/categories: [nutanix, categories, tagging]
+  terraform/compute/nutanix/storage_container: [nutanix, storage]
+  terraform/compute/runpod/auth: [runpod, ngc, "registry credentials"]
+  terraform/compute/runpod/pod: [runpod, gpu, pod]
+  terraform/compute/suse/k3d: [on-prem, local, "no cloud", k3d, kind, kubernetes, k8s, suse]
+  terraform/compute/imported/k8s: ["bring your own", "existing cluster", imported, kubeconfig, byoc, "external cluster"]
+
+  # traefik
+  terraform/traefik/shared: [traefik, hub]
+  terraform/traefik/k8s: [traefik, hub, kubernetes, "api gateway", "ai gateway", "mcp gateway", "api management"]
+  terraform/traefik/ec2: [traefik, hub, ec2, aws]
+  terraform/traefik/ecs: [traefik, hub, ecs, fargate, aws]
+  terraform/traefik/nutanix: [traefik, hub, nutanix, on-prem]
+  terraform/traefik/cloud-init: [traefik, "cloud-init", vm]
+
+  # ai
+  terraform/ai/ollama/k8s: [ai, llm, chatbot, copilot, ollama, model, "local model", cpu]
+  terraform/ai/LLMs/runpod: [ai, llm, chatbot, copilot, gpu, runpod, llama, "gpt-oss"]
+  terraform/ai/NIMs/runpod: [nim, nvidia, "topic control", "content safety", "jailbreak detection", safety]
+  terraform/ai/granite-guardian/runpod: ["granite guardian", ibm, safety, "content moderation"]
+  terraform/ai/ai-gateway-dependencies/k8s: ["ai gateway", mcp, "model routing", dependencies, crds]
+  terraform/ai/knative/k8s: [knative, "scale to zero", serverless]
+  terraform/ai/milvus/k8s: ["vector search", rag, embeddings, milvus, "vector db"]
+  terraform/ai/weaviate/k8s: ["vector search", rag, embeddings, weaviate, "vector db"]
+  terraform/ai/open-webui/k8s: ["open webui", chatbot, "chat ui", "model frontend"]
+  terraform/ai/presidio/k8s: ["data masking", pii, presidio, "anonymization", "pii detection"]
+  terraform/ai/23ai/k8s: [oracle, "23ai", database, vector]
+  terraform/ai/sqlcl/k8s: [sqlcl, oracle, sql, mcp]
+
+  # security
+  terraform/security/cognito: [sso, oidc, cognito, aws, "user pool", auth]
+  terraform/security/entraid: [sso, oidc, "azure ad", entraid, entra, microsoft, auth]
+  terraform/security/keycloak/k8s: [sso, oidc, keycloak, "in-cluster idp", generic, auth, realm]
+  terraform/security/oci-instance-principal: [oci, oracle, "instance principal", iam]
+
+  # observability
+  terraform/observability/grafana-stack/k8s: [monitoring, observability, grafana, prometheus, dashboards, metrics]
+  terraform/observability/grafana/k8s: [grafana, dashboards, visualization]
+  terraform/observability/prometheus/k8s: [prometheus, metrics, "kube-prometheus"]
+  terraform/observability/grafana-loki/k8s: [loki, logs, logging]
+  terraform/observability/grafana-tempo/k8s: [tracing, tempo, "distributed tracing"]
+  terraform/observability/opentelemetry/k8s: [tracing, opentelemetry, otel, telemetry, collector]
+  terraform/observability/langfuse/k8s: ["ai observability", "llm tracing", langfuse, "model tracing"]
+
+  # tools
+  terraform/tools/postgresql/k8s: [database, postgresql, postgres, db, sql]
+  terraform/tools/redis/k8s: [cache, redis, kv, key-value]
+  terraform/tools/cloudflare: [dns, cloudflare, "dns record"]
+  terraform/tools/k6-operator/k8s: ["load test", k6, "performance test", "stress test", grafana]
+  terraform/tools/argocd/k8s: [gitops, argocd, "continuous deployment", cd]
+  terraform/tools/cert-manager/k8s: [tls, certificates, "cert-manager", lets-encrypt, acme]
+  terraform/tools/nginx/k8s: [nginx, "ingress controller"]
+  terraform/tools/mcp-inspector/k8s: [mcp, "mcp inspector", debugger]
+
+  # apps
+  terraform/apps/whoami/k8s: ["demo app", "sample app", whoami]
+  terraform/apps/whoami/ec2: ["demo app", "sample app", whoami, ec2]
+  terraform/apps/whoami/ecs: ["demo app", "sample app", whoami, ecs]
+  terraform/apps/whoami/nutanix: ["demo app", "sample app", whoami, nutanix]
+  terraform/apps/httpbin/k8s: ["demo app", "sample app", httpbin, "http testing"]
+
+charts:
+  helm/ai-gateway: ["traefik ai gateway", "ai middleware", "pii guard", "topic control", "content safety", "shared middlewares"]
+  helm/airlines: ["airlines demo", "full demo", "scalar mock", "api management demo", umbrella]
+  helm/hoppscotch: ["api testing ui", hoppscotch, "postman alternative", "api client"]
+  helm/keycloak: ["self-hosted keycloak", "in-cluster idp", "oidc realm with seeded users", "keycloak operator"]
+  helm/presidio: ["pii detection backend", "presidio analyzer"]
+  helm/embeddings: ["embedding server", "rag embeddings", infinity, "nomic-embed"]
+  helm/dns-traefiker: ["wildcard dns for demos", "*.demo domain", "cloudflare auto record", dns-traefiker]

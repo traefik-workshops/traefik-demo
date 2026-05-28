@@ -19,7 +19,7 @@ If the directory does not exist, create it. One snapshot per prospect+month — 
 ## Snapshot structure
 
 ```
-demo-snapshots/<prospect-name>-<YYYY-MM>/
+~/poc-snapshots/<prospect-name>-<YYYY-MM>/
   DEMO.md          ← human-readable summary
   modules.tf       ← exact module sources + versions used
   inputs.tfvars    ← all var values used (passwords/tokens redacted)
@@ -43,9 +43,9 @@ demo-snapshots/<prospect-name>-<YYYY-MM>/
 
 | Module | Purpose |
 |---|---|
-| compute/PROVIDER/VARIANT | cluster type |
+| terraform/compute/PROVIDER/VARIANT | cluster type |
 | traefik/shared | Traefik Hub |
-| security/MODULE | identity provider |
+| terraform/security/MODULE | identity provider |
 
 ## Access points
 

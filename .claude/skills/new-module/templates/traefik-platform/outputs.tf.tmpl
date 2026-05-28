@@ -1,0 +1,8 @@
+output "dashboard_url" {
+  description = "URL of the Traefik dashboard."
+  # TODO(new-module): wire to the deployed instance.
+  value = ""
+}
+
+# TODO(new-module): expose the platform's ingress address:
+#   load_balancer_ip (k8s) / public_ips (ec2) / services (ecs) / ip_address (nutanix)

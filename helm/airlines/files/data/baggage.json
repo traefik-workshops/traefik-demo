@@ -1,0 +1,21 @@
+{
+  "Baggage": {
+    "BT-001": {"tag_id": "BT-001", "bag_tag": "BT-001", "booking_id": "BK-100201", "weight_kg": 23.5, "type": "checked", "bag_type": "checked", "status": "loaded", "current_location": "A12 belt", "flight_id": "TK-1001"},
+    "BT-002": {"tag_id": "BT-002", "bag_tag": "BT-002", "booking_id": "BK-100201", "weight_kg": 8.0, "type": "cabin", "bag_type": "cabin", "status": "with-passenger", "current_location": "Gate A12", "flight_id": "TK-1001"},
+    "BT-003": {"tag_id": "BT-003", "bag_tag": "BT-003", "booking_id": "BK-100202", "weight_kg": 21.0, "type": "checked", "bag_type": "checked", "status": "checked-in", "current_location": "Check-in B", "flight_id": "TK-1002"}
+  },
+  "baggage": {
+    "BT-001": {"tag_id": "BT-001", "bag_tag": "BT-001", "booking_id": "BK-100201", "weight_kg": 23.5, "type": "checked", "status": "loaded", "current_location": "A12 belt"},
+    "BT-002": {"tag_id": "BT-002", "bag_tag": "BT-002", "booking_id": "BK-100201", "weight_kg": 8.0, "type": "cabin", "status": "with-passenger", "current_location": "Gate A12"},
+    "BT-003": {"tag_id": "BT-003", "bag_tag": "BT-003", "booking_id": "BK-100202", "weight_kg": 21.0, "type": "checked", "status": "checked-in", "current_location": "Check-in B"}
+  },
+  "baggage/booking": {
+    "BK-100201": [
+      {"tag_id": "BT-001", "bag_tag": "BT-001", "booking_id": "BK-100201", "weight_kg": 23.5, "type": "checked", "status": "loaded"},
+      {"tag_id": "BT-002", "bag_tag": "BT-002", "booking_id": "BK-100201", "weight_kg": 8.0, "type": "cabin", "status": "with-passenger"}
+    ],
+    "BK-100202": [
+      {"tag_id": "BT-003", "bag_tag": "BT-003", "booking_id": "BK-100202", "weight_kg": 21.0, "type": "checked", "status": "checked-in"}
+    ]
+  }
+}

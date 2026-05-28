@@ -1,0 +1,13 @@
+variable "enable_{{NAME}}" {
+  type        = bool
+  description = "Whether to create the {{NAME}} pod."
+  default     = false
+}
+
+variable "runpod_api_key" {
+  type        = string
+  description = "RunPod API key. Get one from https://www.runpod.io/console/user/settings."
+  sensitive   = true
+}
+
+# TODO(new-module): add model-specific inputs (gpu_type, image, env, ...).

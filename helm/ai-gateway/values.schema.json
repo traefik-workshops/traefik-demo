@@ -1,0 +1,458 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "ai-gateway chart values",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "domain": {
+      "type": "string",
+      "default": "demo.traefik.ai"
+    },
+    "entryPoints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "default": "websecure"
+      }
+    },
+    "apiKeys": {
+      "type": "object",
+      "properties": {
+        "openai": {
+          "type": "string",
+          "default": ""
+        },
+        "gemini": {
+          "type": "string",
+          "default": ""
+        },
+        "anthropic": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "claudeMode": {
+      "type": "object",
+      "properties": {
+        "anthropic": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "multicluster": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "mode": {
+          "type": "string",
+          "default": "parent"
+        },
+        "parent": {
+          "type": "object",
+          "properties": {
+            "groups": {
+              "type": "object",
+              "properties": {
+                "aiGateway": {
+                  "type": "string",
+                  "default": ""
+                }
+              }
+            }
+          }
+        },
+        "child": {
+          "type": "object",
+          "properties": {
+            "uplinkEntryPoints": {
+              "type": "object",
+              "properties": {
+                "aiGateway": {
+                  "type": "string",
+                  "default": "ai-gateway"
+                }
+              }
+            },
+            "groups": {
+              "type": "object",
+              "properties": {
+                "aiGateway": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sharedMiddlewares": {
+      "type": "object",
+      "properties": {
+        "topicControl": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "host": {
+              "type": "string",
+              "default": "topic-control-nim"
+            },
+            "model": {
+              "type": "string",
+              "default": "nvidia/llama-3.1-nemoguard-8b-topic-control"
+            },
+            "systemPrompt": {
+              "type": "string",
+              "default": "You are a topic control agent. Determine if the user question is about PROHIBITED or ALLOWED topics.\n...\n"
+            },
+            "blockConditions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "default": "off-topic detected"
+                  },
+                  "condition": {
+                    "type": "string",
+                    "default": "Contains(\"off-topic\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "contentSafety": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "host": {
+              "type": "string",
+              "default": "content-safety-nim"
+            },
+            "model": {
+              "type": "string",
+              "default": "nvidia/llama-3.1-nemoguard-8b-content-safety"
+            },
+            "blockConditions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "default": "unsafe content detected"
+                  },
+                  "condition": {
+                    "type": "string",
+                    "default": "Contains(\"unsafe\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "jailbreakDetection": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "host": {
+              "type": "string",
+              "default": "jailbreak-detection-nim"
+            },
+            "scoreThreshold": {
+              "type": "string",
+              "default": "0.85"
+            }
+          }
+        },
+        "graniteGuardian": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "host": {
+              "type": "string",
+              "default": "granite-guardian"
+            }
+          }
+        },
+        "contentGuardPresidio": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "request": {
+              "type": "object",
+              "properties": {
+                "rules": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            },
+            "response": {
+              "type": "object",
+              "properties": {
+                "rules": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "mask": {
+                        "type": "object",
+                        "properties": {
+                          "char": {
+                            "type": "string",
+                            "default": "#"
+                          },
+                          "unmaskFromRight": {
+                            "type": "integer",
+                            "default": 4
+                          }
+                        }
+                      },
+                      "entities": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "default": "CREDIT_CARD"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "contentGuardRegex": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "request": {
+              "type": "object",
+              "properties": {
+                "rules": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            },
+            "response": {
+              "type": "object",
+              "properties": {
+                "rules": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          }
+        },
+        "parallelGuard": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "semanticCache": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "collectionName": {
+              "type": "string",
+              "default": "ai-gateway"
+            }
+          }
+        }
+      }
+    },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "default": "gemini"
+          },
+          "backend": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "default": "generativelanguage.googleapis.com"
+              },
+              "isExternal": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          },
+          "chatCompletion": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "default": "models/gemini-1.5-pro"
+              },
+              "params": {
+                "type": "object",
+                "properties": {
+                  "temperature": {
+                    "type": "number",
+                    "default": 1
+                  },
+                  "maxTokens": {
+                    "type": "integer",
+                    "default": 2048
+                  }
+                }
+              }
+            }
+          },
+          "headers": {
+            "type": "object",
+            "properties": {
+              "Authorization": {
+                "type": "string",
+                "default": "Bearer YOUR_GEMINI_API_KEY"
+              }
+            }
+          },
+          "routing": {
+            "type": "object",
+            "properties": {
+              "host": {
+                "type": "string",
+                "default": "gemini"
+              }
+            }
+          },
+          "api": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "default": "Gemini API"
+              },
+              "description": {
+                "type": "string",
+                "default": "Gemini AI Gateway"
+              },
+              "oasUrl": {
+                "type": "string",
+                "default": "https://raw.githubusercontent.com/traefik-workshops/traefik-airlines/refs/heads/main/oas/openapi.yaml"
+              }
+            }
+          },
+          "middlewares": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "default": "topicControl"
+            }
+          }
+        }
+      }
+    },
+    "presidio": {
+      "type": "object",
+      "properties": {}
+    },
+    "weaviate": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "default": "ClusterIP"
+            }
+          }
+        },
+        "grpcService": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      }
+    },
+    "embeddings": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string",
+          "default": "nomic-embed-text"
+        }
+      }
+    },
+    "nims": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "ngcToken": {
+          "type": "string",
+          "default": ""
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "default": "topic-control-nim"
+              },
+              "image": {
+                "type": "string",
+                "default": "nvcr.io/nim/nvidia/llama-3.1-nemoguard-8b-topic-control"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

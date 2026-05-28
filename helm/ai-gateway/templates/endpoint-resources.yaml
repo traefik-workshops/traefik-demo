@@ -1,0 +1,317 @@
+{{- if .Values.enabled }}
+{{- $isParent := include "ai-gateway.mc.isParentMode" . -}}
+{{- $isChild := include "ai-gateway.mc.isChildDeploy" . -}}
+{{- $isRemote := include "ai-gateway.mc.isRemoteGroup" . -}}
+{{- $mc := default .Values.multicluster ((.Values.global).multicluster) -}}
+{{- $uplinkEp := .Values.multicluster.child.uplinkEntryPoint -}}
+
+{{/* ── Cluster-wide multicluster resources ─────────────────────────────────── */}}
+{{/*
+  Child mode: one Uplink CRD that exposes the ai-gateway entrypoint to the
+  parent, plus a single stripprefix middleware that handles every endpoint
+  (mirrors the airlines stripprefix-flight-ops pattern: one middleware per
+  uplink, multiple prefixes).
+*/}}
+{{- if $isChild }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: Uplink
+metadata:
+  name: {{ $uplinkEp }}
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+    component: uplink
+spec:
+  exposeName: {{ $uplinkEp }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "ai-gateway.fullname" . }}-stripprefix
+  labels:
+    {{- include "ai-gateway.labels" . | nindent 4 }}
+spec:
+  stripPrefix:
+    prefixes:
+      {{- range .Values.endpoints }}
+      {{- if (default true .enabled) }}
+      - /{{ .name }}
+      {{- end }}
+      {{- end }}
+{{- end }}
+
+{{/* ── Per-endpoint resources ──────────────────────────────────────────────── */}}
+{{- range .Values.endpoints }}
+{{- if (default true .enabled) }}
+{{- $endpointName := .name }}
+{{- $fullName := printf "%s-%s" (include "ai-gateway.fullname" $) $endpointName }}
+{{- $routing := .routing }}
+{{- $endpointMiddlewares := .middlewares }}
+{{- $isExternal := .backend.isExternal }}
+{{- $backendUrl := .backend.url }}
+{{- $isLocal := include "ai-gateway.mc.isLocalDeploy" $ }}
+{{- $host := printf "%s.%s" $routing.host (($.Values.global).domain | default $.Values.domain) }}
+{{- $svcName := ternary $fullName $backendUrl $isExternal }}
+{{- $isMessagesApi := hasKey . "messagesApi" -}}
+{{- $apiPath := ternary "/v1/messages" "/v1/chat/completions" $isMessagesApi -}}
+{{- $pluginMwSuffix := ternary "msgs" "cc" $isMessagesApi -}}
+{{- $hasHeaders := gt (len (default dict .headers)) 0 -}}
+{{- $apiKey := index (default dict $.Values.apiKeys) $endpointName -}}
+{{- $claudeMode := index (default dict $.Values.claudeMode) $endpointName -}}
+
+{{/*
+  Local workloads: ExternalName Service + per-endpoint Middlewares.
+  Render where the actual routing-to-upstream happens — single-cluster parent,
+  multicluster parent without a remote group, OR multicluster child.
+*/}}
+{{- if $isLocal }}
+{{- if $isExternal }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "ai-gateway.labels" $ | nindent 4 }}
+    endpoint: {{ $endpointName }}
+spec:
+  type: ExternalName
+  externalName: {{ $backendUrl }}
+{{- end }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-{{ $pluginMwSuffix }}
+  labels:
+    {{- include "ai-gateway.labels" $ | nindent 4 }}
+    endpoint: {{ $endpointName }}
+spec:
+  plugin:
+    {{- if $isMessagesApi }}
+    messages-api:
+      {{- with .messagesApi }}
+      {{- if not $claudeMode }}
+      {{- $token := $apiKey | default .token }}
+      {{- if $token }}
+      token: {{ $token | quote }}
+      {{- end }}
+      {{- end }}
+      model: {{ .model | quote }}
+      {{- if .anthropicVersion }}
+      anthropicVersion: {{ .anthropicVersion | quote }}
+      {{- end }}
+      {{- if hasKey . "allowModelOverride" }}
+      allowModelOverride: {{ .allowModelOverride }}
+      {{- end }}
+      {{- if hasKey . "allowParamsOverride" }}
+      allowParamsOverride: {{ .allowParamsOverride }}
+      {{- end }}
+      {{- if .system }}
+      system: {{ .system | quote }}
+      {{- end }}
+      {{- if .params }}
+      params:
+        {{- toYaml .params | nindent 8 }}
+      {{- end }}
+      {{- end }}
+    {{- else }}
+    chat-completion:
+      model: {{ .chatCompletion.model }}
+      {{- if .chatCompletion.params }}
+      {{- toYaml .chatCompletion.params | nindent 6 }}
+      {{- end }}
+    {{- end }}
+{{- if $hasHeaders }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-headers
+  labels:
+    {{- include "ai-gateway.labels" $ | nindent 4 }}
+    endpoint: {{ $endpointName }}
+spec:
+  headers:
+    customRequestHeaders:
+      {{- range $k, $v := .headers }}
+      {{- if and $apiKey (eq $k "Authorization") }}
+      {{ $k }}: {{ printf "Bearer %s" $apiKey | quote }}
+      {{- else }}
+      {{ $k }}: {{ $v | quote }}
+      {{- end }}
+      {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+  Parent + remote group: per-endpoint addPrefix middleware. Used by the
+  parent IngressRoute to prepend /<endpoint> before sending the request
+  through the uplink @multicluster TraefikService, so the child's
+  PathPrefix(/<endpoint>) match catches it.
+*/}}
+{{- if $isRemote }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-addprefix
+  labels:
+    {{- include "ai-gateway.labels" $ | nindent 4 }}
+    endpoint: {{ $endpointName }}
+spec:
+  addPrefix:
+    prefix: /{{ $endpointName }}
+{{- end }}
+
+{{/* Hub API CRD — parent mode only (single-cluster or multicluster parent) */}}
+{{- if $isParent }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: API
+metadata:
+  name: {{ $fullName }}-api
+  labels:
+    {{- include "ai-gateway.labels" $ | nindent 4 }}
+    endpoint: {{ $endpointName }}
+    bundle: ai-gateway
+spec:
+  title: {{ .api.title | quote }}
+  description: {{ .api.description | quote }}
+  openApiSpec:
+    url: {{ .api.oasUrl }}
+    override:
+      servers:
+        - url: https://{{ $host }}
+{{- end }}
+
+{{/*
+  IngressRoute — three shapes:
+    1. Parent + NOT remote (single-cluster or local parent group):
+         Host(...)-matched, full AI middleware chain on /v1/chat/completions,
+         backend is the local ExternalName service.
+    2. Parent + remote group:
+         Host(...)-matched, service is the @multicluster TraefikService with
+         addPrefix middleware. No AI middleware chain here — the child runs it.
+    3. Child:
+         PathPrefix(/<endpoint>)-matched, hub uplink annotation, full AI
+         middleware chain on /v1/chat/completions, stripPrefix before
+         forwarding to the local ExternalName service.
+*/}}
+{{- if and $isParent (not $isRemote) }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $fullName }}-route
+  labels:
+    {{- include "ai-gateway.labels" $ | nindent 4 }}
+    endpoint: {{ $endpointName }}
+  annotations:
+    hub.traefik.io/api: {{ $fullName }}-api
+spec:
+  entryPoints:
+    {{- range $.Values.entryPoints }}
+    - {{ . }}
+    {{- end }}
+  routes:
+    - kind: Rule
+      match: Host(`{{ $host }}`) && PathPrefix(`{{ $apiPath }}`)
+      services:
+        - name: {{ $svcName }}
+          port: 443
+          scheme: https
+          passHostHeader: false
+      middlewares:
+        - name: {{ $fullName }}-{{ $pluginMwSuffix }}
+        {{- if $hasHeaders }}
+        - name: {{ $fullName }}-headers
+        {{- end }}
+        {{- range $endpointMiddlewares }}
+        - name: {{ if (has . (keys $.Values.sharedMiddlewares)) }}{{ include "ai-gateway.fullname" $ }}-{{ . | kebabcase }}{{ else }}{{ include "ai-gateway.fullname" $ }}-{{ $endpointName }}-{{ . | kebabcase }}{{ end }}
+        {{- end }}
+    - kind: Rule
+      match: Host(`{{ $host }}`)
+      services:
+        - name: {{ $svcName }}
+          port: 443
+          scheme: https
+          passHostHeader: false
+      {{- if $hasHeaders }}
+      middlewares:
+        - name: {{ $fullName }}-headers
+      {{- end }}
+{{- end }}
+
+{{- if $isRemote }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $fullName }}-route
+  labels:
+    {{- include "ai-gateway.labels" $ | nindent 4 }}
+    endpoint: {{ $endpointName }}
+  annotations:
+    hub.traefik.io/api: {{ $fullName }}-api
+spec:
+  entryPoints:
+    {{- range $.Values.entryPoints }}
+    - {{ . }}
+    {{- end }}
+  routes:
+    - kind: Rule
+      match: Host(`{{ $host }}`)
+      middlewares:
+        - name: {{ $fullName }}-addprefix
+      services:
+        - kind: TraefikService
+          name: {{ $uplinkEp }}@multicluster
+{{- end }}
+
+{{- if $isChild }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $fullName }}-route
+  labels:
+    {{- include "ai-gateway.labels" $ | nindent 4 }}
+    endpoint: {{ $endpointName }}
+  annotations:
+    hub.traefik.io/router.uplinks: {{ $uplinkEp | quote }}
+spec:
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/{{ $endpointName }}{{ $apiPath }}`)
+      services:
+        - name: {{ $svcName }}
+          port: 443
+          scheme: https
+          passHostHeader: false
+      middlewares:
+        - name: {{ include "ai-gateway.fullname" $ }}-stripprefix
+        - name: {{ $fullName }}-{{ $pluginMwSuffix }}
+        {{- if $hasHeaders }}
+        - name: {{ $fullName }}-headers
+        {{- end }}
+        {{- range $endpointMiddlewares }}
+        - name: {{ if (has . (keys $.Values.sharedMiddlewares)) }}{{ include "ai-gateway.fullname" $ }}-{{ . | kebabcase }}{{ else }}{{ include "ai-gateway.fullname" $ }}-{{ $endpointName }}-{{ . | kebabcase }}{{ end }}
+        {{- end }}
+    - kind: Rule
+      match: PathPrefix(`/{{ $endpointName }}`)
+      services:
+        - name: {{ $svcName }}
+          port: 443
+          scheme: https
+          passHostHeader: false
+      middlewares:
+        - name: {{ include "ai-gateway.fullname" $ }}-stripprefix
+        {{- if $hasHeaders }}
+        - name: {{ $fullName }}-headers
+        {{- end }}
+{{- end }}
+
+{{- end }}
+{{- end }}
+{{- end }}

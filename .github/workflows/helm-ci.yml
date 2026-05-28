@@ -1,0 +1,215 @@
+name: helm-ci
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "helm/**"
+      - ".github/workflows/helm-ci.yml"
+      - "helm/ct.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "helm/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: helm-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HELM_VERSION: "v3.16.2"
+  KUBECONFORM_VERSION: "v0.6.7"
+  CT_VERSION: "v3.11.0"
+  K3D_VERSION: "v5.8.3"
+  TRAEFIK_CRD_BASE: "https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds"
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Static: helm lint --strict + kubeconform on rendered manifests
+  # --------------------------------------------------------------------------
+  lint:
+    name: helm lint + kubeconform
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Install kubeconform
+        run: |
+          curl -sSL -o /tmp/kc.tgz https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz
+          tar -xzf /tmp/kc.tgz -C /tmp
+          sudo mv /tmp/kubeconform /usr/local/bin/
+
+      - name: Add external chart repos (weaviate is an external subchart of ai-gateway)
+        run: helm repo add weaviate https://weaviate.github.io/weaviate-helm
+
+      - name: helm dep update + unpack (so file:// subcharts resolve)
+        run: |
+          set -euo pipefail
+          for c in helm/*/; do
+            if grep -q '^dependencies:' "${c}Chart.yaml" 2>/dev/null; then
+              echo "::group::helm dep update $c"
+              helm dep update "$c"
+              echo "::endgroup::"
+            fi
+          done
+          # `helm lint --strict` reports vendored .tgz dependencies as "missing"
+          # — it only recognizes unpacked dependency directories. Extract them.
+          # Loop a few times to cover nested umbrella deps (airlines -> ai-gateway -> weaviate).
+          for _ in 1 2 3; do
+            while IFS= read -r tgz; do
+              tar xf "$tgz" -C "$(dirname "$tgz")"
+            done < <(find helm -path '*/charts/*.tgz')
+          done
+
+      - name: helm lint --strict per chart
+        run: |
+          set -euo pipefail
+          fail=0
+          for c in helm/*/; do
+            echo "::group::helm lint $c"
+            helm lint --strict "$c" || fail=1
+            echo "::endgroup::"
+          done
+          exit $fail
+
+      - name: helm template | kubeconform per chart
+        run: |
+          set -euo pipefail
+          fail=0
+          for c in helm/*/; do
+            echo "::group::kubeconform $c"
+            helm template release-name "$c" 2>/dev/null \
+              | kubeconform -strict -summary -ignore-missing-schemas \
+                  -skip CustomResourceDefinition \
+              || fail=1
+            echo "::endgroup::"
+          done
+          exit $fail
+
+  # --------------------------------------------------------------------------
+  # chart-testing: ct lint (full validation per chart)
+  # --------------------------------------------------------------------------
+  ct-lint:
+    name: ct lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - uses: helm/chart-testing-action@v2.6.1
+        with:
+          version: ${{ env.CT_VERSION }}
+
+      - name: Add external chart repos (ct builds deps; weaviate is an external subchart of ai-gateway)
+        run: helm repo add weaviate https://weaviate.github.io/weaviate-helm
+
+      - name: ct list-changed
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --config helm/ct.yaml --target-branch main || true)
+          echo "changed<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$changed" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          if [ -n "$changed" ]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: ct lint (all charts)
+        if: ${{ github.event_name == 'push' || steps.list-changed.outputs.any == 'true' }}
+        run: ct lint --config helm/ct.yaml --target-branch main
+
+  # --------------------------------------------------------------------------
+  # Install: ct install on a kind cluster (only for charts that changed)
+  # --------------------------------------------------------------------------
+  ct-install:
+    name: ct install (k3d)
+    runs-on: ubuntu-latest
+    needs: ct-lint
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - uses: helm/chart-testing-action@v2.6.1
+        with:
+          version: ${{ env.CT_VERSION }}
+
+      - name: Add external chart repos (ct builds deps; weaviate is an external subchart of ai-gateway)
+        run: helm repo add weaviate https://weaviate.github.io/weaviate-helm
+
+      - name: ct list-changed
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --config helm/ct.yaml --target-branch main || true)
+          echo "changed<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$changed" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          if [ -n "$changed" ]; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create k3d cluster
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        run: |
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=${{ env.K3D_VERSION }} bash
+          # Disable k3s's bundled Traefik: it ships older CRDs (no per-route
+          # observability field) that conflict with the charts' resources. We
+          # apply current Traefik proxy + Hub CRDs ourselves below.
+          k3d cluster create ct --servers 1 --k3s-arg '--disable=traefik@server:*' --wait --timeout 180s
+
+      - name: Install Traefik proxy + Hub CRDs (charts render both)
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        run: |
+          set -euo pipefail
+          for crd in \
+            traefik.io_ingressroutes traefik.io_ingressroutetcps traefik.io_ingressrouteudps \
+            traefik.io_middlewares traefik.io_middlewaretcps \
+            traefik.io_serverstransports traefik.io_serverstransporttcps \
+            traefik.io_tlsoptions traefik.io_tlsstores traefik.io_traefikservices \
+            hub.traefik.io_accesscontrolpolicies hub.traefik.io_aiservices hub.traefik.io_apiauths \
+            hub.traefik.io_apibundles hub.traefik.io_apicatalogitems hub.traefik.io_apiplans \
+            hub.traefik.io_apiportalauths hub.traefik.io_apiportals hub.traefik.io_apiratelimits \
+            hub.traefik.io_apis hub.traefik.io_apiversions hub.traefik.io_contentitems \
+            hub.traefik.io_managedapplications hub.traefik.io_managedsubscriptions hub.traefik.io_uplinks; do
+            kubectl apply --server-side -f "${TRAEFIK_CRD_BASE}/${crd}.yaml"
+          done
+
+      - name: Build + unpack chart dependencies (ct install does not build them)
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        run: |
+          set -euo pipefail
+          for c in helm/*/; do
+            if grep -q '^dependencies:' "${c}Chart.yaml" 2>/dev/null; then
+              helm dependency build "$c" || helm dependency update "$c"
+            fi
+          done
+          # helm install only resolves *unpacked* dependency dirs (not the .tgz
+          # that dep build vendors). Loop to cover nested umbrella deps.
+          for _ in 1 2 3; do
+            while IFS= read -r tgz; do
+              tar xf "$tgz" -C "$(dirname "$tgz")"
+            done < <(find helm -path '*/charts/*.tgz')
+          done
+
+      - name: ct install
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        run: ct install --config helm/ct.yaml --target-branch main

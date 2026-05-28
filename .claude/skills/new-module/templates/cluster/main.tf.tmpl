@@ -1,0 +1,18 @@
+# {{NAME}} — {{PURPOSE}}
+#
+# Managed-k8s cluster. Must expose the standard cluster output set
+# (host / cluster_ca_certificate / token / kubeconfig / cluster_id).
+
+# TODO(new-module): replace with the cloud-specific cluster resource.
+#
+# resource "<cloud>_<cluster_kind>" "this" {
+#   name     = var.cluster_name
+#   location = var.cluster_location
+#   version  = var.kubernetes_version
+#
+#   default_node_pool {
+#     name       = "default"
+#     vm_size    = var.node_size
+#     node_count = var.node_count
+#   }
+# }

@@ -1,0 +1,27 @@
+apiVersion: v2
+name: {{NAME}}
+description: {{PURPOSE}}
+type: application
+
+# Chart version is owned by the release flow — do not edit by hand.
+# See /AGENTS.md "Releases" section.
+version: {{REPO_VERSION}}
+
+# App version tracks the upstream app and moves independently of the chart version.
+appVersion: "{{APP_VERSION}}"
+
+kubeVersion: ">= 1.27.0-0"
+
+maintainers:
+  - name: Traefik SA team
+    email: sa@traefik.io
+
+# TODO(new-chart): fill in the upstream source URL(s) for {{NAME}}.
+sources:
+  - https://github.com/traefik-workshops/traefik-demo
+
+home: https://github.com/traefik-workshops/traefik-demo/tree/main/helm/{{NAME}}
+
+keywords:
+  - traefik
+  - demo

@@ -1,0 +1,159 @@
+{{- $host := include "hoppscotch.host" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-hoppscotch
+  labels:
+    {{- include "hoppscotch.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}-hoppscotch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-hoppscotch
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-hoppscotch
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16-alpine
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              until pg_isready -h {{ .Release.Name }}-hoppscotch-postgresql -U hoppscotch -d hoppscotch; do
+                echo "Waiting for PostgreSQL..."
+                sleep 2
+              done
+              echo "PostgreSQL ready."
+        - name: migrations
+          image: {{ .Values.image }}
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - cd /dist/backend && npx prisma migrate deploy
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-hoppscotch-postgresql
+                  key: DATABASE_URL
+      containers:
+        - name: hoppscotch
+          image: {{ .Values.image }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-hoppscotch-postgresql
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              value: {{ .Values.jwtSecret | quote }}
+            - name: SESSION_SECRET
+              value: {{ .Values.sessionSecret | quote }}
+            - name: DATA_ENCRYPTION_KEY
+              value: {{ .Values.dataEncryptionKey | quote }}
+            - name: TOKEN_SALT_COMPLEXITY
+              value: "10"
+            - name: MAGIC_LINK_TOKEN_VALIDITY
+              value: "3"
+            - name: ACCESS_TOKEN_VALIDITY
+              value: "604800000"
+            - name: REFRESH_TOKEN_VALIDITY
+              value: "604800000"
+            - name: VITE_BASE_URL
+              value: "https://{{ $host }}"
+            - name: VITE_SHORTCODE_BASE_URL
+              value: "https://{{ $host }}"
+            - name: VITE_BACKEND_API_URL
+              value: "https://{{ $host }}/backend"
+            - name: VITE_BACKEND_GQL_URL
+              value: "https://{{ $host }}/backend/graphql"
+            - name: VITE_BACKEND_WS_URL
+              value: "wss://{{ $host }}/backend/graphql"
+            - name: VITE_ADMIN_URL
+              value: "https://{{ $host }}/admin"
+            - name: VITE_ALLOWED_AUTH_PROVIDERS
+              value: "EMAIL"
+            - name: MAILER_SMTP_ENABLE
+              value: "false"
+            - name: WHITELISTED_ORIGINS
+              value: "https://{{ $host }}"
+            - name: PRODUCTION
+              value: "true"
+            - name: PORT
+              value: "8080"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+
+        {{- if .Values.collections }}
+        - name: collection-server
+          image: nginx:alpine
+          ports:
+            - containerPort: 8081
+              name: collection
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+            {{- range .Values.collections }}
+            - name: collection-{{ .name }}
+              mountPath: /data/{{ .name }}
+            {{- end }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+        {{- end }}
+
+      volumes:
+        {{- if .Values.collections }}
+        - name: nginx-conf
+          configMap:
+            name: {{ .Release.Name }}-hoppscotch-nginx-conf
+        {{- range .Values.collections }}
+        - name: collection-{{ .name }}
+          configMap:
+            name: {{ .configMapName }}
+        {{- end }}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-hoppscotch
+  labels:
+    {{- include "hoppscotch.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}-hoppscotch
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http
+    {{- if .Values.collections }}
+    - port: 8081
+      targetPort: 8081
+      name: collection
+    {{- end }}
+  selector:
+    app: {{ .Release.Name }}-hoppscotch

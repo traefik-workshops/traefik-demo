@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "presidio chart values",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Helm global values injected by a parent chart (e.g. ai-gateway). Open-ended.",
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "default": "mcr.microsoft.com/presidio-analyzer"
+        },
+        "tag": {
+          "type": "string",
+          "default": "2.2.358"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "default": "IfNotPresent"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "ClusterIP"
+        },
+        "port": {
+          "type": "integer",
+          "default": 3000
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "1"
+            },
+            "memory": {
+              "type": "string",
+              "default": "2Gi"
+            }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "200m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "1Gi"
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

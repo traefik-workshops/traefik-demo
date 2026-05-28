@@ -1,0 +1,41 @@
+# tfsec configuration for traefik-demo.
+#
+# tfsec is run via `make security`. The rules below are tuned for a
+# demo-modules repo, not a production module library. We disable a
+# handful of checks that would flag every demo (single-AZ, public
+# endpoints) and keep everything that catches real footguns.
+
+# Severity threshold — we want HIGH and CRITICAL to fail CI; MEDIUM is a warning.
+minimum_severity: HIGH
+
+# Rules we suppress repo-wide. Each one includes a reason — don't
+# silently expand this list; document why a rule is off.
+exclude:
+  # Single-AZ resources are fine for demos.
+  - aws-elb-alb-not-public
+
+  # The demo security group (compute/aws/vpc `demo_sg`) intentionally opens
+  # 80/443/8080/22 ingress + all egress to 0.0.0.0/0 so a demo is reachable
+  # without per-environment CIDR wiring. These are the current tfsec IDs
+  # (the older aws-vpc-* spellings below are kept for forward/back compat).
+  - aws-ec2-no-public-ingress-sgr
+  - aws-ec2-no-public-egress-sgr
+  - aws-vpc-no-public-ingress
+  - aws-vpc-no-public-egress-sgr
+  - aws-vpc-add-description-to-security-group-rule
+
+  # Demo k8s clusters intentionally expose the API server.
+  - aws-eks-no-public-cluster-access
+  - aws-eks-no-public-cluster-access-to-cidr
+  - google-gke-enable-private-cluster
+  - azure-container-use-rbac-permissions
+
+  # Demos run small/cheap; we don't enforce node-level encryption-at-rest.
+  - aws-eks-encrypt-secrets
+  - aws-ec2-enable-at-rest-encryption
+
+# Rules we keep (representative; full set runs by default):
+#   - hardcoded-credentials   (catches SEC-01..06)
+#   - any tls/encryption rules on storage that ISN'T the cluster nodes
+#   - IAM wildcards and overly-permissive policies
+#   - public S3 buckets, public storage accounts

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "embeddings chart values",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Helm global values injected by a parent chart (e.g. ai-gateway). Open-ended.",
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "default": "michaelf34/infinity"
+        },
+        "tag": {
+          "type": "string",
+          "default": "0.0.75"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "default": "IfNotPresent"
+        }
+      }
+    },
+    "model": {
+      "type": "string",
+      "default": "nomic-embed-text"
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "ClusterIP"
+        },
+        "port": {
+          "type": "integer",
+          "default": 7997
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "500m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "1Gi"
+            }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "100m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "256Mi"
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,62 @@
+{{- if and .Values.enabled .Values.ingress.enabled }}
+{{- $ingressDomain := .Values.ingress.domain | default ((.Values.global).domain) }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: keycloak-cors
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  headers:
+    accessControlAllowOriginList:
+      - "*"
+    accessControlAllowMethods:
+      - GET
+      - POST
+      - OPTIONS
+    accessControlAllowHeaders:
+      - "*"
+    accessControlMaxAge: 300
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.ingress.entrypoint }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ include "keycloak.namespace" . }}-keycloak-cors@kubernetescrd
+    {{- if not .Values.ingress.observability }}
+    traefik.ingress.kubernetes.io/router.observability.accesslogs: "false"
+    traefik.ingress.kubernetes.io/router.observability.metrics: "false"
+    traefik.ingress.kubernetes.io/router.observability.tracing: "false"
+    {{- end }}
+    {{- range $k, $v := .Values.ingress.annotations }}
+    {{ $k }}: {{ $v | quote }}
+    {{- end }}
+spec:
+  rules:
+    - host: keycloak.{{ $ingressDomain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keycloak-service
+                port:
+                  number: 8080
+    - host: keycloak-service.{{ include "keycloak.namespace" . }}.svc
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: keycloak-service
+                port:
+                  number: 8080
+{{- end }}

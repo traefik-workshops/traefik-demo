@@ -1,0 +1,14 @@
+{{- if or (include "airlines.mc.isLocalDeploy" (dict "root" . "group" "flightOps"))
+          (include "airlines.mc.isLocalDeploy" (dict "root" . "group" "passengerSvc"))
+          (include "airlines.mc.isLocalDeploy" (dict "root" . "group" "airportOps")) }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-build-src
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: dashboard
+binaryData:
+  src.tar.gz: {{ .Files.Get "files/dashboard-src.tar.gz" | b64enc }}
+{{- end }}

@@ -22,7 +22,31 @@ From the description, extract:
 - **Components**: AI, observability, security/SSO, tools
 - **Prospect name**: used for snapshot folder
 
-Read MODULE_CATALOG.md to confirm module selection and deploy order.
+Confirm every module exists by reading [`catalog.json`](../../catalog.json) at the repo root — it lists every leaf TF module and Helm chart with their `required_inputs`, `optional_inputs`, `outputs`, and `dependencies`. CI keeps it in sync with the tree.
+
+Deploy order is always:
+
+**Terraform phase (provisioning):**
+
+1. `terraform/compute/<provider>/...` — provisions cluster, outputs kubeconfig (skip if reusing one)
+2. `terraform/traefik/...` — Traefik Hub (needs kubeconfig)
+3. `terraform/security/...` — identity provider, if SSO requested
+4. `terraform/observability/...` — monitoring stack, if requested
+5. `terraform/ai/...` — AI workloads, if requested
+6. `terraform/tools/...` — postgres/redis/cert-manager/etc., as needed
+7. `terraform/apps/...` — sample workloads last
+
+**Helm phase (workloads on top):**
+
+8. `helm/<chart>` — install demo workload charts. Same ordering principle (base deps first):
+   - `helm/dns-traefiker` — if the demo needs auto-DNS
+   - `helm/keycloak` — if the demo needs an in-cluster IdP (often subchart of `helm/airlines`)
+   - `helm/embeddings`, `helm/presidio` — middleware backends for the AI gateway
+   - `helm/ai-gateway` — depends on `helm/presidio` + `helm/embeddings` if their middlewares are enabled
+   - `helm/hoppscotch` — API testing UI
+   - `helm/airlines` — umbrella; pulls keycloak/hoppscotch/ai-gateway as subcharts (install this LAST if used; skip the standalone versions of its subcharts)
+
+Charts under `helm/airlines` and `helm/ai-gateway` are **umbrella charts** — if you install them, you do NOT also install their subcharts standalone. Gate via `enabled: true|false` in `values.yaml`.
 
 ## Step 2 — Declare deploy plan
 
@@ -53,10 +77,9 @@ Wait for SA confirmation before proceeding.
 ## Step 3 — Collect inputs
 
 For each module in the plan:
-1. Read `variables.tf`
-2. Identify vars with no default
-3. Ask SA for all missing values — one round, grouped together
-4. Do NOT ask for vars that have defaults unless SA wants to override
+1. Look up the module in [`catalog.json`](../../catalog.json) — `required_inputs` gives you the no-default vars with their type + description.
+2. Ask SA for all missing values — one round, grouped together.
+3. Do NOT ask for vars in `optional_inputs` unless SA wants to override.
 
 ## Step 4 — Deploy
 
@@ -73,6 +96,25 @@ terraform apply -auto-approve -var="<key>=<value>" ...
 - If any module fails: stop, report exact error, do NOT continue
 - Never run `terraform destroy` — only `apply`
 - If KUBECONFIG not set after compute deploy, stop and report
+
+## Step 5 — Helm install (if any helm/ charts in plan)
+
+For each chart in the helm phase:
+
+```bash
+helm install <release-name> ./helm/<chart> \
+    --create-namespace --namespace <release-name> \
+    --set <key>=<value> \
+    --wait --timeout=10m
+```
+
+- Always `helm dep update ./helm/<chart>` first if the chart has subchart dependencies (ai-gateway, airlines).
+- Use `--wait` so subsequent installs see running pods.
+- If a chart's `values.schema.json` rejects your values, fix the values, not the schema.
+- Pass cluster credentials via `KUBECONFIG` (carried over from the Terraform phase).
+- If any chart install fails: stop, report exact error, do NOT continue.
+
+For each chart, read `values.yaml` and the chart's `README.md` to identify which values you need to override. Required values are listed in `values.schema.json` under the `required` array.
 
 ## Rules
 

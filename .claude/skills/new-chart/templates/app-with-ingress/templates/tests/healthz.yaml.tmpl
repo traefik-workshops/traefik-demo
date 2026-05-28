@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "{{NAME}}.fullname" . }}-test-healthz"
+  labels:
+    {{- include "{{NAME}}.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: healthz
+      image: curlimages/curl:8.10.1
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          # TODO(new-chart): replace with the actual health endpoint for {{NAME}}.
+          curl -fsS http://{{ include "{{NAME}}.fullname" . }}:{{ .Values.service.port }}/ || exit 1

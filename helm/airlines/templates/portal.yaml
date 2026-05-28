@@ -1,0 +1,70 @@
+{{- if include "airlines.mc.isParentMode" . }}
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APIPortal
+metadata:
+  name: airlines-portal
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  title: "Traefik Airlines APIs"
+  description: |
+    ## Traefik Airlines API Portal
+    Explore and subscribe to airline APIs across Flight Operations, Passenger Services, and Airport Operations.
+  trustedUrls:
+    - https://portal.{{ include "airlines.domain" . }}{{ include "airlines.portSuffix" . }}
+  auth:
+    name: oidc-portal-auth
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airlines-portal
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+  annotations:
+    hub.traefik.io/api-portal: airlines-portal
+spec:
+  entryPoints:
+    {{- range .Values.entryPoints }}
+    - {{ . }}
+    {{- end }}
+  routes:
+  - match: {{ include "airlines.portal.hostMatch" . }}
+    kind: Rule
+    services:
+    - name: apiportal
+      namespace: traefik
+      port: 9903
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APICatalogItem
+metadata:
+  name: airlines-access
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  groups:
+    - users
+  apiBundles:
+    - name: flight-ops-bundle
+    - name: passenger-svc-bundle
+  apiPlan:
+    name: airlines-access
+---
+apiVersion: hub.traefik.io/v1alpha1
+kind: APICatalogItem
+metadata:
+  name: airlines-admins-access
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  groups:
+    - admins
+  apiBundles:
+    - name: flight-ops-bundle
+    - name: passenger-svc-bundle
+    - name: airport-ops-bundle
+  apiPlan:
+    name: airlines-admins-access
+{{- end }}

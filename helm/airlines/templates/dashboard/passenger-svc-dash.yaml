@@ -1,0 +1,178 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isPassengerSvc := or $isParent (include "airlines.mc.isChildDeploy" (dict "root" . "group" "passengerSvc")) -}}
+{{- $isLocalPassengerSvc := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "passengerSvc") -}}
+{{- $mc := .Values.global.multicluster -}}
+{{- if $isLocalPassengerSvc }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: passenger-svc-dash-nginx-conf
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: passenger-svc-dash
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Passenger Services APIs
+        location /api/bookings/      { proxy_pass http://bookings-app:3000/;      proxy_set_header Host $host; }
+        location /api/passengers/    { proxy_pass http://passengers-app:3000/;    proxy_set_header Host $host; }
+        location /api/notifications/ { proxy_pass http://notifications-app:3000/; proxy_set_header Host $host; }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: passenger-svc-dash-html
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: passenger-svc-dash
+data:
+  index.html: |
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Traefik Airlines - Passenger Services</title>
+        <link rel="stylesheet" href="/assets/index.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <script>
+          window.AI_GATEWAY_ENABLED = {{ .Values.aiGateway.enabled | toString | lower }};
+          window.AI_GATEWAY_URL = "{{ .Values.aiGateway.url }}";
+          window.AI_GATEWAY_TOKEN = "{{ .Values.aiGateway.token }}";
+          window.MCP_SERVERS = {{ .Values.aiGateway.mcpServers | toJson }};
+          window.__DASHBOARD_ROUTE__ = "/passenger-svc";
+        </script>
+        <script type="module" src="/assets/index.js"></script>
+      </head>
+      <body>
+        <div id="root"></div>
+      </body>
+    </html>
+
+{{ include "airlines.dashboardService" (dict "root" . "name" "passenger-svc-dash") }}
+{{- end }}
+{{- if $isLocalPassengerSvc }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: passenger-svc-dash-oidc
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: passenger-svc-dash
+spec:
+  plugin:
+    oidc:
+      issuer: {{ include "airlines.oidc.issuerUrl" . }}
+      clientId: "urn:k8s:secret:oidc-credentials:clientId"
+      clientSecret: "urn:k8s:secret:oidc-credentials:clientSecret"
+      redirectUrl: https://passenger-svc.{{ include "airlines.domain" . }}{{ include "airlines.portSuffix" . }}/callback
+      scopes:
+        - openid
+        - profile
+        - email
+        - group
+      claims: >-
+        Contains(`id_token.group`, `passenger-svc`) ||
+        Contains(`id_token.group`, `admins`)
+      forwardHeaders:
+        X-User-Group: group
+        X-User-Email: email
+        X-User-Name: preferred_username
+      session:
+        expiry: 86400
+        refresh: true
+{{- end }}
+{{- $isRemotePassengerSvc := include "airlines.mc.isRemoteGroup" (dict "root" . "group" "passengerSvc") -}}
+{{- $isChildPassengerSvc := include "airlines.mc.isChildDeploy" (dict "root" . "group" "passengerSvc") -}}
+{{/* Parent IngressRoute — see airport-ops-dash.yaml for the full pattern. */}}
+{{- if $isParent }}
+{{- if $isRemotePassengerSvc }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: addprefix-passenger-svc-dash
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: passenger-svc-dash
+spec:
+  addPrefix:
+    prefix: /passenger-svc
+{{- end }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: passenger-svc-dash-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: passenger-svc-dash
+spec:
+  {{- include "airlines.mc.entryPoints" (dict "root" . "group" "passengerSvc") | nindent 2 }}
+  routes:
+    - kind: Rule
+      match: {{ include "airlines.passengerSvcDash.hostMatch" . }}
+      {{- if $isRemotePassengerSvc }}
+      middlewares:
+        - name: addprefix-passenger-svc-dash
+      services:
+        - kind: TraefikService
+          name: {{ index $mc.child.uplinkEntryPoints "passengerSvc" }}@multicluster
+      {{- else }}
+      middlewares:
+        - name: passenger-svc-dash-oidc
+      services:
+        - name: passenger-svc-dash
+          port: 80
+          passHostHeader: true
+      {{- end }}
+{{- end }}
+{{/* Child IngressRoute */}}
+{{- if $isChildPassengerSvc }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: stripprefix-passenger-svc-dash
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: passenger-svc-dash
+spec:
+  stripPrefix:
+    prefixes:
+      - /passenger-svc
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: passenger-svc-dash-route
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: passenger-svc-dash
+  annotations:
+    hub.traefik.io/router.uplinks: {{ index $mc.child.uplinkEntryPoints "passengerSvc" | quote }}
+spec:
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/passenger-svc`)
+      middlewares:
+        - name: stripprefix-passenger-svc-dash
+        - name: passenger-svc-dash-oidc
+      services:
+        - name: passenger-svc-dash
+          port: 80
+          passHostHeader: true
+{{- end }}

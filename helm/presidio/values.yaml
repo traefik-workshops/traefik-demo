@@ -1,0 +1,16 @@
+image:
+  repository: mcr.microsoft.com/presidio-analyzer
+  tag: 2.2.358
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 2Gi
+  requests:
+    cpu: 200m
+    memory: 1Gi

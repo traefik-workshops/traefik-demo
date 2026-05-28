@@ -1,0 +1,24 @@
+apiVersion: v2
+name: keycloak
+description: Keycloak identity and access management with operator
+type: application
+version: 4.0.0
+appVersion: "26.5.2"
+kubeVersion: ">= 1.27.0-0"
+
+maintainers:
+  - name: Traefik SA team
+    email: sa@traefik.io
+
+sources:
+  - https://github.com/traefik-workshops/traefik-demo
+  - https://www.keycloak.org/
+
+home: https://github.com/traefik-workshops/traefik-demo/tree/main/helm/keycloak
+
+keywords:
+  - traefik
+  - keycloak
+  - oidc
+  - auth
+  - demo

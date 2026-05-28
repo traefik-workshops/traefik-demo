@@ -1,0 +1,280 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isDeploy := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "airportOps") -}}
+{{- if $isDeploy }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gates-openapi
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: gates
+    group: airport-ops
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 2.0.0
+      title: Gates API
+      description: |
+        Traefik Airlines Gates Service — gate assignments, terminal status, and gate change management.
+      contact:
+        name: Airport Operations Team
+        email: ground-ops@traefik-airlines.io
+    servers:
+      - url: {{ include "airlines.gates.apiUrl" . }}
+        description: Gates API
+    tags:
+      - name: gates
+        description: Gate management
+      - name: terminals
+        description: Terminal information
+    paths:
+      /gates:
+        get:
+          summary: List all gate assignments
+          operationId: listGates
+          tags: [gates]
+          x-handler: |
+            return [
+              { gate_id: "JFK-T1-B22", airport: "JFK", terminal: "1", gate_number: "B22", status: "boarding", flight_id: "TK-1042", flight_number: "TK1042", destination: "CDG", scheduled_departure: "2026-03-15T08:30:00Z", boarding_start: "2026-03-15T07:50:00Z", aircraft_type: "Boeing 777-300ER" },
+              { gate_id: "CDG-T2E-A14", airport: "CDG", terminal: "2E", gate_number: "A14", status: "assigned", flight_id: "TK-2187", flight_number: "TK2187", destination: "DXB", scheduled_departure: "2026-03-15T14:30:00Z", boarding_start: null, aircraft_type: "Airbus A350-900" },
+              { gate_id: "LAX-TB-S32", airport: "LAX", terminal: "B", gate_number: "S32", status: "boarding", flight_id: "TK-0553", flight_number: "TK0553", destination: "HND", scheduled_departure: "2026-03-15T11:15:00Z", boarding_start: "2026-03-15T10:35:00Z", aircraft_type: "Airbus A350-900" },
+              { gate_id: "ORD-T5-C12", airport: "ORD", terminal: "5", gate_number: "C12", status: "assigned", flight_id: "TK-4819", flight_number: "TK4819", destination: "LHR", scheduled_departure: "2026-03-15T17:30:00Z", boarding_start: null, aircraft_type: "Boeing 777-300ER" },
+              { gate_id: "FRA-T1-D05", airport: "FRA", terminal: "1", gate_number: "D05", status: "closed", flight_id: "TK-1590", flight_number: "TK1590", destination: "JFK", scheduled_departure: "2026-03-15T09:45:00Z", boarding_start: "2026-03-15T09:05:00Z", aircraft_type: "Airbus A320neo" },
+              { gate_id: "DXB-T3-F12", airport: "DXB", terminal: "3", gate_number: "F12", status: "closed", flight_id: "TK-3321", flight_number: "TK3321", destination: "SIN", scheduled_departure: "2026-03-14T23:30:00Z", boarding_start: "2026-03-14T22:50:00Z", aircraft_type: "Boeing 787-9" },
+              { gate_id: "HND-TI-H02", airport: "HND", terminal: "INT", gate_number: "H02", status: "assigned", flight_id: "TK-2044", flight_number: "TK2044", destination: "CDG", scheduled_departure: "2026-03-15T22:00:00Z", boarding_start: null, aircraft_type: "Boeing 787-9" },
+              { gate_id: "JFK-T1-B25", airport: "JFK", terminal: "1", gate_number: "B25", status: "available", flight_id: null, flight_number: null, destination: null, scheduled_departure: null, boarding_start: null, aircraft_type: null },
+              { gate_id: "CDG-T2E-A18", airport: "CDG", terminal: "2E", gate_number: "A18", status: "maintenance", flight_id: null, flight_number: null, destination: null, scheduled_departure: null, boarding_start: null, aircraft_type: null },
+              { gate_id: "SIN-T3-C31", airport: "SIN", terminal: "3", gate_number: "C31", status: "assigned", flight_id: "TK-0871", flight_number: "TK0871", destination: "SYD", scheduled_departure: "2026-03-15T08:00:00Z", boarding_start: null, aircraft_type: "Boeing 737-800" }
+            ]
+          parameters:
+            - name: status
+              in: query
+              schema:
+                type: string
+                enum: [available, assigned, boarding, closed, maintenance]
+            - name: terminal
+              in: query
+              schema:
+                type: string
+          responses:
+            "200":
+              description: All gate assignments
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Gate'
+                  example:
+                    - gate_id: "JFK-T1-B22"
+                      airport: "JFK"
+                      terminal: "1"
+                      gate_number: "B22"
+                      status: "boarding"
+                      flight_id: "TK-1042"
+                      flight_number: "TK1042"
+                      destination: "CDG"
+                      scheduled_departure: "2026-03-15T08:30:00Z"
+                      boarding_start: "2026-03-15T07:50:00Z"
+                      aircraft_type: "Boeing 777-300ER"
+                    - gate_id: "CDG-T2E-A14"
+                      airport: "CDG"
+                      terminal: "2E"
+                      gate_number: "A14"
+                      status: "assigned"
+                      flight_id: "TK-2187"
+                      flight_number: "TK2187"
+                      destination: "DXB"
+                      scheduled_departure: "2026-03-15T14:30:00Z"
+                      boarding_start: null
+                      aircraft_type: "Airbus A350-900"
+                    - gate_id: "LAX-TB-S32"
+                      airport: "LAX"
+                      terminal: "B"
+                      gate_number: "S32"
+                      status: "assigned"
+                      flight_id: "TK-0553"
+                      flight_number: "TK0553"
+                      destination: "NRT"
+                      scheduled_departure: "2026-03-16T11:00:00Z"
+                      boarding_start: null
+                      aircraft_type: "Boeing 787-9"
+                    - gate_id: "ORD-T5-C12"
+                      airport: "ORD"
+                      terminal: "5"
+                      gate_number: "C12"
+                      status: "boarding"
+                      flight_id: "TK-0892"
+                      flight_number: "TK0892"
+                      destination: "LHR"
+                      scheduled_departure: "2026-03-16T19:00:00Z"
+                      boarding_start: "2026-03-16T18:20:00Z"
+                      aircraft_type: "Airbus A380-800"
+                    - gate_id: "JFK-T1-B25"
+                      airport: "JFK"
+                      terminal: "1"
+                      gate_number: "B25"
+                      status: "available"
+                      flight_id: null
+                      flight_number: null
+                      destination: null
+                      scheduled_departure: null
+                      boarding_start: null
+                      aircraft_type: null
+                    - gate_id: "CDG-T2E-A18"
+                      airport: "CDG"
+                      terminal: "2E"
+                      gate_number: "A18"
+                      status: "maintenance"
+                      flight_id: null
+                      flight_number: null
+                      destination: null
+                      scheduled_departure: null
+                      boarding_start: null
+                      aircraft_type: null
+        post:
+          summary: Assign flight to gate
+          operationId: assignGate
+          tags: [gates]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/GateAssignment'
+                example:
+                  gate_id: "JFK-T1-B25"
+                  flight_id: "TK-1590"
+                  boarding_start: "2026-03-17T10:20:00Z"
+          responses:
+            "200":
+              description: Gate assigned
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Gate'
+      /gates/{gateId}:
+        get:
+          summary: Get gate details
+          operationId: getGate
+          tags: [gates]
+          parameters:
+            - name: gateId
+              in: path
+              required: true
+              schema:
+                type: string
+              example: "JFK-T1-B22"
+          responses:
+            "200":
+              description: Gate details
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Gate'
+            "404":
+              description: Gate not found
+        put:
+          summary: Update gate status
+          operationId: updateGate
+          tags: [gates]
+          parameters:
+            - name: gateId
+              in: path
+              required: true
+              schema:
+                type: string
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      enum: [available, assigned, boarding, closed, maintenance]
+                example:
+                  status: "closed"
+          responses:
+            "200":
+              description: Gate updated
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Gate'
+        delete:
+          summary: Release gate assignment
+          operationId: releaseGate
+          tags: [gates]
+          parameters:
+            - name: gateId
+              in: path
+              required: true
+              schema:
+                type: string
+              example: "JFK-T1-B22"
+          responses:
+            "200":
+              description: Gate assignment removed
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+            "404":
+              description: Gate not found
+    components:
+      schemas:
+        Gate:
+          type: object
+          properties:
+            gate_id:
+              type: string
+            airport:
+              type: string
+            terminal:
+              type: string
+            gate_number:
+              type: string
+            status:
+              type: string
+              enum: [available, assigned, boarding, closed, maintenance]
+            flight_id:
+              type: string
+              nullable: true
+            flight_number:
+              type: string
+              nullable: true
+            destination:
+              type: string
+              nullable: true
+            scheduled_departure:
+              type: string
+              format: date-time
+              nullable: true
+            boarding_start:
+              type: string
+              format: date-time
+              nullable: true
+            aircraft_type:
+              type: string
+              nullable: true
+        GateAssignment:
+          type: object
+          required: [gate_id, flight_id]
+          properties:
+            gate_id:
+              type: string
+            flight_id:
+              type: string
+            boarding_start:
+              type: string
+              format: date-time
+
+{{ include "airlines.flaskService" (dict "root" . "name" "gates") }}
+
+{{- end }}

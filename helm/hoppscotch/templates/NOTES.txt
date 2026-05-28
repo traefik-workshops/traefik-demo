@@ -1,0 +1,11 @@
+Hoppscotch deployed!
+====================
+
+UI: https://{{ include "hoppscotch.host" . }}
+{{- if .Values.collections }}
+
+Collections:
+{{- range .Values.collections }}
+  - {{ .title }}: https://{{ include "hoppscotch.host" $ }}/import?type=hoppscotch&url=/{{ .name }}/collection.json
+{{- end }}
+{{- end }}

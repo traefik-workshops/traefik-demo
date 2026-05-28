@@ -1,0 +1,232 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isDeploy := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "airportOps") -}}
+{{- if $isDeploy }}
+{{- range $version := list "v1" "v2" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: baggage-openapi-{{ $version }}
+  labels:
+    {{- include "airlines.labels" $ | nindent 4 }}
+    component: baggage
+    group: airport-ops
+    version: {{ $version }}
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 2.0.0
+      title: Baggage API
+      description: |
+        Traefik Airlines Baggage Service — bag check-in, real-time tracking, and claim management.
+      contact:
+        name: Airport Operations Team
+        email: ground-ops@traefik-airlines.io
+    servers:
+      - url: {{ include "airlines.baggage.apiUrl" $ }}
+        description: Baggage API {{ $version }}
+    tags:
+      - name: baggage
+        description: Baggage management
+      - name: tracking
+        description: Real-time bag tracking
+    paths:
+      /{{ $version }}/baggage:
+        get:
+          summary: List all tracked baggage
+          operationId: listBaggage
+          tags: [baggage]
+          x-handler: |
+            return [
+              { tag_id: "TK-BAG-90001", booking_id: "BK-100201", passenger_name: "Elena Rodriguez", flight_id: "TK-1042", weight_kg: 22.5, status: "checked-in", location: "JFK Terminal 1 - Belt 3", last_scan: "2026-03-15T06:30:00Z" },
+              { tag_id: "TK-BAG-90002", booking_id: "BK-100201", passenger_name: "Elena Rodriguez", flight_id: "TK-1042", weight_kg: 18.0, status: "checked-in", location: "JFK Terminal 1 - Belt 3", last_scan: "2026-03-15T06:31:00Z" },
+              { tag_id: "TK-BAG-90003", booking_id: "BK-100203", passenger_name: "Aisha Patel", flight_id: "TK-0553", weight_kg: 28.3, status: "loaded", location: "LAX Terminal B - Aircraft Hold", last_scan: "2026-03-15T09:45:00Z" },
+              { tag_id: "TK-BAG-90004", booking_id: "BK-100205", passenger_name: "Sophie Laurent", flight_id: "TK-1590", weight_kg: 15.0, status: "in-transit", location: "FRA Terminal 1 - Sorting", last_scan: "2026-03-15T08:20:00Z" },
+              { tag_id: "TK-BAG-90005", booking_id: "BK-100206", passenger_name: "Kenji Tanaka", flight_id: "TK-2044", weight_kg: 23.0, status: "delivered", location: "CDG Terminal 2E - Carousel 7", last_scan: "2026-03-15T06:15:00Z" },
+              { tag_id: "TK-BAG-90006", booking_id: "BK-100202", passenger_name: "James Chen", flight_id: "TK-2187", weight_kg: 20.0, status: "checked-in", location: "CDG Terminal 2E - Check-in Counter", last_scan: "2026-03-15T12:00:00Z" },
+              { tag_id: "TK-BAG-90007", booking_id: "BK-100208", passenger_name: "Henrik Andersen", flight_id: "TK-3321", weight_kg: 26.8, status: "in-transit", location: "DXB Terminal 3 - Transfer Belt", last_scan: "2026-03-15T00:15:00Z" },
+              { tag_id: "TK-BAG-90008", booking_id: "BK-100209", passenger_name: "Fatou Diop", flight_id: "TK-4819", weight_kg: 19.5, status: "loaded", location: "ORD Terminal 5 - Aircraft Hold", last_scan: "2026-03-15T16:30:00Z" },
+              { tag_id: "TK-BAG-90009", booking_id: "BK-100207", passenger_name: "Maria Silva", flight_id: "TK-0871", weight_kg: 24.1, status: "delayed", location: "SIN Terminal 3 - Sorting", last_scan: "2026-03-15T05:00:00Z" },
+              { tag_id: "TK-BAG-90010", booking_id: "BK-100210", passenger_name: "Luca Moretti", flight_id: "TK-1042", weight_kg: 21.3, status: "checked-in", location: "JFK Terminal 1 - Security Scan", last_scan: "2026-03-15T06:45:00Z" }
+            ]
+          responses:
+            "200":
+              description: All tracked bags
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Baggage'
+                  example:
+                    - tag_id: "TK-BAG-90001"
+                      booking_id: "BK-100201"
+                      passenger_name: "Elena Rodriguez"
+                      flight_id: "TK-1042"
+                      weight_kg: 22.5
+                      status: "checked-in"
+                      location: "JFK Terminal 1 - Belt 3"
+                      last_scan: "2026-03-15T06:30:00Z"
+                    - tag_id: "TK-BAG-90002"
+                      booking_id: "BK-100201"
+                      passenger_name: "Elena Rodriguez"
+                      flight_id: "TK-1042"
+                      weight_kg: 18.0
+                      status: "checked-in"
+                      location: "JFK Terminal 1 - Belt 3"
+                      last_scan: "2026-03-15T06:31:00Z"
+                    - tag_id: "TK-BAG-90003"
+                      booking_id: "BK-100203"
+                      passenger_name: "Aisha Patel"
+                      flight_id: "TK-0553"
+                      weight_kg: 28.3
+                      status: "loaded"
+                      location: "LAX Terminal B - Aircraft Hold"
+                      last_scan: "2026-03-15T09:45:00Z"
+                    - tag_id: "TK-BAG-90004"
+                      booking_id: "BK-100205"
+                      passenger_name: "Sophie Laurent"
+                      flight_id: "TK-1590"
+                      weight_kg: 15.0
+                      status: "in-transit"
+                      location: "FRA Terminal 1 - Sorting"
+                      last_scan: "2026-03-15T08:20:00Z"
+                    - tag_id: "TK-BAG-90005"
+                      booking_id: "BK-100206"
+                      passenger_name: "Kenji Tanaka"
+                      flight_id: "TK-2044"
+                      weight_kg: 23.0
+                      status: "delivered"
+                      location: "CDG Terminal 2E - Carousel 7"
+                      last_scan: "2026-03-15T06:15:00Z"
+        post:
+          summary: Check in baggage
+          description: Register a bag for a booking
+          operationId: checkInBaggage
+          tags: [baggage]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BaggageInput'
+                example:
+                  booking_id: "BK-100202"
+                  weight_kg: 20.0
+                  description: "Black hard-shell suitcase"
+          responses:
+            "201":
+              description: Baggage checked in
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Baggage'
+                  example:
+                    tag_id: "TK-BAG-90006"
+                    booking_id: "BK-100202"
+                    passenger_name: "James Chen"
+                    flight_id: "TK-2187"
+                    weight_kg: 20.0
+                    status: "checked-in"
+                    location: "CDG Terminal 2 - Check-in Counter"
+                    last_scan: "2026-03-15T12:00:00Z"
+      /{{ $version }}/baggage/{tagId}:
+        delete:
+          summary: Remove baggage record
+          operationId: removeBaggage
+          tags: [baggage]
+          parameters:
+            - name: tagId
+              in: path
+              required: true
+              schema:
+                type: string
+              example: "TK-BAG-90001"
+          responses:
+            "200":
+              description: Baggage record removed
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+            "404":
+              description: Bag not found
+    components:
+      schemas:
+        Baggage:
+          type: object
+          properties:
+            tag_id:
+              type: string
+              example: "TK-BAG-90001"
+            booking_id:
+              type: string
+              example: "BK-100201"
+            passenger_name:
+              type: string
+              example: "Elena Rodriguez"
+            flight_id:
+              type: string
+              example: "TK-1042"
+            weight_kg:
+              type: number
+              example: 22.5
+            status:
+              type: string
+              enum: [checked-in, screened, loaded, in-transit, unloaded, delivered, delayed, lost]
+              example: "checked-in"
+            location:
+              type: string
+              example: "JFK Terminal 1 - Belt 3"
+            last_scan:
+              type: string
+              format: date-time
+        BaggageInput:
+          type: object
+          required: [booking_id, weight_kg]
+          properties:
+            booking_id:
+              type: string
+            weight_kg:
+              type: number
+            description:
+              type: string
+        BaggageTracking:
+          type: object
+          properties:
+            tag_id:
+              type: string
+            booking_id:
+              type: string
+            passenger_name:
+              type: string
+            flight_id:
+              type: string
+            weight_kg:
+              type: number
+            status:
+              type: string
+            current_location:
+              type: string
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  location:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  status:
+                    type: string
+
+{{- end }}{{/* range versions */}}
+
+{{ include "airlines.flaskService" (dict "root" . "name" "baggage" "versions" (list "v1" "v2")) }}
+
+{{- end }}{{/* $isDeploy */}}

@@ -1,0 +1,6 @@
+variable "enable_api_gateway"    { type = bool; default = false; description = "Enable Traefik API gateway." }
+variable "enable_ai_gateway"     { type = bool; default = false; description = "Enable Traefik AI gateway." }
+variable "enable_mcp_gateway"    { type = bool; default = false; description = "Enable Traefik MCP gateway." }
+variable "enable_api_management" { type = bool; default = false; description = "Enable Traefik API management." }
+
+# TODO(new-module): add platform-specific inputs (instance size, region, network).

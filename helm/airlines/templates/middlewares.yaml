@@ -1,0 +1,39 @@
+{{/*
+  strip-version-v1 / strip-version-v2 are needed on any cluster that actually
+  hosts the versioned API workloads. That covers:
+    - single-cluster / multicluster parent (applied at the route's local K8s
+      service leg OR at the WRR's local leg)
+    - multicluster child with an ops group enabled (applied on the per-version
+      child IngressRoute).
+  Child clusters that don't host any of the three ops groups don't need them.
+*/}}
+{{- $needsVersionStrip := or
+  (include "airlines.mc.isParentMode" .)
+  (include "airlines.mc.isChildDeploy" (dict "root" . "group" "flightOps"))
+  (include "airlines.mc.isChildDeploy" (dict "root" . "group" "passengerSvc"))
+  (include "airlines.mc.isChildDeploy" (dict "root" . "group" "airportOps")) -}}
+{{- if $needsVersionStrip }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-version-v1
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  stripPrefix:
+    prefixes:
+      - /v1
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-version-v2
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  stripPrefix:
+    prefixes:
+      - /v2
+
+{{- end }}

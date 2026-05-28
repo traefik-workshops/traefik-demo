@@ -1,0 +1,5 @@
+cluster_name        = "ai-demo"
+cluster_location    = "nyc1"
+domain              = "ai.example.com"
+traefik_hub_token   = "REPLACE_ME"
+demo_user_password  = "REPLACE_ME"   # generate fresh; never reuse demo defaults

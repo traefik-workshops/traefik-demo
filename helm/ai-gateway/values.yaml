@@ -1,0 +1,203 @@
+# Default values for ai-gateway.
+
+enabled: true
+
+domain: demo.traefik.ai
+entryPoints:
+  - websecure
+
+# Per-endpoint API key overrides. Keyed by endpoint `name`. When set, the
+# template substitutes the value into the endpoint's auth slot —
+# messages-api plugin's `token`, or Authorization: Bearer header — taking
+# precedence over whatever placeholder is hard-coded on the endpoint itself.
+apiKeys:
+  openai: ""
+  gemini: ""
+  anthropic: ""
+
+# Per-endpoint "Claude mode" toggles. Keyed by endpoint `name`. When true,
+# the messages-api plugin does NOT inject `token`/`X-Api-Key` on the request,
+# letting the client's own `Authorization: Bearer …` header pass through
+# untouched — e.g. for Claude Code users on a Max plan where OAuth auth
+# must reach Anthropic unmodified.
+claudeMode:
+  anthropic: false
+
+multicluster:
+  enabled: false
+  mode: "parent"          # parent | child
+  parent:
+    groups:
+      aiGateway: ""
+  child:
+    uplinkEntryPoints:
+      aiGateway: "ai-gateway"
+    groups:
+      aiGateway: false
+
+# Shared Middlewares configuration
+sharedMiddlewares:
+  topicControl:
+    enabled: true
+    host: topic-control-nim
+    model: nvidia/llama-3.1-nemoguard-8b-topic-control
+    systemPrompt: |
+      You are a topic control agent. Determine if the user question is about PROHIBITED or ALLOWED topics.
+      ...
+    blockConditions:
+      - reason: "off-topic detected"
+        condition: Contains("off-topic")
+
+  contentSafety:
+    enabled: true
+    host: content-safety-nim
+    model: nvidia/llama-3.1-nemoguard-8b-content-safety
+    blockConditions:
+      - reason: "unsafe content detected"
+        condition: Contains("unsafe")
+
+  jailbreakDetection:
+    enabled: true
+    host: jailbreak-detection-nim
+    scoreThreshold: "0.85"
+
+  graniteGuardian:
+    enabled: true
+    host: granite-guardian
+
+  contentGuardPresidio:
+    enabled: true
+    request:
+      rules: []
+    response:
+      rules:
+        - mask:
+            char: "#"
+            unmaskFromRight: 4
+          entities:
+            - CREDIT_CARD
+            - US_SSN
+            - US_BANK_NUMBER
+            - IBAN_CODE
+            - US_PASSPORT
+            - US_DRIVER_LICENSE
+            - MEDICAL_LICENSE
+            - PERSON
+            - LOCATION
+
+  contentGuardRegex:
+    enabled: false
+    request:
+      rules: []
+      # Example — block prompt injection attempts:
+      # - name: prompt-injection
+      #   regex: '(?i)ignore (all )?previous instructions'
+      #   action: block
+      #   reason: "prompt injection detected"
+    response:
+      rules: []
+      # Example — mask email addresses and phone numbers:
+      # - name: email
+      #   regex: '[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}'
+      #   action: mask
+      #   maskChar: "#"
+      # - name: phone
+      #   regex: '\b(\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b'
+      #   action: mask
+      #   maskChar: "#"
+
+  parallelGuard:
+    enabled: false
+    # Runs multiple guards concurrently; blocks if any guard blocks
+
+  semanticCache:
+    enabled: false
+    collectionName: ai-gateway
+
+# List of AI endpoints
+endpoints:
+  - name: gemini
+    backend:
+      url: generativelanguage.googleapis.com
+      isExternal: true
+    chatCompletion:
+      model: models/gemini-1.5-pro
+      params:
+        temperature: 1
+        maxTokens: 2048
+    headers:
+      Authorization: "Bearer YOUR_GEMINI_API_KEY"
+    routing:
+      host: gemini
+    api:
+      title: "Gemini API"
+      description: "Gemini AI Gateway"
+      oasUrl: https://raw.githubusercontent.com/traefik-workshops/traefik-airlines/refs/heads/main/oas/openapi.yaml
+    middlewares:
+      - topicControl
+      - contentGuardPresidio
+
+  - name: openai
+    backend:
+      url: api.openai.com
+      isExternal: true
+    chatCompletion:
+      model: gpt-4
+      params:
+        temperature: 0.7
+    headers:
+      Authorization: "Bearer YOUR_OPENAI_API_KEY"
+    routing:
+      host: openai
+    api:
+      title: "OpenAI API"
+      description: "OpenAI AI Gateway"
+      oasUrl: https://raw.githubusercontent.com/traefik-workshops/traefik-airlines/refs/heads/main/oas/openapi.yaml
+    middlewares:
+      - topicControl
+      - contentSafety
+
+  - name: anthropic
+    backend:
+      url: api.anthropic.com
+      isExternal: true
+    messagesApi:
+      token: "YOUR_ANTHROPIC_API_KEY"
+      model: claude-opus-4-7
+      anthropicVersion: "2023-06-01"
+      params:
+        temperature: 0.7
+        maxTokens: 4096
+    routing:
+      host: anthropic
+    api:
+      title: "Anthropic API"
+      description: "Anthropic Messages API Gateway"
+      oasUrl: https://raw.githubusercontent.com/traefik-workshops/traefik-airlines/refs/heads/main/oas/anthropic-messages.yaml
+    middlewares: []
+
+# Presidio subchart configuration
+presidio: {}
+
+# Weaviate subchart configuration (official chart)
+weaviate:
+  service:
+    type: ClusterIP
+  grpcService:
+    enabled: false
+
+# Embeddings subchart configuration (Infinity)
+embeddings:
+  model: nomic-embed-text
+
+# Local NIM configurations
+nims:
+  enabled: false
+  ngcToken: ""
+  types:
+    - name: topic-control-nim
+      image: nvcr.io/nim/nvidia/llama-3.1-nemoguard-8b-topic-control
+    - name: content-safety-nim
+      image: nvcr.io/nim/nvidia/llama-3.1-nemoguard-8b-content-safety
+    - name: jailbreak-detection-nim
+      image: nvcr.io/nim/nvidia/nemoguard-jailbreak-detect

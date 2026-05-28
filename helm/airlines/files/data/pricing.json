@@ -1,0 +1,20 @@
+{
+  "Pricing": {
+    "TK-1001": {"flight_id": "TK-1001", "base_fare": 850.00, "taxes": 127.50, "total": 977.50, "currency": "USD", "economy": 850.00, "premium_economy": 1275.00, "business": 2550.00, "first": 4200.00},
+    "TK-1002": {"flight_id": "TK-1002", "base_fare": 720.00, "taxes": 108.00, "total": 828.00, "currency": "USD", "economy": 720.00, "premium_economy": 1080.00, "business": 2160.00, "first": 3600.00},
+    "TK-1003": {"flight_id": "TK-1003", "base_fare": 1120.00, "taxes": 168.00, "total": 1288.00, "currency": "USD", "economy": 1120.00, "premium_economy": 1680.00, "business": 3360.00, "first": 5600.00},
+    "TK-1004": {"flight_id": "TK-1004", "base_fare": 640.00, "taxes": 96.00, "total": 736.00, "currency": "USD", "economy": 640.00, "premium_economy": 960.00, "business": 1920.00, "first": 3200.00},
+    "TK-1005": {"flight_id": "TK-1005", "base_fare": 980.00, "taxes": 147.00, "total": 1127.00, "currency": "USD", "economy": 980.00, "premium_economy": 1470.00, "business": 2940.00, "first": 4900.00},
+    "TK-1006": {"flight_id": "TK-1006", "base_fare": 790.00, "taxes": 118.50, "total": 908.50, "currency": "USD", "economy": 790.00, "premium_economy": 1185.00, "business": 2370.00, "first": 3950.00},
+    "TK-1007": {"flight_id": "TK-1007", "base_fare": 560.00, "taxes": 84.00, "total": 644.00, "currency": "USD", "economy": 560.00, "premium_economy": 840.00, "business": 1680.00, "first": 2800.00},
+    "TK-1008": {"flight_id": "TK-1008", "base_fare": 320.00, "taxes": 48.00, "total": 368.00, "currency": "USD", "economy": 320.00, "premium_economy": 480.00, "business": 960.00, "first": null},
+    "TK-1009": {"flight_id": "TK-1009", "base_fare": 875.00, "taxes": 131.25, "total": 1006.25, "currency": "USD", "economy": 875.00, "premium_economy": 1312.50, "business": 2625.00, "first": 4375.00},
+    "TK-1010": {"flight_id": "TK-1010", "base_fare": 1050.00, "taxes": 157.50, "total": 1207.50, "currency": "USD", "economy": 1050.00, "premium_economy": 1575.00, "business": 3150.00, "first": 5250.00}
+  },
+  "taxes_fees": {
+    "domestic": 45.00,
+    "international": 112.50,
+    "airport_fee": 25.00,
+    "fuel_surcharge": 0.15
+  }
+}

@@ -1,0 +1,485 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "airlines chart values",
+  "type": "object",
+  "properties": {
+    "entryPoints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "default": "websecure"
+      }
+    },
+    "global": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string",
+          "default": "demo.traefik.ai"
+        },
+        "multicluster": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "mode": {
+              "type": "string",
+              "default": "parent"
+            },
+            "parent": {
+              "type": "object",
+              "properties": {
+                "groups": {
+                  "type": "object",
+                  "properties": {
+                    "flightOps": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "flightOpsMcp": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "passengerSvc": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "passengerSvcMcp": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "airportOps": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "airportOpsMcp": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "aiGateway": {
+                      "type": "string",
+                      "default": ""
+                    }
+                  }
+                }
+              }
+            },
+            "child": {
+              "type": "object",
+              "properties": {
+                "uplinkEntryPoints": {
+                  "type": "object",
+                  "properties": {
+                    "flightOps": {
+                      "type": "string",
+                      "default": "flight-ops"
+                    },
+                    "flightOpsMcp": {
+                      "type": "string",
+                      "default": "flight-ops-mcp"
+                    },
+                    "passengerSvc": {
+                      "type": "string",
+                      "default": "passenger-svc"
+                    },
+                    "passengerSvcMcp": {
+                      "type": "string",
+                      "default": "passenger-svc-mcp"
+                    },
+                    "airportOps": {
+                      "type": "string",
+                      "default": "airport-ops"
+                    },
+                    "airportOpsMcp": {
+                      "type": "string",
+                      "default": "airport-ops-mcp"
+                    },
+                    "aiGateway": {
+                      "type": "string",
+                      "default": "ai-gateway"
+                    }
+                  }
+                },
+                "groups": {
+                  "type": "object",
+                  "properties": {
+                    "flightOps": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "flightOpsMcp": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "passengerSvc": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "passengerSvcMcp": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "airportOps": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "airportOpsMcp": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "aiGateway": {
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                },
+                "mcp": {
+                  "type": "object",
+                  "properties": {
+                    "base": {
+                      "type": "string",
+                      "default": "http://traefik.traefik.svc.cluster.local"
+                    },
+                    "entryPoint": {
+                      "type": "string",
+                      "default": "web"
+                    },
+                    "groups": {
+                      "type": "object",
+                      "properties": {
+                        "flightOps": {
+                          "type": "string",
+                          "default": ""
+                        },
+                        "passengerSvc": {
+                          "type": "string",
+                          "default": ""
+                        },
+                        "airportOps": {
+                          "type": "string",
+                          "default": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tools-access": {
+      "type": "object",
+      "properties": {
+        "dashboard": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string",
+              "default": ""
+            },
+            "group": {
+              "type": "string",
+              "default": "tools"
+            }
+          }
+        }
+      }
+    },
+    "users-access": {
+      "type": "array",
+      "items": {}
+    },
+    "eventServer": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "string",
+          "default": "python:3.11-slim"
+        }
+      }
+    },
+    "aiGateway": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "url": {
+          "type": "string",
+          "default": ""
+        },
+        "token": {
+          "type": "string",
+          "default": ""
+        },
+        "mcpServers": {
+          "type": "array",
+          "items": {}
+        },
+        "multicluster": {
+          "type": "object",
+          "properties": {
+            "child": {
+              "type": "object",
+              "properties": {
+                "uplinkEntryPoint": {
+                  "type": "string",
+                  "default": "ai-gateway"
+                }
+              }
+            }
+          }
+        },
+        "sharedMiddlewares": {
+          "type": "object",
+          "properties": {
+            "topicControl": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "contentSafety": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "jailbreakDetection": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "graniteGuardian": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "contentGuardPresidio": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "contentGuardRegex": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "semanticCache": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "hoppscotch": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "subdomain": {
+          "type": "string",
+          "default": "test"
+        },
+        "image": {
+          "type": "string",
+          "default": "hoppscotch/hoppscotch:2026.2.0"
+        },
+        "jwtSecret": {
+          "type": "string",
+          "default": "airlines-demo-jwt-secret-32chars!"
+        },
+        "sessionSecret": {
+          "type": "string",
+          "default": "airlines-demo-session-32chars-ok"
+        },
+        "dataEncryptionKey": {
+          "type": "string",
+          "default": "airlines-demo-encrypt-32chars-ok"
+        },
+        "collections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "default": "airlines"
+              },
+              "title": {
+                "type": "string",
+                "default": "Airlines Demo"
+              },
+              "configMapName": {
+                "type": "string",
+                "default": "airlines-hoppscotch-collection"
+              },
+              "configMapKey": {
+                "type": "string",
+                "default": "collection.json"
+              }
+            }
+          }
+        }
+      }
+    },
+    "keycloak": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "realm": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "name": {
+              "type": "string",
+              "default": "traefik"
+            },
+            "users": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "default": "admin"
+              }
+            },
+            "advancedUsers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "default": "dispatcher"
+                  },
+                  "email": {
+                    "type": "string",
+                    "default": "dispatcher@traefik-airlines.io"
+                  },
+                  "password": {
+                    "type": "string",
+                    "default": "topsecretpassword"
+                  },
+                  "groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "default": "flight-ops"
+                    }
+                  },
+                  "claims": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                }
+              }
+            },
+            "extraUsers": {
+              "type": "array",
+              "items": {}
+            },
+            "extraAdvancedUsers": {
+              "type": "array",
+              "items": {}
+            },
+            "redirectUris": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "default": "flight-ops.airlines"
+              }
+            },
+            "extraRedirectUris": {
+              "type": "array",
+              "items": {}
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "domain": {
+              "type": "string",
+              "default": ""
+            },
+            "entrypoint": {
+              "type": "string",
+              "default": "websecure"
+            }
+          }
+        },
+        "ingressInternal": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "oidc": {
+          "type": "object",
+          "properties": {
+            "clientId": {
+              "type": "string",
+              "default": ""
+            },
+            "clientSecret": {
+              "type": "string",
+              "default": ""
+            },
+            "issuerUrl": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

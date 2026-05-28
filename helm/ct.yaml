@@ -1,0 +1,28 @@
+# Repo-level chart-testing config.
+#
+# Per-chart ct.yaml files (helm/<chart>/ct.yaml) inherit and may override.
+# Invoked by:
+#   make helm-test           (ct lint --all)
+#   .github/workflows/helm-ci.yml on PR (ct lint + ct install for changed charts)
+
+remote: origin
+target-branch: main
+
+chart-dirs:
+  - helm
+
+# Strict — fail if any chart is missing the canonical files.
+check-version-increment: false   # version is repo-wide; per-chart increment doesn't apply
+validate-maintainers: false   # maintainer is a team alias (sa@traefik.io), not a GitHub user
+validate-chart-schema: true
+chart-yaml-schema: ""             # default helm chart yaml schema
+lint-conf: ""                     # use default lint config
+
+# Install settings (used by `ct install`).
+helm-extra-args: "--timeout=600s"
+helm-repo-extra-args:
+  - "weaviate=--username= --password="
+# `helm dep update` runs before each install so `file://` subcharts resolve from the repo.
+
+# Charts to always exclude from lint/install (none currently; placeholder for future).
+excluded-charts: []

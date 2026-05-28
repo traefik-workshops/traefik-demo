@@ -1,0 +1,4 @@
+cluster_prefix    = "demo"
+cluster_location  = "nyc1"
+domain            = "demo.example.com"
+traefik_hub_token = "REPLACE_ME"

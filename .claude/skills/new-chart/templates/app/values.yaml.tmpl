@@ -1,0 +1,51 @@
+# Default values for {{NAME}}.
+# Comment every top-level group — agents and humans read this file first.
+
+# Image: pin the tag, never use "latest".
+image:
+  repository: # TODO(new-chart): e.g. docker.io/library/nginx
+  tag: "{{APP_VERSION}}"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Service exposing the app inside the cluster.
+service:
+  type: ClusterIP
+  port: 80
+
+# Replica count. Defaults to 1 (demo-grade). Bump for HA scenarios.
+replicaCount: 1
+
+# Resource requests/limits. Set both for predictable demo cost.
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Pod-level security context (Kubernetes defaults are permissive — tighten).
+podSecurityContext: {}
+
+# Container-level security context (drop ALL caps; runAsNonRoot when feasible).
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: false
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+podAnnotations: {}

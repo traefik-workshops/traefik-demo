@@ -1,0 +1,44 @@
+Traefik Airlines Deployed!
+=========================
+
+Domain: {{ include "airlines.domain" . }}
+
+Flight Operations:
+  - Flights API:  {{ include "airlines.flights.apiUrl" . }}
+  - Pricing API:  {{ include "airlines.pricing.apiUrl" . }}
+  - Crew API:     {{ include "airlines.crew.apiUrl" . }}
+  - MCP Server:   https://flight-ops-mcp.{{ include "airlines.domain" . }}/mcp
+
+Passenger Services:
+  - Bookings API:      {{ include "airlines.bookings.apiUrl" . }}
+  - Passengers API:    {{ include "airlines.passengers.apiUrl" . }}
+  - Notifications API: {{ include "airlines.notifications.apiUrl" . }}
+  - MCP Server:        https://passenger-svc-mcp.{{ include "airlines.domain" . }}/mcp
+
+Airport Operations:
+  - Check-in API: {{ include "airlines.checkin.apiUrl" . }}
+  - Baggage API:  {{ include "airlines.baggage.apiUrl" . }}
+  - Gates API:    {{ include "airlines.gates.apiUrl" . }}
+  - MCP Server:   https://airport-ops-mcp.{{ include "airlines.domain" . }}/mcp
+
+Dashboards:
+  - Flight Board (public): https://board.{{ include "airlines.domain" . }}
+  - Flight Ops (OIDC):     https://flight-ops.{{ include "airlines.domain" . }}
+  - Passenger Svc (OIDC):  https://passenger-svc.{{ include "airlines.domain" . }}
+  - Airport Ops (OIDC):    https://airport-ops.{{ include "airlines.domain" . }}
+
+Portal: https://portal.{{ include "airlines.domain" . }}
+{{- if .Values.hoppscotch.enabled }}
+{{- $testHost := .Values.hoppscotch.host | default (printf "test.%s" .Values.global.domain) }}
+
+API Testing: https://{{ $testHost }}
+{{- range .Values.hoppscotch.collections }}
+  Import {{ .title }}: https://{{ $testHost }}/import?type=hoppscotch&url=/{{ .name }}/collection.json
+{{- end }}
+{{- end }}
+
+Dashboard Logins:
+  - dispatcher / topsecretpassword  → Flight Ops
+  - agent / topsecretpassword       → Passenger Services
+  - handler / topsecretpassword     → Airport Operations
+  - admin / topsecretpassword       → All dashboards

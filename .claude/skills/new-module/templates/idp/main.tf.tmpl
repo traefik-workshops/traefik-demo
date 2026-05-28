@@ -1,0 +1,15 @@
+# {{NAME}} — {{PURPOSE}}
+#
+# IdP module. Conventions:
+#   - accept `users` (list(object({...}))) and seed each user
+#   - generate passwords with random_password (never hardcoded)
+#   - expose user_pool_id / app_client_id / app_client_secret (sensitive) / users
+
+resource "random_password" "user" {
+  for_each = { for u in var.users : u.email => u }
+
+  length  = 24
+  special = true
+}
+
+# TODO(new-module): add the IdP-specific resources (user pool, app client, users).

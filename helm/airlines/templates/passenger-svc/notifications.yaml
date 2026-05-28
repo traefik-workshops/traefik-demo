@@ -1,0 +1,277 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isDeploy := include "airlines.mc.isLocalDeploy" (dict "root" . "group" "passengerSvc") -}}
+{{- if $isDeploy }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notifications-openapi
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+    component: notifications
+    group: passenger-svc
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 2.0.0
+      title: Notifications API
+      description: |
+        Traefik Airlines Notifications Service — booking confirmations, flight alerts, gate changes, and passenger communications.
+      contact:
+        name: Passenger Services Team
+        email: passenger-svc@traefik-airlines.io
+    servers:
+      - url: {{ include "airlines.notifications.apiUrl" . }}
+        description: Notifications API
+    tags:
+      - name: notifications
+        description: Passenger notifications
+    paths:
+      /notifications:
+        get:
+          summary: List all notifications
+          operationId: listNotifications
+          tags: [notifications]
+          x-handler: |
+            return [
+              { notification_id: "NTF-3001", passenger_id: "PAX-001", passenger_name: "Elena Rodriguez", type: "booking-confirmation", title: "Booking Confirmed - TK1042", message: "Your booking BK-100201 for flight TK1042 JFK to CDG on Mar 15, 2026 has been confirmed. Seat 4A, Business.", flight_id: "TK-1042", booking_id: "BK-100201", channel: "email", read: true, created_at: "2026-03-10T14:22:00Z" },
+              { notification_id: "NTF-3002", passenger_id: "PAX-002", passenger_name: "Aisha Patel", type: "booking-confirmation", title: "Booking Confirmed - TK0553", message: "Your booking BK-100203 for flight TK0553 LAX to HND on Mar 16, 2026 has been confirmed. Seat 14C, Premium Economy.", flight_id: "TK-0553", booking_id: "BK-100203", channel: "email", read: true, created_at: "2026-03-11T09:15:00Z" },
+              { notification_id: "NTF-3003", passenger_id: "PAX-003", passenger_name: "James Chen", type: "delay-alert", title: "Flight Delay - TK2187", message: "Your flight TK2187 CDG to DXB has been delayed by 45 minutes. New departure: 15:15 UTC. We apologize for the inconvenience.", flight_id: "TK-2187", booking_id: "BK-100202", channel: "push", read: false, created_at: "2026-03-15T12:30:00Z" },
+              { notification_id: "NTF-3004", passenger_id: "PAX-001", passenger_name: "Elena Rodriguez", type: "gate-change", title: "Gate Change - TK1042", message: "Your flight TK1042 gate has changed from B22 to B24. Please proceed to Terminal 1, Gate B24.", flight_id: "TK-1042", booking_id: "BK-100201", channel: "push", read: false, created_at: "2026-03-15T05:45:00Z" },
+              { notification_id: "NTF-3005", passenger_id: "PAX-005", passenger_name: "Marcus Johnson", type: "cancellation", title: "Booking Cancelled - TK0412", message: "Your booking BK-100204 for flight TK0412 AMS to LAX has been cancelled. A refund of USD 785.00 will be processed within 5-7 business days.", flight_id: "TK-0412", booking_id: "BK-100204", channel: "email", read: true, created_at: "2026-03-14T16:00:00Z" },
+              { notification_id: "NTF-3006", passenger_id: "PAX-004", passenger_name: "Sophie Laurent", type: "boarding-reminder", title: "Boarding Soon - TK1590", message: "Boarding for flight TK1590 FRA to JFK begins in 30 minutes at Gate D05. Please proceed to the gate.", flight_id: "TK-1590", booking_id: "BK-100205", channel: "push", read: false, created_at: "2026-03-15T09:00:00Z" },
+              { notification_id: "NTF-3007", passenger_id: "PAX-006", passenger_name: "Kenji Tanaka", type: "booking-confirmation", title: "Booking Confirmed - TK2044", message: "Your booking BK-100206 for flight TK2044 HND to CDG on Mar 15, 2026 has been confirmed. Seat 31A, Economy.", flight_id: "TK-2044", booking_id: "BK-100206", channel: "email", read: true, created_at: "2026-03-05T20:45:00Z" },
+              { notification_id: "NTF-3008", passenger_id: "PAX-007", passenger_name: "Maria Silva", type: "delay-alert", title: "Flight Delay - TK0871", message: "Your flight TK0871 SIN to SYD has been delayed by 2 hours due to weather. New departure: 08:00 UTC.", flight_id: "TK-0871", booking_id: "BK-100207", channel: "sms", read: false, created_at: "2026-03-15T04:30:00Z" },
+              { notification_id: "NTF-3009", passenger_id: "PAX-008", passenger_name: "Henrik Andersen", type: "gate-change", title: "Gate Change - TK3321", message: "Your flight TK3321 DXB to SIN gate has changed from F12 to F14. Please proceed to Terminal 3, Gate F14.", flight_id: "TK-3321", booking_id: "BK-100208", channel: "push", read: true, created_at: "2026-03-14T22:00:00Z" },
+              { notification_id: "NTF-3010", passenger_id: "PAX-009", passenger_name: "Fatou Diop", type: "boarding-reminder", title: "Boarding Soon - TK4819", message: "Boarding for flight TK4819 ORD to LHR begins in 30 minutes at Gate C12. Please proceed to the gate.", flight_id: "TK-4819", booking_id: "BK-100209", channel: "sms", read: false, created_at: "2026-03-15T16:45:00Z" }
+            ]
+          parameters:
+            - name: type
+              in: query
+              schema:
+                type: string
+                enum: [booking-confirmation, delay-alert, gate-change, boarding-reminder, cancellation]
+            - name: read
+              in: query
+              schema:
+                type: boolean
+          responses:
+            "200":
+              description: All notifications
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  example:
+                    - notification_id: "NTF-3001"
+                      passenger_id: "PAX-001"
+                      passenger_name: "Elena Rodriguez"
+                      type: "booking-confirmation"
+                      title: "Booking Confirmed - TK1042"
+                      message: "Your booking BK-100201 for flight TK1042 JFK to CDG on Mar 15, 2026 has been confirmed. Seat 14A, Economy."
+                      flight_id: "TK-1042"
+                      booking_id: "BK-100201"
+                      channel: "email"
+                      read: true
+                      created_at: "2026-03-10T14:22:00Z"
+                    - notification_id: "NTF-3002"
+                      passenger_id: "PAX-003"
+                      passenger_name: "Aisha Patel"
+                      type: "booking-confirmation"
+                      title: "Booking Confirmed - TK0553"
+                      message: "Your booking BK-100203 for flight TK0553 LAX to NRT on Mar 16, 2026 has been confirmed. Seat 2K, Business."
+                      flight_id: "TK-0553"
+                      booking_id: "BK-100203"
+                      channel: "email"
+                      read: true
+                      created_at: "2026-03-11T09:15:00Z"
+                    - notification_id: "NTF-3003"
+                      passenger_id: "PAX-002"
+                      passenger_name: "James Chen"
+                      type: "delay-alert"
+                      title: "Flight Delay - TK2187"
+                      message: "Your flight TK2187 CDG to DXB has been delayed by 45 minutes. New departure: 15:15 UTC. We apologize for the inconvenience."
+                      flight_id: "TK-2187"
+                      booking_id: "BK-100202"
+                      channel: "push"
+                      read: false
+                      created_at: "2026-03-15T12:30:00Z"
+                    - notification_id: "NTF-3004"
+                      passenger_id: "PAX-001"
+                      passenger_name: "Elena Rodriguez"
+                      type: "gate-change"
+                      title: "Gate Change - TK1042"
+                      message: "Your flight TK1042 gate has changed from B22 to B24. Please proceed to Terminal 1, Gate B24."
+                      flight_id: "TK-1042"
+                      booking_id: "BK-100201"
+                      channel: "push"
+                      read: false
+                      created_at: "2026-03-15T05:45:00Z"
+                    - notification_id: "NTF-3005"
+                      passenger_id: "PAX-004"
+                      passenger_name: "Marcus Johnson"
+                      type: "boarding-reminder"
+                      title: "Boarding Soon - TK0892"
+                      message: "Boarding for flight TK0892 ORD to LHR begins in 30 minutes at Gate C12. Please proceed to the gate."
+                      flight_id: "TK-0892"
+                      booking_id: "BK-100204"
+                      channel: "push"
+                      read: false
+                      created_at: "2026-03-16T18:00:00Z"
+                    - notification_id: "NTF-3006"
+                      passenger_id: "PAX-005"
+                      passenger_name: "Sophie Laurent"
+                      type: "cancellation"
+                      title: "Booking Cancelled - TK1590"
+                      message: "Your booking BK-100205 for flight TK1590 has been cancelled as requested. A refund of EUR 890.00 will be processed within 5-7 business days."
+                      flight_id: "TK-1590"
+                      booking_id: "BK-100205"
+                      channel: "email"
+                      read: true
+                      created_at: "2026-03-14T16:00:00Z"
+        post:
+          summary: Send a notification
+          operationId: createNotification
+          tags: [notifications]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/NotificationInput'
+                example:
+                  passenger_id: "PAX-001"
+                  type: "boarding-reminder"
+                  title: "Boarding Soon - TK1042"
+                  message: "Boarding for flight TK1042 begins in 30 minutes at Gate B24."
+                  flight_id: "TK-1042"
+                  booking_id: "BK-100201"
+                  channel: "push"
+          responses:
+            "201":
+              description: Notification sent
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Notification'
+      /notifications/{notificationId}:
+        get:
+          summary: Get notification by ID
+          operationId: getNotification
+          tags: [notifications]
+          parameters:
+            - name: notificationId
+              in: path
+              required: true
+              schema:
+                type: string
+              example: "NTF-3001"
+          responses:
+            "200":
+              description: Notification details
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Notification'
+            "404":
+              description: Notification not found
+        delete:
+          summary: Delete a notification
+          operationId: deleteNotification
+          tags: [notifications]
+          parameters:
+            - name: notificationId
+              in: path
+              required: true
+              schema:
+                type: string
+              example: "NTF-3001"
+          responses:
+            "200":
+              description: Notification deleted
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+            "404":
+              description: Notification not found
+      /notifications/{notificationId}/read:
+        put:
+          summary: Mark notification as read
+          operationId: markNotificationRead
+          tags: [notifications]
+          parameters:
+            - name: notificationId
+              in: path
+              required: true
+              schema:
+                type: string
+              example: "NTF-3003"
+          responses:
+            "200":
+              description: Notification marked as read
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Notification'
+            "404":
+              description: Notification not found
+    components:
+      schemas:
+        Notification:
+          type: object
+          properties:
+            notification_id:
+              type: string
+            passenger_id:
+              type: string
+            passenger_name:
+              type: string
+            type:
+              type: string
+              enum: [booking-confirmation, delay-alert, gate-change, boarding-reminder, cancellation]
+            title:
+              type: string
+            message:
+              type: string
+            flight_id:
+              type: string
+            booking_id:
+              type: string
+            channel:
+              type: string
+              enum: [email, push, sms]
+            read:
+              type: boolean
+            created_at:
+              type: string
+              format: date-time
+        NotificationInput:
+          type: object
+          required: [passenger_id, type, title, message, channel]
+          properties:
+            passenger_id:
+              type: string
+            type:
+              type: string
+              enum: [booking-confirmation, delay-alert, gate-change, boarding-reminder, cancellation]
+            title:
+              type: string
+            message:
+              type: string
+            flight_id:
+              type: string
+            booking_id:
+              type: string
+            channel:
+              type: string
+              enum: [email, push, sms]
+
+{{ include "airlines.flaskService" (dict "root" . "name" "notifications") }}
+
+{{- end }}

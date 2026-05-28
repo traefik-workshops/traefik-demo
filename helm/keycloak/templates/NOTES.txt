@@ -1,0 +1,66 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Release Name: {{ .Release.Name }}
+Namespace: {{ include "keycloak.namespace" . }}
+
+Keycloak has been deployed with the following configuration:
+
+1. Operator Version: {{ .Values.operatorVersion }}
+2. Keycloak Instances: {{ .Values.keycloak.instances }}
+3. Realm{{ .Values.realm.name }}
+
+{{- if .Values.ingress.enabled }}
+
+Access Keycloak Admin Console:
+  URL: http://keycloak.{{ .Values.ingress.domain }}
+  Username: {{ .Values.keycloak.adminUser }}
+  Password: {{ .Values.keycloak.adminPassword }}
+
+{{- end }}
+
+OIDC Endpoints:
+  Issuer URL: http://keycloak.{{ .Values.ingress.domain }}/realms/{{ .Values.realm.name }}
+  Authorization Endpoint: http://keycloak.{{ .Values.ingress.domain }}/realms/{{ .Values.realm.name }}/protocol/openid-connect/auth
+  Token Endpoint: http://keycloak.{{ .Values.ingress.domain }}/realms/{{ .Values.realm.name }}/protocol/openid-connect/token
+  Userinfo Endpoint: http://keycloak.{{ .Values.ingress.domain }}/realms/{{ .Values.realm.name }}/protocol/openid-connect/userinfo
+  
+OIDC Client Configuration:
+  Client ID: traefik
+  Client Secret: {{ .Values.realm.clientSecret }}
+
+{{- if or .Values.realm.users .Values.realm.extraUsers }}
+Configured Simple Users:
+{{- range (concat (default list .Values.realm.users) .Values.realm.extraUsers | uniq) }}
+  - {{ . }}@traefik.io (password: topsecretpassword)
+{{- end }}
+{{- end }}
+
+{{- if or .Values.realm.advancedUsers .Values.realm.extraAdvancedUsers }}
+Configured Advanced Users:
+{{- range (concat (default list .Values.realm.advancedUsers) .Values.realm.extraAdvancedUsers | uniq) }}
+  - {{ .email }} (groups: {{ join ", " .groups }})
+{{- end }}
+{{- end }}
+
+To verify the installation:
+  kubectl get keycloak -n {{ include "keycloak.namespace" . }}
+  kubectl get keycloakrealmimport -n {{ include "keycloak.namespace" . }}
+  kubectl get pods -n {{ include "keycloak.namespace" . }}
+
+For more information, visit: https://www.keycloak.org/
+
+{{- if or (eq .Values.keycloak.adminPassword "") (eq .Values.postgres.password "") (eq .Values.realm.clientSecret "") }}
+
+⚠️  REQUIRED CREDENTIALS NOT SET:
+{{- if eq .Values.keycloak.adminPassword "" }}
+  - keycloak.adminPassword is empty. Set with --set keycloak.adminPassword=...
+{{- end }}
+{{- if eq .Values.postgres.password "" }}
+  - postgres.password is empty. Set with --set postgres.password=...
+{{- end }}
+{{- if eq .Values.realm.clientSecret "" }}
+  - realm.clientSecret is empty. Set with --set realm.clientSecret=...
+{{- end }}
+
+Generate strong values with:  openssl rand -hex 32
+{{- end }}

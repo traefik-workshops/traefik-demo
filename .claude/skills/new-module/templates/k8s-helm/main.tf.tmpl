@@ -1,0 +1,29 @@
+# {{NAME}} — {{PURPOSE}}
+
+resource "kubernetes_namespace_v1" "this" {
+  count = var.create_namespace ? 1 : 0
+
+  metadata {
+    name = var.namespace
+  }
+}
+
+resource "helm_release" "this" {
+  name             = var.name
+  namespace        = var.namespace
+  create_namespace = false # handled above so we can wait on it
+
+  repository = var.chart_repository
+  chart      = var.chart_name
+  version    = var.chart_version
+
+  values = [
+    yamlencode(var.values)
+  ]
+
+  # TODO(new-module): add `set { name = "..." value = "..." }` blocks
+  # for any value that needs to be injected dynamically (e.g. passwords
+  # from random_password, references to other modules' outputs).
+
+  depends_on = [kubernetes_namespace_v1.this]
+}

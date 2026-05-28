@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-hoppscotch-postgresql
+  labels:
+    {{- include "hoppscotch.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://hoppscotch:hoppscotch@{{ .Release.Name }}-hoppscotch-postgresql:5432/hoppscotch?sslmode=disable"
+  POSTGRES_PASSWORD: "hoppscotch"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-hoppscotch-postgresql
+  labels:
+    {{- include "hoppscotch.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}-hoppscotch-postgresql
+spec:
+  serviceName: {{ .Release.Name }}-hoppscotch-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-hoppscotch-postgresql
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-hoppscotch-postgresql
+    spec:
+      containers:
+        - name: postgresql
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgresql
+          env:
+            - name: POSTGRES_DB
+              value: hoppscotch
+            - name: POSTGRES_USER
+              value: hoppscotch
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-hoppscotch-postgresql
+                  key: POSTGRES_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "hoppscotch", "-d", "hoppscotch"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-hoppscotch-postgresql
+  labels:
+    {{- include "hoppscotch.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}-hoppscotch-postgresql
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgresql
+  selector:
+    app: {{ .Release.Name }}-hoppscotch-postgresql

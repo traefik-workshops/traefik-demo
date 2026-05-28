@@ -1,0 +1,29 @@
+output "user_pool_id" {
+  description = "IdP-specific user pool / directory / realm identifier."
+  # TODO(new-module): wire to resource.
+  value = ""
+}
+
+output "app_client_id" {
+  description = "OAuth/OIDC client ID."
+  # TODO(new-module): wire to resource.
+  value = ""
+}
+
+output "app_client_secret" {
+  description = "OAuth/OIDC client secret."
+  sensitive   = true
+  # TODO(new-module): wire to resource.
+  value = ""
+}
+
+output "users" {
+  description = "Seeded users with their generated passwords."
+  sensitive   = true
+  value = [
+    for u in var.users : {
+      email    = u.email
+      password = random_password.user[u.email].result
+    }
+  ]
+}

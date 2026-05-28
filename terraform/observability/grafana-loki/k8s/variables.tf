@@ -1,0 +1,27 @@
+variable "name" {
+  type        = string
+  description = "The name of the loki release"
+  default     = "loki"
+}
+
+variable "namespace" {
+  type        = string
+  description = "Namespace for the Grafana deployment"
+}
+
+variable "extra_values" {
+  type        = any
+  description = "Extra values to pass to the Grafana deployment."
+  default     = {}
+}
+
+variable "tolerations" {
+  type = list(object({
+    key      = string
+    operator = string
+    value    = string
+    effect   = string
+  }))
+  description = "Tolerations for the Grafana deployment."
+  default     = []
+}

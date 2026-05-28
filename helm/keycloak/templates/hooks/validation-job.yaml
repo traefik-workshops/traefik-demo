@@ -1,0 +1,282 @@
+{{- if .Values.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-validation-script
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation
+data:
+  validate.sh: |
+    #!/bin/bash
+    set -e
+    
+    NAMESPACE="{{ include "keycloak.namespace" . }}"
+    TIMEOUT=600  # 10 minutes
+    ELAPSED=0
+    
+    echo "=== Keycloak Installation Validation ==="
+    echo "Namespace: $NAMESPACE"
+    echo "Timeout: ${TIMEOUT}s"
+    echo ""
+    
+    # Wait for operator pod to be running
+    echo "[1/4] Waiting for Keycloak operator pod to be Running..."
+    while true; do
+      OPERATOR_STATUS=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/name=keycloak-operator --no-headers 2>/dev/null | awk '{print $3}' | head -1)
+      if [ "$OPERATOR_STATUS" == "Running" ]; then
+        echo "✓ Operator pod is Running"
+        break
+      fi
+      
+      if [ $ELAPSED -ge $TIMEOUT ]; then
+        echo "✗ ERROR: Timeout waiting for operator pod"
+        exit 1
+      fi
+      
+      sleep 5
+      ELAPSED=$((ELAPSED + 5))
+    done
+    
+    # Wait for Keycloak pod to be created and running
+    echo "[2/4] Waiting for Keycloak pod to be created and Running..."
+    ELAPSED=0
+    while true; do
+      KEYCLOAK_POD=$(kubectl get pods -n $NAMESPACE -l app=keycloak --no-headers 2>/dev/null | head -1)
+      if [ -n "$KEYCLOAK_POD" ]; then
+        POD_NAME=$(echo $KEYCLOAK_POD | awk '{print $1}')
+        POD_STATUS=$(echo $KEYCLOAK_POD | awk '{print $3}')
+        
+        if [ "$POD_STATUS" == "Running" ]; then
+          echo "✓ Keycloak pod ($POD_NAME) is Running"
+          break
+        fi
+      fi
+      
+      if [ $ELAPSED -ge $TIMEOUT ]; then
+        echo "✗ ERROR: Timeout waiting for Keycloak pod"
+        exit 1
+      fi
+      
+      sleep 5
+      ELAPSED=$((ELAPSED + 5))
+    done
+    
+    # Wait for realm import job to complete
+    echo "[3/4] Waiting for realm import job to complete..."
+    REALM_ALREADY_EXISTS=false
+    ELAPSED=0
+    while true; do
+      # Check for specific realm job by name
+      REALM_JOB_NAME="{{ .Values.realm.name }}"
+      REALM_JOB_INFO=$(kubectl get job -n $NAMESPACE $REALM_JOB_NAME --no-headers 2>/dev/null || echo "")
+      
+      if [ -n "$REALM_JOB_INFO" ]; then
+        COMPLETIONS=$(echo $REALM_JOB_INFO | awk '{print $2}')
+        echo "  → Found realm import job: $REALM_JOB_NAME (Status: $COMPLETIONS)"
+        if echo "$COMPLETIONS" | grep -q "1/1"; then
+          echo "✓ Realm import job completed successfully"
+          
+          # Check if realm already existed (no restart needed in that case)
+          IMPORT_POD=$(kubectl get pods -n $NAMESPACE -l job-name=$REALM_JOB_NAME --no-headers 2>/dev/null | awk '{print $1}' | head -1)
+          if [ -n "$IMPORT_POD" ]; then
+            if kubectl logs -n $NAMESPACE $IMPORT_POD 2>/dev/null | grep -q "already exists. Import skipped"; then
+              echo "  → Realm already existed, no restart needed"
+              REALM_ALREADY_EXISTS=true
+            fi
+          fi
+          break
+        fi
+      fi
+      
+      # Check KeycloakRealmImport Done condition
+      REALM_IMPORT_DONE=$(kubectl get keycloakrealmimport -n $NAMESPACE {{ .Values.realm.name }} -o jsonpath='{.status.conditions[?(@.type=="Done")].status}' 2>/dev/null || echo "")
+      if [ "$REALM_IMPORT_DONE" == "True" ]; then
+        echo "✓ Realm import completed (KeycloakRealmImport Done condition: True)"
+        break
+      fi
+      
+      echo "  → Still waiting for realm import... ($ELAPSED/$TIMEOUT)"
+
+      if [ $ELAPSED -ge $TIMEOUT ]; then
+        echo "⚠ WARNING: Realm import validation timed out"
+        break
+      fi
+      
+      sleep 10
+      ELAPSED=$((ELAPSED + 10))
+    done
+    
+    # Step 4: Validate Realm Availability
+    echo "[4/4] Validating Realm Availability..."
+    
+    # We use the HTTP endpoint as the source of truth.
+    # If the realm is reachable, we are good (whether it was a fresh install or an update).
+    # If not, we monitor the import job and restart if necessary.
+    
+    REALM_URL="http://keycloak-service:8080/realms/{{ .Values.realm.name }}"
+    ELAPSED=0
+    RESTART_COUNT=0
+    
+    while true; do
+      # 1. Check if realm is UP
+      HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $REALM_URL || echo "000")
+      
+      if [ "$HTTP_CODE" == "200" ]; then
+        echo "✓ Realm '{{ .Values.realm.name }}' is available (HTTP 200)"
+        break
+      fi
+      
+      echo "  → Realm not ready yet (HTTP $HTTP_CODE)... ($ELAPSED/$TIMEOUT)"
+      
+      # 2. Check Import Job Status
+      REALM_JOB_NAME="{{ .Values.realm.name }}"
+      JOB_STATUS=$(kubectl get job -n $NAMESPACE $REALM_JOB_NAME -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || echo "")
+      
+      if [ "$JOB_STATUS" == "True" ]; then
+        # Job is done, but realm is not ready. 
+        # On a fresh install, this means we definitely need a restart.
+        # On an idempotent run, the pod should already be running and ready, so we shouldn't be here (HTTP should be 200).
+        # So if we are here, something is stuck.
+        
+        echo "  → Import job is Complete, but realm is not up."
+        
+        # Wait a bit before forcing a restart to give it a chance to load if it's hot-loading
+        if [ $ELAPSED -ge 60 ] && [ $RESTART_COUNT -eq 0 ]; then
+             echo "  → Nudging Keycloak by deleting pod (Potential fresh install requiring restart)..."
+             KC_POD=$(kubectl get pods -n $NAMESPACE -l app=keycloak,app.kubernetes.io/component=server --no-headers | awk '{print $1}' | head -1)
+             if [ -n "$KC_POD" ]; then
+                kubectl delete pod -n $NAMESPACE $KC_POD --grace-period=0 --force
+                RESTART_COUNT=1
+                # Reset elapsed to give time for restart
+                ELAPSED=0 
+             fi
+        fi
+      else
+        echo "  → Waiting for Realm Import Job to complete..."
+      fi
+
+      if [ $ELAPSED -ge $TIMEOUT ]; then
+        echo "✗ ERROR: Timeout waiting for Realm Availability"
+        echo "Debug: Last HTTP Code: $HTTP_CODE"
+        exit 1
+      fi
+      
+      sleep 10
+      ELAPSED=$((ELAPSED + 10))
+    done
+    
+    echo ""
+    echo "=== Validation Complete ==="
+    echo "✓ Operator is running"
+    echo "✓ Keycloak is running and ready"
+    echo "✓ Realm import completed"
+    echo ""
+    echo "Keycloak is ready to use!"
+    
+    # Display access information
+    echo ""
+    echo "=== Access Information ==="
+    {{- if .Values.ingress.enabled }}
+    echo "Admin Console: http://keycloak.{{ .Values.ingress.domain }}"
+    echo "Admin Username: {{ .Values.keycloak.adminUser }}"
+    echo "Admin Password: {{ .Values.keycloak.adminPassword }}"
+    echo ""
+    echo "Realm: {{ .Values.realm.name }}"
+    echo "OIDC Issuer: http://keycloak.{{ .Values.ingress.domain }}/realms/{{ .Values.realm.name }}"
+    {{- end }}
+{{- end }}
+---
+{{- if .Values.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-validation
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: keycloak-validation
+    spec:
+      serviceAccountName: keycloak-validation
+      restartPolicy: Never
+      containers:
+        - name: validation
+          image: {{ .Values.validation.image }}
+          command: ["/bin/bash", "/scripts/validate.sh"]
+          volumeMounts:
+            - name: validation-script
+              mountPath: /scripts
+      volumes:
+        - name: validation-script
+          configMap:
+            name: keycloak-validation-script
+            defaultMode: 0755
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: keycloak-validation
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: keycloak-validation
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["k8s.keycloak.org"]
+    resources: ["keycloaks", "keycloakrealmimports"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: keycloak-validation
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: keycloak-validation
+subjects:
+  - kind: ServiceAccount
+    name: keycloak-validation
+    namespace: {{ include "keycloak.namespace" . }}
+{{- end }}

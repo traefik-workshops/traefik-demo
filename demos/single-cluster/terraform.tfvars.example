@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars.
+
+cluster_name      = "my-demo"
+cluster_location  = "nyc1"
+domain            = "my-demo.example.com"
+traefik_hub_token = "REPLACE_ME"   # https://hub.traefik.io → workspace → generate

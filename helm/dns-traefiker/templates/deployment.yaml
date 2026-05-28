@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dns-traefiker.fullname" . }}
+  labels:
+    {{- include "dns-traefiker.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "dns-traefiker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "dns-traefiker.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "dns-traefiker.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SECRET_NAME
+              value: {{ .Values.secretName | quote }}
+            - name: TRAEFIK_SERVICE_NAME
+              value: {{ .Values.traefikServiceName | quote }}
+            - name: TRAEFIK_SERVICE_NAMESPACE
+              value: {{ .Values.traefikServiceNamespace | quote }}
+            - name: IP_OVERRIDE
+              value: {{ .Values.ipOverride | quote }}
+            - name: RETRY_INTERVAL
+              value: {{ .Values.retryInterval | quote }}
+            - name: MAX_RETRIES
+              value: {{ .Values.maxRetries | quote }}
+            - name: PROXIED
+              value: {{ .Values.proxied | quote }}
+            - name: DOMAIN
+              value: {{ .Values.domain | quote }}
+            - name: UNIQUE_DOMAIN
+              value: {{ .Values.uniqueDomain | quote }}
+            - name: ENABLE_AIRLINES_SUBDOMAIN
+              value: {{ .Values.enableAirlinesSubdomain | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,354 @@
+{{- $isParent := include "airlines.mc.isParentMode" . -}}
+{{- $isDeploy := or $isParent (include "airlines.mc.isChildDeploy" (dict "root" . "group" "passengerSvc")) -}}
+{{- if $isDeploy }}
+{{- range $version := list "v1" "v2" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookings-openapi-{{ $version }}
+  labels:
+    {{- include "airlines.labels" $ | nindent 4 }}
+    component: bookings
+    group: passenger-svc
+    version: {{ $version }}
+data:
+  openapi.yaml: |
+    openapi: "3.0.0"
+    info:
+      version: 2.0.0
+      title: Bookings API
+      description: |
+        Traefik Airlines Reservation Management — create, manage, and track flight bookings.
+        Each booking includes passenger, flight, ticket, and payment information.
+      contact:
+        name: Passenger Services Team
+        email: bookings@traefik-airlines.io
+    servers:
+      - url: {{ include "airlines.bookings.apiUrl" $ }}
+        description: Bookings API {{ $version }}
+    tags:
+      - name: bookings
+        description: Reservation management
+      - name: search
+        description: Booking search
+    paths:
+      /{{ $version }}/bookings:
+        get:
+          summary: List all bookings
+          description: Returns all reservations in the system
+          operationId: listBookings
+          tags: [bookings]
+          x-handler: |
+            return [
+              { booking_id: "BK-100201", passenger_id: "PAX-001", passenger_name: "Elena Rodriguez", flight_id: "TK-1042", route: "JFK \u2192 CDG", cabin: "business", status: "confirmed", booking_date: "2026-02-20T14:30:00Z", total_price: 3680.00, currency: "USD", ticket_number: "TKT-902841", seat: "4A" },
+              { booking_id: "BK-100202", passenger_id: "PAX-003", passenger_name: "James Chen", flight_id: "TK-2187", route: "CDG \u2192 DXB", cabin: "economy", status: "checked-in", booking_date: "2026-02-22T09:15:00Z", total_price: 976.35, currency: "USD", ticket_number: "TKT-902842", seat: "22F" },
+              { booking_id: "BK-100203", passenger_id: "PAX-002", passenger_name: "Aisha Patel", flight_id: "TK-0553", route: "LAX \u2192 HND", cabin: "premium-economy", status: "confirmed", booking_date: "2026-02-18T16:00:00Z", total_price: 1667.50, currency: "USD", ticket_number: "TKT-902843", seat: "14C" },
+              { booking_id: "BK-100204", passenger_id: "PAX-005", passenger_name: "Marcus Johnson", flight_id: "TK-0412", route: "AMS \u2192 LAX", cabin: "economy", status: "cancelled", booking_date: "2026-02-25T11:00:00Z", total_price: 785.00, currency: "USD", ticket_number: "", seat: "" },
+              { booking_id: "BK-100205", passenger_id: "PAX-004", passenger_name: "Sophie Laurent", flight_id: "TK-1590", route: "FRA \u2192 JFK", cabin: "business", status: "confirmed", booking_date: "2026-03-01T08:45:00Z", total_price: 3680.00, currency: "USD", ticket_number: "TKT-902845", seat: "2K" },
+              { booking_id: "BK-100206", passenger_id: "PAX-006", passenger_name: "Kenji Tanaka", flight_id: "TK-2044", route: "HND \u2192 CDG", cabin: "economy", status: "confirmed", booking_date: "2026-03-05T20:30:00Z", total_price: 976.35, currency: "USD", ticket_number: "TKT-902846", seat: "31A" },
+              { booking_id: "BK-100207", passenger_id: "PAX-007", passenger_name: "Maria Silva", flight_id: "TK-0871", route: "SIN \u2192 SYD", cabin: "economy", status: "confirmed", booking_date: "2026-03-06T13:20:00Z", total_price: 580.00, currency: "USD", ticket_number: "TKT-902847", seat: "27D" },
+              { booking_id: "BK-100208", passenger_id: "PAX-008", passenger_name: "Henrik Andersen", flight_id: "TK-3321", route: "DXB \u2192 SIN", cabin: "business", status: "checked-in", booking_date: "2026-03-02T10:00:00Z", total_price: 2850.00, currency: "USD", ticket_number: "TKT-902848", seat: "6A" },
+              { booking_id: "BK-100209", passenger_id: "PAX-009", passenger_name: "Fatou Diop", flight_id: "TK-4819", route: "ORD \u2192 LHR", cabin: "premium-economy", status: "confirmed", booking_date: "2026-03-08T17:45:00Z", total_price: 1667.50, currency: "USD", ticket_number: "TKT-902849", seat: "16A" },
+              { booking_id: "BK-100210", passenger_id: "PAX-010", passenger_name: "Luca Moretti", flight_id: "TK-1042", route: "JFK \u2192 CDG", cabin: "economy", status: "confirmed", booking_date: "2026-03-09T22:10:00Z", total_price: 976.35, currency: "USD", ticket_number: "TKT-902850", seat: "34B" }
+            ]
+          parameters:
+            - name: status
+              in: query
+              description: Filter by booking status
+              schema:
+                type: string
+                enum: [confirmed, cancelled, completed, pending]
+          responses:
+            "200":
+              description: List of bookings
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Booking'
+                  example:
+                    - booking_id: "BK-100201"
+                      passenger_id: "PAX-001"
+                      passenger_name: "Elena Rodriguez"
+                      flight_id: "TK-1042"
+                      route: "JFK → CDG"
+                      cabin: "business"
+                      status: "confirmed"
+                      booking_date: "2026-02-20T14:30:00Z"
+                      total_price: 3680.00
+                      currency: "USD"
+                      ticket_number: "TKT-902841"
+                      seat: "4A"
+                    - booking_id: "BK-100202"
+                      passenger_id: "PAX-003"
+                      passenger_name: "James Chen"
+                      flight_id: "TK-2187"
+                      route: "CDG → DXB"
+                      cabin: "economy"
+                      status: "confirmed"
+                      booking_date: "2026-02-22T09:15:00Z"
+                      total_price: 976.35
+                      currency: "USD"
+                      ticket_number: "TKT-902842"
+                      seat: "22F"
+                    - booking_id: "BK-100203"
+                      passenger_id: "PAX-002"
+                      passenger_name: "Aisha Patel"
+                      flight_id: "TK-0553"
+                      route: "LAX → HND"
+                      cabin: "premium-economy"
+                      status: "confirmed"
+                      booking_date: "2026-02-18T16:00:00Z"
+                      total_price: 1667.50
+                      currency: "USD"
+                      ticket_number: "TKT-902843"
+                      seat: "14C"
+                    - booking_id: "BK-100204"
+                      passenger_id: "PAX-005"
+                      passenger_name: "Marcus Johnson"
+                      flight_id: "TK-0412"
+                      route: "AMS → LAX"
+                      cabin: "economy"
+                      status: "cancelled"
+                      booking_date: "2026-02-25T11:00:00Z"
+                      total_price: 785.00
+                      currency: "USD"
+                      ticket_number: ""
+                      seat: ""
+                    - booking_id: "BK-100205"
+                      passenger_id: "PAX-004"
+                      passenger_name: "Sophie Laurent"
+                      flight_id: "TK-1590"
+                      route: "FRA → JFK"
+                      cabin: "business"
+                      status: "confirmed"
+                      booking_date: "2026-03-01T08:45:00Z"
+                      total_price: 3680.00
+                      currency: "USD"
+                      ticket_number: "TKT-902845"
+                      seat: "2K"
+                    - booking_id: "BK-100206"
+                      passenger_id: "PAX-006"
+                      passenger_name: "Kenji Tanaka"
+                      flight_id: "TK-2044"
+                      route: "HND → CDG"
+                      cabin: "economy"
+                      status: "confirmed"
+                      booking_date: "2026-03-05T20:30:00Z"
+                      total_price: 976.35
+                      currency: "USD"
+                      ticket_number: "TKT-902846"
+                      seat: "31A"
+        post:
+          summary: Create a new booking
+          description: Create a reservation for a passenger on a flight
+          operationId: createBooking
+          tags: [bookings]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  required: [passenger_id, flight_id, cabin]
+                  properties:
+                    passenger_id:
+                      type: string
+                    flight_id:
+                      type: string
+                    cabin:
+                      type: string
+                      enum: [economy, premium-economy, business]
+                example:
+                  passenger_id: "PAX-001"
+                  flight_id: "TK-2187"
+                  cabin: "economy"
+          x-handler: |
+            const body = request.body || {};
+            const ts = new Date().toISOString();
+            return {
+              booking_id: "BK-" + (100211 + Math.floor(Math.random() * 89)),
+              passenger_id: body.passenger_id || "PAX-001",
+              passenger_name: "Elena Rodriguez",
+              flight_id: body.flight_id || "TK-9001",
+              route: (body.flight_id || "TK-9001"),
+              cabin: body.cabin || "economy",
+              status: "confirmed",
+              booking_date: ts,
+              total_price: 976.35,
+              currency: "USD",
+              ticket_number: "TKT-" + (900000 + Math.floor(Math.random() * 99999)),
+              seat: ""
+            }
+          responses:
+            "201":
+              description: Booking created
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Booking'
+                  example:
+                    booking_id: "BK-100211"
+                    passenger_id: "PAX-001"
+                    passenger_name: "Elena Rodriguez"
+                    flight_id: "TK-9001"
+                    route: "TK-9001"
+                    cabin: "economy"
+                    status: "confirmed"
+                    booking_date: "2026-06-01T10:00:00Z"
+                    total_price: 976.35
+                    currency: "USD"
+                    ticket_number: "TKT-902860"
+                    seat: ""
+      /{{ $version }}/bookings/search:
+        get:
+          summary: Search bookings
+          description: Search bookings by passenger ID or flight ID
+          operationId: searchBookings
+          tags: [search]
+          parameters:
+            - name: passenger_id
+              in: query
+              schema:
+                type: string
+                example: "PAX-001"
+            - name: flight_id
+              in: query
+              schema:
+                type: string
+                example: "TK-1042"
+          responses:
+            "200":
+              description: Matching bookings
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Booking'
+      /{{ $version }}/bookings/{bookingId}:
+        get:
+          summary: Get booking details
+          operationId: getBooking
+          tags: [bookings]
+          parameters:
+            - name: bookingId
+              in: path
+              required: true
+              schema:
+                type: string
+                example: "BK-100201"
+          responses:
+            "200":
+              description: Booking details
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Booking'
+            "404":
+              description: Booking not found
+        put:
+          summary: Update a booking
+          operationId: updateBooking
+          tags: [bookings]
+          parameters:
+            - name: bookingId
+              in: path
+              required: true
+              schema:
+                type: string
+          requestBody:
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/BookingInput'
+          responses:
+            "200":
+              description: Booking updated
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Booking'
+        delete:
+          summary: Cancel a booking
+          operationId: cancelBooking
+          tags: [bookings]
+          parameters:
+            - name: bookingId
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            "200":
+              description: Booking cancelled
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/Booking'
+                  example:
+                    booking_id: "BK-100201"
+                    status: "cancelled"
+    components:
+      schemas:
+        Booking:
+          type: object
+          properties:
+            booking_id:
+              type: string
+              example: "BK-100201"
+            passenger_id:
+              type: string
+              example: "PAX-001"
+            passenger_name:
+              type: string
+              example: "Elena Rodriguez"
+            flight_id:
+              type: string
+              example: "TK-1042"
+            route:
+              type: string
+              example: "JFK → CDG"
+            cabin:
+              type: string
+              enum: [economy, premium-economy, business]
+              example: "business"
+            status:
+              type: string
+              enum: [confirmed, cancelled, completed, pending]
+              example: "confirmed"
+            booking_date:
+              type: string
+              format: date-time
+              example: "2026-02-20T14:30:00Z"
+            total_price:
+              type: number
+              example: 3680.00
+            currency:
+              type: string
+              example: "USD"
+            ticket_number:
+              type: string
+              example: "TKT-902841"
+            seat:
+              type: string
+              example: "4A"
+        BookingInput:
+          type: object
+          required: [passenger_id, flight_id, cabin]
+          properties:
+            passenger_id:
+              type: string
+            flight_id:
+              type: string
+            cabin:
+              type: string
+              enum: [economy, premium-economy, business]
+
+{{- end }}{{/* range versions */}}
+
+{{ include "airlines.flaskService" (dict "root" . "name" "bookings" "versions" (list "v1" "v2")) }}
+
+{{- end }}{{/* $isDeploy */}}

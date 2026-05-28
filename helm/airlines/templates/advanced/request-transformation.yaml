@@ -1,0 +1,21 @@
+{{- $hasLocalGroup := or
+  (include "airlines.mc.isLocalDeploy" (dict "root" . "group" "flightOps"))
+  (include "airlines.mc.isLocalDeploy" (dict "root" . "group" "passengerSvc"))
+  (include "airlines.mc.isLocalDeploy" (dict "root" . "group" "airportOps")) -}}
+{{- if $hasLocalGroup }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: request-transformation
+  labels:
+    {{- include "airlines.labels" . | nindent 4 }}
+spec:
+  headers:
+    customRequestHeaders:
+      X-Powered-By: "Traefik Hub"
+      X-Demo-Env: "nutanix-transit"
+    customResponseHeaders:
+      X-Served-By: "Traefik Hub"
+      X-Frame-Options: ""
+{{- end }}

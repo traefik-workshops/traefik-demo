@@ -1,0 +1,29 @@
+variable "cluster_name" {
+  type        = string
+  description = "Cluster name. Must be unique within the cloud account/region."
+}
+
+variable "cluster_location" {
+  type        = string
+  description = "Region or zone. No default — cost varies by region."
+}
+
+variable "kubernetes_version" {
+  type        = string
+  description = "Kubernetes minor version (e.g. \"1.30\"). Track current minus 1."
+  # TODO(new-module): set to current minus 1.
+  default = "1.30"
+}
+
+variable "node_count" {
+  type        = number
+  description = "Worker node count. Defaults to the cheapest viable size for demos."
+  default     = 2
+}
+
+variable "node_size" {
+  type        = string
+  description = "Worker node instance/SKU. Default is the cheapest size that runs Helm without OOMing."
+  # TODO(new-module): pick a real default for this cloud.
+  default = ""
+}
