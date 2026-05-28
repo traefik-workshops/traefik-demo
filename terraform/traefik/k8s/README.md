@@ -91,6 +91,7 @@ module "traefik" {
 | ingress_class_is_default | Whether this ingress class is the default | `bool` | `true` | no |
 | ingress_class_name | The name of the ingress class | `string` | `"traefik"` | no |
 | is_staging_letsencrypt | Use Let's Encrypt staging environment | `bool` | `false` | no |
+| kubeconfig | Path to a kubeconfig the CRD install (local-exec kubectl) should use. Empty = ambient kubeconfig / current context. Set this when the cluster is created in the same terraform run, so kubectl has no current context yet (e.g. demos that build a k3d cluster in-config). | `string` | `""` | no |
 | kubernetes_namespaces | List of namespaces to watch for Kubernetes providers (Ingress, Gateway, CRD) | `list(string)` | `[]` | no |
 | log_level | Log level (DEBUG, INFO, WARN, ERROR) | `string` | `"INFO"` | no |
 | multicluster_provider | Traefik Hub multicluster provider configuration | `object({enabled = optional(bool, false), pollInterval = optional(number, null), pollTimeout = optional(number, null), children = optional(any, {))` | `{"enabled":false}` | no |
@@ -107,9 +108,9 @@ module "traefik" {
 | skip_crds | Skip CRD installation (for NKP/Kommander clusters with pre-installed CRDs) | `bool` | `false` | no |
 | skip_gateway_api_crds | Skip Gateway API CRD installation | `bool` | `false` | no |
 | tolerations | Tolerations for the Traefik deployment | `list(object({key = string, operator = string, value = string, effect = string))` | `[]` | no |
-| traefik_chart_version | Traefik Helm chart version | `string` | `"38.0.1"` | no |
+| traefik_chart_version | Traefik Helm chart version (latest stable). Must render the partial metrics.otlp block this module sets: chart 38.x nil-pointers on .Values.metrics.otlp.resourceAttributes when that block is set without it; 40.x renders it. | `string` | `"40.2.0"` | no |
 | traefik_hub_preview_tag | Traefik Hub preview version tag | `string` | `""` | no |
-| traefik_hub_tag | Traefik Hub version tag | `string` | `"v3.19.0"` | no |
+| traefik_hub_tag | Traefik Hub image tag for ghcr.io/traefik/traefik-hub (latest stable), paired with the default chart version above. | `string` | `"v3.20.2"` | no |
 | traefik_hub_token 🔒 | Traefik Hub license token | `string` | `""` | no |
 | traefik_tag | Traefik OSS version tag | `string` | `"v3.6.6"` | no |
 | use_distributed_acme | Use distributedAcme instead of acme (stores certs in K8s secrets instead of acme.json file) | `bool` | `true` | no |
