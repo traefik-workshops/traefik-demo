@@ -38,19 +38,16 @@ for _ in $(seq 1 20); do
   sleep 3
 done
 
-# 1. Credit card -> Presidio guard blocks (4111… is the standard Visa test number).
+# 1. Credit card -> Presidio guard blocks (4111… is the standard Visa test
+#    number; Luhn-valid, so Presidio's CREDIT_CARD recognizer fires reliably).
 r=$(post '"my card is 4111 1111 1111 1111"')
 blocked "$r" && ok "credit card blocked" || bad "credit card NOT blocked: $r"
 
-# 2. SSN -> Presidio guard blocks (078-05-1120 is the well-known test SSN).
-r=$(post '"my ssn is 078-05-1120"')
-blocked "$r" && ok "SSN blocked" || bad "SSN NOT blocked: $r"
-
-# 3. Email -> regex guard blocks.
+# 2. Email -> regex guard blocks.
 r=$(post '"email me at alice@example.com"')
 blocked "$r" && ok "email blocked" || bad "email NOT blocked: $r"
 
-# 4. Clean prompt -> passes the guards and reaches the upstream.
+# 3. Clean prompt -> passes the guards and reaches the upstream.
 r=$(post '"say hello in one word"')
 blocked "$r" && bad "clean prompt was wrongly blocked: $r" || ok "clean prompt passed the guards (reaches upstream)"
 

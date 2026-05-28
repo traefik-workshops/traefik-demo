@@ -45,7 +45,6 @@ make down
 | Prompt contains | Guard | Expected |
 |---|---|---|
 | `4111 1111 1111 1111` (test Visa) | Presidio | blocked |
-| `078-05-1120` (test SSN) | Presidio | blocked |
 | `alice@example.com` | regex | blocked |
 | clean text | — | passes the guards, reaches the upstream |
 

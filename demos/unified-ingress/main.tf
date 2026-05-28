@@ -218,12 +218,15 @@ module "whoami" {
   depends_on = [module.app_workload_traefik]
 
   namespace = kubernetes_namespace_v1.app_workload_apps.metadata[0].name
+  # Advertise whoami over the multicluster uplink (adds the Uplink CRD +
+  # hub.traefik.io/router.uplinks annotation, entryPoints=[]) so the transit
+  # parent discovers and serves it — not a local route on the child.
+  uplink_enabled = true
   apps = {
     whoami = {
       ingress_route = {
-        enabled     = true
-        host        = "whoami.${var.domain}"
-        entrypoints = ["websecure"]
+        enabled = true
+        host    = "whoami.${var.domain}"
       }
     }
   }
