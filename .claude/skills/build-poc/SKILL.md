@@ -112,3 +112,4 @@ deployment:
 - On any failure: stop immediately, report exact error output, wait for SA input.
 - Never run `terraform destroy`.
 - Sensitive vars from `inputs.vars` are passed as `-var` flags — never written to `.tfvars` files.
+- **Pin the library version.** A PoC is a standalone artifact handed to a prospect, so it must be reproducible. Reference every traefik-demo module and chart at a pinned release tag — `source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/<path>?ref=<tag>"` and `helm ... --version <tag>` — where `<tag>` is the repo's latest `v*` release tag (e.g. `git -C <traefik-demo> describe --tags --abbrev=0`). Never pin a PoC to a moving ref (`main`) or a relative path: that is the **demos/** convention (which tracks the live library — see [`demos/AGENTS.md`](../../../demos/AGENTS.md)), not the PoC convention.
