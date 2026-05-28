@@ -1,5 +1,5 @@
 image:
-  repository: michaelfeil/infinity
+  repository: michaelf34/infinity
   tag: "0.0.75"
   pullPolicy: IfNotPresent
 

@@ -37,7 +37,7 @@ See [`../AGENTS.md`](../AGENTS.md) for chart conventions and [the root `AGENTS.m
 | Key | Default |
 |-----|---------|
 | `image` | (object) |
-| `image.repository` | `"michaelfeil/infinity"` |
+| `image.repository` | `"michaelf34/infinity"` |
 | `image.tag` | `"0.0.75"` |
 | `image.pullPolicy` | `"IfNotPresent"` |
 | `model` | `"nomic-embed-text"` |
