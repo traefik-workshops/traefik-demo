@@ -860,13 +860,13 @@
         {
           "name": "uplink_enabled",
           "type": "bool",
-          "description": "Enable Uplink CRD and IngressRoute annotation for multicluster routing",
+          "description": "Advertise the route over a Traefik Hub multicluster uplink instead of serving it locally. When true the IngressRoute drops entryPoints and matches PathPrefix(`/`) (Hub attaches it to the uplink), so ingress_route.host and ingress_route.strip_prefix are IGNORED for matching \u2014 the parent cluster owns the Host match. Supports at most one app with ingress_route.enabled (one Uplink is shared). Requires uplink_name.",
           "default_kind": "literal"
         },
         {
           "name": "uplink_name",
           "type": "string",
-          "description": "Uplink name to advertise on (must match the child's --hub.uplinkEntryPoints.<name> entrypoint and the parent's <name>@multicluster service ref). Used only when uplink_enabled. Defaults to \\\"whoami\\\" when empty.",
+          "description": "Uplink name to advertise on. Required when uplink_enabled. Must match the child's --hub.uplinkEntryPoints.<name> entrypoint and the parent's <name>@multicluster service ref.",
           "default_kind": "literal"
         },
         {
@@ -5453,7 +5453,7 @@
         {
           "name": "traefik_chart_version",
           "type": "string",
-          "description": "Traefik Helm chart version. The default's values (e.g. metrics.otlp.resourceAttributes) require a 40.x chart \u2014 older defaults fail to render.",
+          "description": "Traefik Helm chart version (latest stable). Must render the partial metrics.otlp block this module sets: chart 38.x nil-pointers on .Values.metrics.otlp.resourceAttributes when that block is set without it; 40.x renders it.",
           "default_kind": "literal"
         },
         {
@@ -5465,7 +5465,7 @@
         {
           "name": "traefik_hub_tag",
           "type": "string",
-          "description": "Traefik Hub image tag (paired with the default chart version above).",
+          "description": "Traefik Hub image tag for ghcr.io/traefik/traefik-hub (latest stable), paired with the default chart version above.",
           "default_kind": "literal"
         },
         {

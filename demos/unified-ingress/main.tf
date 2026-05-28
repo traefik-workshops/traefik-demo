@@ -225,11 +225,12 @@ module "whoami" {
   # with hub.traefik.io/router.uplinks; the Host is matched by the parent route.
   uplink_enabled = true
   uplink_name    = "app-workload"
+  # No host/strip_prefix here: in uplink mode the child route matches
+  # PathPrefix(`/`) and the Host is owned by the transit parent route below.
   apps = {
     whoami = {
       ingress_route = {
         enabled = true
-        host    = "whoami.${var.domain}"
       }
     }
   }

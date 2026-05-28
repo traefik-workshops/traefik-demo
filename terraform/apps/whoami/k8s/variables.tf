@@ -23,13 +23,13 @@ variable "apps" {
 }
 
 variable "uplink_enabled" {
-  description = "Enable Uplink CRD and IngressRoute annotation for multicluster routing"
+  description = "Advertise the route over a Traefik Hub multicluster uplink instead of serving it locally. When true the IngressRoute drops entryPoints and matches PathPrefix(`/`) (Hub attaches it to the uplink), so ingress_route.host and ingress_route.strip_prefix are IGNORED for matching — the parent cluster owns the Host match. Supports at most one app with ingress_route.enabled (one Uplink is shared). Requires uplink_name."
   type        = bool
   default     = false
 }
 
 variable "uplink_name" {
-  description = "Uplink name to advertise on (must match the child's --hub.uplinkEntryPoints.<name> entrypoint and the parent's <name>@multicluster service ref). Used only when uplink_enabled. Defaults to \"whoami\" when empty."
+  description = "Uplink name to advertise on. Required when uplink_enabled. Must match the child's --hub.uplinkEntryPoints.<name> entrypoint and the parent's <name>@multicluster service ref."
   type        = string
   default     = ""
 }

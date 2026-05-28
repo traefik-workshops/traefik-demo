@@ -61,8 +61,8 @@ module "whoami" {
 | ingress_observability | Emit Traefik observability signals (access logs, metrics, traces) for every whoami IngressRoute this module creates. Set to false to add the three `traefik.ingress.kubernetes.io/router.observability.*: "false"` annotations. Same switch shape as other k8s modules. | `bool` | `true` | no |
 | namespace | Kubernetes namespace to deploy applications | `string` | `"apps"` | no |
 | node_selector | Node selector for pod scheduling | `map(string)` | `{}` | no |
-| uplink_enabled | Enable Uplink CRD and IngressRoute annotation for multicluster routing | `bool` | `false` | no |
-| uplink_name | Uplink name to advertise on (must match the child's `--hub.uplinkEntryPoints.<name>` entrypoint and the parent's `<name>@multicluster` service ref). Used only when `uplink_enabled`. Defaults to `whoami` when empty. | `string` | `""` | no |
+| uplink_enabled | Advertise the route over a Traefik Hub multicluster uplink instead of serving it locally. When true the IngressRoute drops `entryPoints` and matches `PathPrefix(\`/\`)`, so `ingress_route.host`/`strip_prefix` are ignored for matching (the parent owns the Host). At most one `ingress_route.enabled` app; requires `uplink_name`. | `bool` | `false` | no |
+| uplink_name | Uplink name to advertise on. **Required when `uplink_enabled`.** Must match the child's `--hub.uplinkEntryPoints.<name>` entrypoint and the parent's `<name>@multicluster` service ref. | `string` | `""` | no |
 
 ## Outputs
 

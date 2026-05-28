@@ -1,9 +1,3 @@
-locals {
-  # The uplink identifier is shared by the Uplink CRD (name + exposeName), the
-  # router.uplinks annotation, and the parent's <name>@multicluster service ref.
-  uplink_name = var.uplink_name != "" ? var.uplink_name : "whoami"
-}
-
 # Create Kubernetes deployments for each app
 resource "kubernetes_deployment_v1" "echo" {
   for_each = var.apps
@@ -141,15 +135,28 @@ resource "kubectl_manifest" "middleware_strip_prefix" {
 resource "kubectl_manifest" "uplink" {
   count = var.uplink_enabled ? 1 : 0
 
+  lifecycle {
+    precondition {
+      condition     = var.uplink_name != ""
+      error_message = "uplink_name must be set when uplink_enabled = true — it must match the child's --hub.uplinkEntryPoints.<name> entrypoint and the parent's <name>@multicluster service ref."
+    }
+    precondition {
+      # One Uplink CRD (exposeName = uplink_name) is shared by every advertised
+      # route, so >1 route would collide on the same exposed name.
+      condition     = length([for k, v in var.apps : k if v.ingress_route.enabled]) <= 1
+      error_message = "uplink_enabled supports at most one app with ingress_route.enabled (a single Uplink is shared). Use one whoami module instance per uplinked app."
+    }
+  }
+
   yaml_body = yamlencode({
     apiVersion = "hub.traefik.io/v1alpha1"
     kind       = "Uplink"
     metadata = {
-      name      = local.uplink_name
+      name      = var.uplink_name
       namespace = var.namespace
     }
     spec = {
-      exposeName = local.uplink_name
+      exposeName = var.uplink_name
     }
   })
 }
@@ -167,7 +174,7 @@ resource "kubectl_manifest" "ingress_route" {
       name      = "${each.key}-ingress-route"
       namespace = var.namespace
       annotations = merge(
-        var.uplink_enabled ? { "hub.traefik.io/router.uplinks" = local.uplink_name } : {},
+        var.uplink_enabled ? { "hub.traefik.io/router.uplinks" = var.uplink_name } : {},
         var.ingress_observability ? {} : {
           "traefik.ingress.kubernetes.io/router.observability.accesslogs" = "false"
           "traefik.ingress.kubernetes.io/router.observability.metrics"    = "false"
