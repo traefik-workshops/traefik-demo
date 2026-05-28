@@ -1,0 +1,6 @@
+# chart-testing install values.
+# dns-traefiker requires DOMAIN to be set (it refuses to start otherwise) and
+# only accepts demo.traefik.ai or a subdomain. It manages its own
+# domain-secret via RBAC, so no Cloudflare token is needed just to start +
+# pass install testing on a throwaway cluster.
+domain: ci.demo.traefik.ai

@@ -193,6 +193,23 @@ jobs:
             kubectl apply --server-side -f "${TRAEFIK_CRD_BASE}/${crd}.yaml"
           done
 
+      - name: Build + unpack chart dependencies (ct install does not build them)
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        run: |
+          set -euo pipefail
+          for c in helm/*/; do
+            if grep -q '^dependencies:' "${c}Chart.yaml" 2>/dev/null; then
+              helm dependency build "$c" || helm dependency update "$c"
+            fi
+          done
+          # helm install only resolves *unpacked* dependency dirs (not the .tgz
+          # that dep build vendors). Loop to cover nested umbrella deps.
+          for _ in 1 2 3; do
+            while IFS= read -r tgz; do
+              tar xf "$tgz" -C "$(dirname "$tgz")"
+            done < <(find helm -path '*/charts/*.tgz')
+          done
+
       - name: ct install
         if: ${{ steps.list-changed.outputs.any == 'true' }}
         run: ct install --config helm/ct.yaml --target-branch main
