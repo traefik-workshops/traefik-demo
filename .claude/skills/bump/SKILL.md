@@ -47,7 +47,7 @@ Internally, each target:
 6. **Sweeps** in-repo `file://` subchart dep versions inside each `Chart.yaml`.
 7. **Sweeps** every terraform leaf-module README `?ref=vX.Y.Z` example line.
 8. Runs `helm dep update` on every chart with `dependencies:` (refreshes `Chart.lock`).
-9. **Regenerates** `catalog.json` with the new tag baked into the `tag:` field (`TRAEFIK_DEMO_TAG=$new_tag make catalog`).
+9. Refreshes `catalog.json` defensively (`make catalog`) — it's a pure function of the tree and the PR-time `catalog-check` gate already keeps it current, so this is a no-op unless a merge bypassed CI.
 10. Commits the sweep + locks + catalog as `release(<label>): vX.Y.Z`.
 11. Tags `vX.Y.Z` annotated.
 12. Pushes both the branch and the tag to `origin`.

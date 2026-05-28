@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Emit a JSON inventory of every leaf Terraform module + Helm chart in the repo.
 
-Shape:
+Shape (a pure function of the working tree — no git state, so the committed
+catalog.json is reproducible in any checkout and CI can gate on drift):
     {
-      "tag": "vX.Y.Z",           # current repo tag (or "v0.0.0" if none)
       "modules": [
         {
           "path": "terraform/<section>/<...>",
@@ -238,30 +238,6 @@ def section_and_platform(rel_path: str) -> tuple[str, str]:
     return section, ""
 
 
-def current_tag() -> str:
-    """Use $TRAEFIK_DEMO_TAG if set (the release sweep uses this); else read git tags."""
-    import os
-    override = os.environ.get("TRAEFIK_DEMO_TAG")
-    if override:
-        return override
-    try:
-        out = subprocess.check_output(
-            ["git", "tag", "--list", "v*"], text=True, cwd=ROOT
-        ).splitlines()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return "v0.0.0"
-    if not out:
-        return "v0.0.0"
-    # natural-sort by splitting on '.', taking the last
-    def key(t: str):
-        s = t.lstrip("v")
-        try:
-            return tuple(int(x) for x in s.split("."))
-        except ValueError:
-            return (0, 0, 0)
-    return sorted(out, key=key)[-1]
-
-
 def load_signals() -> dict[str, list[str]]:
     """Return {path: [keyword, ...]} for every module + chart entry in signals.yaml."""
     sig_yaml = ROOT / "signals.yaml"
@@ -323,8 +299,12 @@ def main() -> int:
             "dependencies": meta["dependencies"],
         })
 
+    # NOTE: output must be a pure function of the working tree — no git state
+    # (tags, branch, SHA). catalog.json is committed and CI fails on drift, so
+    # any environment-dependent field would make the gate flaky (CI checks out
+    # without tags → a `tag` field would read v0.0.0 and never match).
     json.dump(
-        {"tag": current_tag(), "modules": modules, "charts": charts},
+        {"modules": modules, "charts": charts},
         sys.stdout,
         indent=2,
         sort_keys=False,

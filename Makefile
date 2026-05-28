@@ -341,9 +341,11 @@ _release:
 		fi; \
 	done
 
-	@# 7.5: Regenerate catalog.json with the new tag baked in
-	@echo "$(BOLD)Regenerating catalog.json @ $$new_tag...$(RESET)"
-	@TRAEFIK_DEMO_TAG="$$new_tag" scripts/discover.sh > catalog.json
+	@# 7.5: Refresh catalog.json defensively (a pure function of the tree — the
+	@# PR-time catalog-check gate keeps it current on main, this just catches a
+	@# bypassed merge before it ships in a tag).
+	@echo "$(BOLD)Refreshing catalog.json...$(RESET)"
+	@scripts/discover.sh > catalog.json
 
 	@# 8: Commit the sweep
 	@if [ -n "$$(git status --porcelain)" ]; then \

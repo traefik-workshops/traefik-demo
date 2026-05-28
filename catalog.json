@@ -1,5 +1,4 @@
 {
-  "tag": "v4.0.0",
   "modules": [
     {
       "path": "terraform/ai/23ai/k8s",
