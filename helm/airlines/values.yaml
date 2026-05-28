@@ -152,8 +152,6 @@ keycloak:
     enabled: true
     domain: ""
     entrypoint: websecure
-  ingressInternal:
-    enabled: false
   oidc:
     clientId: ""
     clientSecret: ""

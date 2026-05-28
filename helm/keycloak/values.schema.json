@@ -7,6 +7,31 @@
       "type": "boolean",
       "default": true
     },
+    "global": {
+      "type": "object",
+      "description": "Helm global values injected by a parent chart (e.g. airlines). Open-ended because parents propagate arbitrary globals; keycloak templates read global.domain and global.port.",
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "port": {}
+      }
+    },
+    "oidc": {
+      "type": "object",
+      "description": "OIDC client details consumed by the airlines parent chart when keycloak is a subchart.",
+      "properties": {
+        "clientId": {
+          "type": "string"
+        },
+        "clientSecret": {
+          "type": "string"
+        },
+        "issuerUrl": {
+          "type": "string"
+        }
+      }
+    },
     "operatorVersion": {
       "type": "string",
       "default": "26.5.2"

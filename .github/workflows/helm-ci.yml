@@ -49,6 +49,9 @@ jobs:
           tar -xzf /tmp/kc.tgz -C /tmp
           sudo mv /tmp/kubeconform /usr/local/bin/
 
+      - name: Add external chart repos (weaviate is an external subchart of ai-gateway)
+        run: helm repo add weaviate https://weaviate.github.io/weaviate-helm
+
       - name: helm dep update (so file:// subcharts resolve)
         run: |
           set -euo pipefail
