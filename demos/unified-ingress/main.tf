@@ -1,53 +1,55 @@
-# demos/unified-ingress — multicluster Traefik Hub: one transit cluster +
-# one or more app-workload clusters.
+# demos/unified-ingress — multicluster Traefik Hub on k3d: one "transit" parent
+# cluster + one "app-workload" child. The parent discovers the child's routes
+# and serves them under a single entrypoint — the dominant real-world shape.
 #
-# The most common real-world shape (sampled from aws/lke/k3d/nutanix unified
-# ingress demos). Demonstrates: cross-cluster routing, OTel observability,
-# auto-DNS via dns-traefiker.
+# Cross-cluster on k3d: two k3d clusters share one host, so they can't share
+# host ports. The child's Traefik (443) is exposed on host port 9443, and the
+# parent reaches it at host.k3d.internal:9443.
 
-# ----------------------------------------------------------------------------
-# Clusters — one "transit" parent + one or more app-workload children.
-# Swap the source for any compute/<cloud> module per cluster.
-# ----------------------------------------------------------------------------
-
+# --- Clusters -----------------------------------------------------------------
 module "transit_cluster" {
-  source = "../../terraform/compute/digitalocean/doks"
-
-  cluster_name     = "${var.cluster_prefix}-transit"
-  cluster_location = var.cluster_location
+  source       = "../../terraform/compute/suse/k3d"
+  cluster_name = "${var.cluster_prefix}-transit"
+  # default ports: 80/443/8080 on the host
 }
 
 module "app_workload_cluster" {
-  source = "../../terraform/compute/digitalocean/doks"
-
-  cluster_name     = "${var.cluster_prefix}-app"
-  cluster_location = var.cluster_location
+  source       = "../../terraform/compute/suse/k3d"
+  cluster_name = "${var.cluster_prefix}-app"
+  # Non-colliding host ports; the parent reaches this cluster's Traefik at
+  # host.k3d.internal:9443.
+  ports = [
+    { from = 443, to = 9443 },
+    { from = 80, to = 9080 },
+  ]
 }
 
-# ----------------------------------------------------------------------------
-# Provider aliases — one set per cluster.
-# ----------------------------------------------------------------------------
+# --- Providers (one set per cluster; k3d uses client-cert auth) ---------------
+provider "k3d" {}
 
 provider "kubernetes" {
   alias                  = "transit"
   host                   = module.transit_cluster.host
-  cluster_ca_certificate = base64decode(module.transit_cluster.cluster_ca_certificate)
-  token                  = module.transit_cluster.token
+  client_certificate     = module.transit_cluster.client_certificate
+  client_key             = module.transit_cluster.client_key
+  cluster_ca_certificate = module.transit_cluster.cluster_ca_certificate
 }
 
 provider "kubernetes" {
   alias                  = "app_workload"
   host                   = module.app_workload_cluster.host
-  cluster_ca_certificate = base64decode(module.app_workload_cluster.cluster_ca_certificate)
-  token                  = module.app_workload_cluster.token
+  client_certificate     = module.app_workload_cluster.client_certificate
+  client_key             = module.app_workload_cluster.client_key
+  cluster_ca_certificate = module.app_workload_cluster.cluster_ca_certificate
 }
 
 provider "helm" {
   alias = "transit"
   kubernetes = {
     host                   = module.transit_cluster.host
-    cluster_ca_certificate = base64decode(module.transit_cluster.cluster_ca_certificate)
-    token                  = module.transit_cluster.token
+    client_certificate     = module.transit_cluster.client_certificate
+    client_key             = module.transit_cluster.client_key
+    cluster_ca_certificate = module.transit_cluster.cluster_ca_certificate
   }
 }
 
@@ -55,15 +57,13 @@ provider "helm" {
   alias = "app_workload"
   kubernetes = {
     host                   = module.app_workload_cluster.host
-    cluster_ca_certificate = base64decode(module.app_workload_cluster.cluster_ca_certificate)
-    token                  = module.app_workload_cluster.token
+    client_certificate     = module.app_workload_cluster.client_certificate
+    client_key             = module.app_workload_cluster.client_key
+    cluster_ca_certificate = module.app_workload_cluster.cluster_ca_certificate
   }
 }
 
-# ----------------------------------------------------------------------------
-# Transit cluster — Traefik Hub in multicluster-parent mode.
-# ----------------------------------------------------------------------------
-
+# --- Transit (parent) ---------------------------------------------------------
 resource "kubernetes_namespace_v1" "transit_traefik" {
   provider = kubernetes.transit
   metadata { name = "traefik" }
@@ -94,6 +94,7 @@ module "transit_traefik" {
   traefik_hub_token     = var.traefik_hub_token
   enable_api_gateway    = true
   enable_api_management = true
+  enable_offline_mode   = true
 
   enable_otlp_metrics     = true
   enable_otlp_traces      = true
@@ -110,18 +111,14 @@ module "transit_traefik" {
     pollTimeout  = 5
     children = {
       app-workload = {
-        # In a real deploy this points at the app-workload Traefik LB IP.
-        address          = "https://${module.app_workload_traefik.load_balancer_ip}:9443"
+        address          = "https://host.k3d.internal:9443"
         serversTransport = { insecureSkipVerify = true }
       }
     }
   }
 }
 
-# ----------------------------------------------------------------------------
-# App-workload cluster — Traefik Hub as multicluster child + sample app.
-# ----------------------------------------------------------------------------
-
+# --- App-workload (child) -----------------------------------------------------
 resource "kubernetes_namespace_v1" "app_workload_traefik" {
   provider = kubernetes.app_workload
   metadata { name = "traefik" }
@@ -142,6 +139,7 @@ module "app_workload_traefik" {
   namespace             = kubernetes_namespace_v1.app_workload_traefik.metadata[0].name
   traefik_hub_token     = var.traefik_hub_token
   enable_api_gateway    = true
+  enable_offline_mode   = true
   dashboard_entrypoints = ["websecure"]
 }
 

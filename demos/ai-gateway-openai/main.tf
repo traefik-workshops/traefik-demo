@@ -52,10 +52,11 @@ resource "kubernetes_namespace_v1" "traefik" {
 module "traefik" {
   source = "../../terraform/traefik/k8s"
 
-  namespace          = kubernetes_namespace_v1.traefik.metadata[0].name
-  traefik_hub_token  = var.traefik_hub_token
-  enable_api_gateway = true
-  enable_ai_gateway  = true
+  namespace           = kubernetes_namespace_v1.traefik.metadata[0].name
+  traefik_hub_token   = var.traefik_hub_token
+  enable_api_gateway  = true
+  enable_ai_gateway   = true
+  enable_offline_mode = true
 }
 
 # Presidio analyzer — the PII engine the content-guard calls.

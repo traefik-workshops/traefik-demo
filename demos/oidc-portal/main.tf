@@ -52,6 +52,7 @@ module "traefik" {
   traefik_hub_token     = var.traefik_hub_token
   enable_api_gateway    = true
   enable_api_management = true # API Portal lives here
+  enable_offline_mode   = true
   dashboard_entrypoints = ["websecure"]
 }
 

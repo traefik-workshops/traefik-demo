@@ -1,32 +1,31 @@
-# demos/single-cluster — one cluster, Traefik Hub, whoami.
+# demos/single-cluster — one k3d cluster, Traefik Hub, whoami.
 #
-# The smallest credible demo. Use this as the seed for every demo where
-# multicluster + AI + auth are not needed.
+# The smallest credible demo. Seed for any demo where multicluster + AI + auth
+# are not needed.
 
-# 1. Cluster. Swap the source for any compute/<cloud> module.
 module "cluster" {
-  source = "../../terraform/compute/digitalocean/doks"
-
-  cluster_name     = var.cluster_name
-  cluster_location = var.cluster_location
+  source       = "../../terraform/compute/suse/k3d"
+  cluster_name = var.cluster_name
 }
 
-# 2. Provider wiring — every subsequent module talks to this cluster.
+provider "k3d" {}
+
 provider "kubernetes" {
   host                   = module.cluster.host
-  cluster_ca_certificate = base64decode(module.cluster.cluster_ca_certificate)
-  token                  = module.cluster.token
+  client_certificate     = module.cluster.client_certificate
+  client_key             = module.cluster.client_key
+  cluster_ca_certificate = module.cluster.cluster_ca_certificate
 }
 
 provider "helm" {
   kubernetes = {
     host                   = module.cluster.host
-    cluster_ca_certificate = base64decode(module.cluster.cluster_ca_certificate)
-    token                  = module.cluster.token
+    client_certificate     = module.cluster.client_certificate
+    client_key             = module.cluster.client_key
+    cluster_ca_certificate = module.cluster.cluster_ca_certificate
   }
 }
 
-# 3. Namespaces.
 resource "kubernetes_namespace_v1" "traefik" {
   metadata { name = "traefik" }
 }
@@ -35,17 +34,16 @@ resource "kubernetes_namespace_v1" "apps" {
   metadata { name = "apps" }
 }
 
-# 4. Traefik Hub.
 module "traefik" {
   source = "../../terraform/traefik/k8s"
 
   namespace             = kubernetes_namespace_v1.traefik.metadata[0].name
   traefik_hub_token     = var.traefik_hub_token
   enable_api_gateway    = true
+  enable_offline_mode   = true
   dashboard_entrypoints = ["websecure"]
 }
 
-# 5. Sample workload to prove ingress works.
 module "whoami" {
   source = "../../terraform/apps/whoami/k8s"
 
