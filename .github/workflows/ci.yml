@@ -87,7 +87,7 @@ jobs:
           additional_args: --config-file=.tfsec.yml --soft-fail=false
 
   catalog-check:
-    name: catalog.json in sync
+    name: catalog in sync (json + markdown)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -96,5 +96,9 @@ jobs:
           sudo curl -sSL -o /usr/local/bin/yq \
             https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
+      # catalog.json (machine-readable, vs the tree) and CATALOG.md (human-readable,
+      # vs catalog.json) are both committed; gate both so neither can silently rot.
       - name: make catalog-check
         run: make catalog-check
+      - name: make catalog-markdown-check
+        run: make catalog-markdown-check
