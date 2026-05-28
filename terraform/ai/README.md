@@ -34,4 +34,4 @@ If you're adding a new vector store (Qdrant, pgvector, etc.), follow the `milvus
 
 ## Section-specific conventions
 
-See [`./CLAUDE.md`](./CLAUDE.md).
+See [`./AGENTS.md`](./AGENTS.md).

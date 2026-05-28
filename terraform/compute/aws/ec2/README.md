@@ -21,7 +21,7 @@ module "ec2" {
 ## Prerequisites
 
 - AWS credentials with EC2/VPC permissions.
-- See [../../../CLAUDE.md](../../../CLAUDE.md) for repo-wide conventions.
+- See [../../../AGENTS.md](../../../AGENTS.md) for repo-wide conventions.
 
 <!-- BEGIN_TF_DOCS -->
 

@@ -1,6 +1,6 @@
 # tflint configuration for traefik-demo
 #
-# Enforces conventions documented in CLAUDE.md and CONTRIBUTING.md.
+# Enforces conventions documented in AGENTS.md and CONTRIBUTING.md.
 # Run via:  make lint
 # Or directly:  tflint --recursive --config=$PWD/.tflint.hcl
 
@@ -28,7 +28,7 @@ plugin "terraform" {
 
 # ----- Provider plugins (lazy: installed on `tflint --init`) -----
 # Only the providers actually in use across the repo. Add to this list
-# when you add a new provider — see CLAUDE.md.
+# when you add a new provider — see AGENTS.md.
 
 plugin "aws" {
   enabled = true
@@ -50,7 +50,7 @@ plugin "google" {
 
 # ----- Custom rule tuning -----
 
-# Variable + output description is required (CLAUDE.md: "every variable has type + description").
+# Variable + output description is required (AGENTS.md: "every variable has type + description").
 rule "terraform_documented_variables" { enabled = true }
 rule "terraform_documented_outputs"   { enabled = true }
 
@@ -94,7 +94,7 @@ rule "terraform_naming_convention" {
 }
 
 # Standard module structure: prefer `main.tf` / `variables.tf` / `outputs.tf` /
-# `versions.tf`. Surfaces drift from the canonical shape documented in CLAUDE.md.
+# `versions.tf`. Surfaces drift from the canonical shape documented in AGENTS.md.
 rule "terraform_standard_module_structure" {
   enabled = true
 }

@@ -23,8 +23,8 @@ There is no static catalog file — facts must be derived from the repo as it is
 - **Required inputs (TF)**: read each module's `variables.tf` — variables without a `default` are required.
 - **Required values (Helm)**: read each chart's `values.schema.json` for the `required` array, or `values.yaml` for what's commented.
 - **Outputs / credentials (TF)**: read `outputs.tf` — `sensitive = true` flags secrets.
-- **Section conventions**: `terraform/<section>/CLAUDE.md` (e.g. [`terraform/compute/CLAUDE.md`](../../../terraform/compute/CLAUDE.md)) and [`helm/CLAUDE.md`](../../../helm/CLAUDE.md).
-- **Repo-wide rules**: [`/CLAUDE.md`](../../../CLAUDE.md) — section ownership, variable conventions, defaults philosophy, unified versioning.
+- **Section conventions**: `terraform/<section>/AGENTS.md` (e.g. [`terraform/compute/AGENTS.md`](../../../terraform/compute/AGENTS.md)) and [`helm/AGENTS.md`](../../../helm/AGENTS.md).
+- **Repo-wide rules**: [`/AGENTS.md`](../../../AGENTS.md) — section ownership, variable conventions, defaults philosophy, unified versioning.
 
 Do not invent a module or chart that you have not confirmed exists. Do not infer required inputs from past memory — read the source first.
 

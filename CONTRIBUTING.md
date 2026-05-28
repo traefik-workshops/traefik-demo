@@ -1,11 +1,11 @@
 # Contributing
 
-Quick reference for adding or changing modules. The full conventions live in [`CLAUDE.md`](./CLAUDE.md); this file is the workflow.
+Quick reference for adding or changing modules. The full conventions live in [`AGENTS.md`](./AGENTS.md); this file is the workflow.
 
 ## Before you change anything
 
-1. Skim the relevant `<section>/CLAUDE.md` for section-specific rules before changing anything.
-2. Skim the section's `README.md` and `CLAUDE.md`.
+1. Skim the relevant `<section>/AGENTS.md` for section-specific rules before changing anything.
+2. Skim the section's `README.md` and `AGENTS.md`.
 3. Look at the closest existing module — pattern-match, don't invent.
 
 ## Adding a new module
@@ -16,7 +16,7 @@ The fast path is the scaffolding skill:
 @new-module
 ```
 
-It will ask which section/platform/name and write the canonical file layout (see [`CLAUDE.md`](./CLAUDE.md)). If you scaffold by hand:
+It will ask which section/platform/name and write the canonical file layout (see [`AGENTS.md`](./AGENTS.md)). If you scaffold by hand:
 
 ```
 <section>/<platform>/<module>/
@@ -92,7 +92,7 @@ The targets print the diff since the last tag, ask for confirmation, then tag an
 ## What to commit, what not to
 
 Commit:
-- `.tf` files, `README.md`, `CLAUDE.md`, `.tflint.hcl`, `Makefile`, `.github/workflows/`, the skill under `.claude/`.
+- `.tf` files, `README.md`, `AGENTS.md` (and the `CLAUDE.md` pointer stub), `.tflint.hcl`, `Makefile`, `.github/workflows/`, the skill under `.claude/`.
 
 Do not commit:
 - `.terraform/`, `*.tfstate`, `*.tfvars`, `.DS_Store`, anything under `bin/` or `images/`. `.gitignore` covers these.

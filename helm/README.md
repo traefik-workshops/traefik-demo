@@ -68,7 +68,7 @@ helm install my-airlines .
 
 ## Where to look next
 
-- [Conventions for charts](./CLAUDE.md) — section-specific rules, on top of [the root CLAUDE.md](../CLAUDE.md)
+- [Conventions for charts](./AGENTS.md) — section-specific rules, on top of [the root AGENTS.md](../AGENTS.md)
 - Open issues in helm/ — the `HELM-*` and `CHART-*` series
 - [Testing posture](../TESTING.md#helm) — lint + ct + values-schema for charts
 - Per-chart `README.md` — install snippet, values table (auto-generated)

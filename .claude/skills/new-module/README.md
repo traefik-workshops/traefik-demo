@@ -1,6 +1,6 @@
 # new-module skill
 
-Scaffolds a new leaf module under `traefik-demo` following the canonical layout in [`/CLAUDE.md`](../../../CLAUDE.md).
+Scaffolds a new leaf module under `traefik-demo` following the canonical layout in [`/AGENTS.md`](../../../AGENTS.md).
 
 Two ways to use it:
 
@@ -42,4 +42,4 @@ The picker in `scaffold.sh` chooses automatically based on section + platform + 
 
 ## Editing the templates
 
-If you change the canonical module shape in `/CLAUDE.md`, update the templates here in the same commit. The pre-commit `terraform_docs` hook applies the doc convention to generated modules, but it can't fix structural drift.
+If you change the canonical module shape in `/AGENTS.md`, update the templates here in the same commit. The pre-commit `terraform_docs` hook applies the doc convention to generated modules, but it can't fix structural drift.

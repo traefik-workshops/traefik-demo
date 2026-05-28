@@ -2,7 +2,7 @@
 
 A Helm chart for Microsoft Presidio Analyzer
 
-- **Chart version:** `3.2.0` (slaved to the repo tag — see [`../CLAUDE.md`](../CLAUDE.md))
+- **Chart version:** `3.2.0` (slaved to the repo tag — see [`../AGENTS.md`](../AGENTS.md))
 - **App version:** `2.2.358`
 
 ## Install
@@ -34,7 +34,7 @@ There is also a Terraform module that ships Presidio for the same role:
 
 ## Conventions
 
-See [`../CLAUDE.md`](./CLAUDE.md) for repo-wide rules and [`./CLAUDE.md`](./CLAUDE.md) for chart-specific conventions.
+See [`../AGENTS.md`](./AGENTS.md) for repo-wide rules and [`./AGENTS.md`](./AGENTS.md) for chart-specific conventions.
 
 <!-- BEGIN_HELM_DOCS -->
 

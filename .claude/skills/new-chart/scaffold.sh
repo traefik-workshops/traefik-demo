@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scaffold.sh — generate a new Helm chart under helm/<name>/ following
-# the canonical layout documented in /helm/CLAUDE.md.
+# the canonical layout documented in /helm/AGENTS.md.
 #
 # Usage:
 #   scaffold.sh --name <name> --purpose "<line>" --kind <kind> --app-version <X.Y.Z>

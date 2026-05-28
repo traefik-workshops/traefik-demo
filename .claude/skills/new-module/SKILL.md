@@ -5,7 +5,7 @@ description: Scaffold a new Terraform module under the traefik-demo repo followi
 
 # new-module skill
 
-You are scaffolding a new leaf module under `traefik-demo`. The goal is a module that conforms to the conventions in [`/CLAUDE.md`](../../../CLAUDE.md) on first commit — no follow-up lint fixups required.
+You are scaffolding a new leaf module under `traefik-demo`. The goal is a module that conforms to the conventions in [`/AGENTS.md`](../../../AGENTS.md) on first commit — no follow-up lint fixups required.
 
 ## Gather requirements first
 

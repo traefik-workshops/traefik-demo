@@ -26,11 +26,11 @@ This repo holds two kinds of building blocks consumed by demos:
 
 Inside each Terraform section, modules are organized by **platform** (`k8s/`, `aws/`, `nutanix/`, `runpod/`, ...). A *leaf module* is any directory containing `.tf` files directly — ~69 of them. The `helm/` directory holds 7 charts.
 
-Each section has its own `README.md` and `CLAUDE.md` — start with those when you want a focused view.
+Each section has its own `README.md` and `AGENTS.md` — start with those when you want a focused view.
 
 ## Quick links
 
-- [Layout, conventions, and module patterns](./CLAUDE.md) — read this first if you're contributing
+- [Layout, conventions, and module patterns](./AGENTS.md) — read this first if you're contributing
 - [Testing strategy](./TESTING.md) — what's tested, what isn't, why
 - [Contributing guide](./CONTRIBUTING.md) — how to add a module or chart
 - Terraform sections: [ai](./terraform/ai/README.md) · [apps](./terraform/apps/README.md) · [compute](./terraform/compute/README.md) · [observability](./terraform/observability/README.md) · [security](./terraform/security/README.md) · [tools](./terraform/tools/README.md) · [traefik](./terraform/traefik/README.md)
@@ -98,6 +98,6 @@ Use the bundled skills:
 @bump         # cut a release (sweeps Chart.yaml versions, tags, pushes)
 ```
 
-Each skill asks you what's needed and scaffolds the canonical layout in [`CLAUDE.md`](./CLAUDE.md). Skills live in [`.claude/skills/`](./.claude/skills) so Claude auto-discovers them whenever this repo is the working directory.
+Each skill asks you what's needed and scaffolds the canonical layout in [`AGENTS.md`](./AGENTS.md). Skills live in [`.claude/skills/`](./.claude/skills) so Claude auto-discovers them whenever this repo is the working directory.
 
 If you're scaffolding by hand, copy the closest existing sibling module / chart — patterns are not invented per-section.

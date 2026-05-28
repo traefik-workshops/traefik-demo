@@ -5,7 +5,7 @@ description: Scaffold a new Helm chart under helm/ in the traefik-demo repo foll
 
 # new-chart skill
 
-You are scaffolding a new Helm chart under `helm/<name>/`. The chart conforms to the conventions in [`/helm/CLAUDE.md`](../../helm/CLAUDE.md) on first commit — no follow-up lint fixups required. The new chart's `Chart.yaml` `version:` is pinned to the current repo tag (the unified versioning model — see [`/CLAUDE.md`](../../CLAUDE.md)).
+You are scaffolding a new Helm chart under `helm/<name>/`. The chart conforms to the conventions in [`/helm/AGENTS.md`](../../helm/AGENTS.md) on first commit — no follow-up lint fixups required. The new chart's `Chart.yaml` `version:` is pinned to the current repo tag (the unified versioning model — see [`/AGENTS.md`](../../AGENTS.md)).
 
 ## Gather requirements first
 

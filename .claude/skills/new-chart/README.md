@@ -1,6 +1,6 @@
 # new-chart skill
 
-Scaffolds a new Helm chart under `helm/<name>/` following the canonical layout in [`/helm/CLAUDE.md`](../../helm/CLAUDE.md).
+Scaffolds a new Helm chart under `helm/<name>/` following the canonical layout in [`/helm/AGENTS.md`](../../helm/AGENTS.md).
 
 Two ways to use it:
 
@@ -39,4 +39,4 @@ The script:
 
 ## Editing the templates
 
-If you change the canonical chart shape in `/helm/CLAUDE.md`, update the templates here in the same commit. The pre-commit `helm-docs` hook keeps each chart's `<!-- BEGIN_HELM_DOCS -->` block fresh, but it doesn't fix structural drift.
+If you change the canonical chart shape in `/helm/AGENTS.md`, update the templates here in the same commit. The pre-commit `helm-docs` hook keeps each chart's `<!-- BEGIN_HELM_DOCS -->` block fresh, but it doesn't fix structural drift.

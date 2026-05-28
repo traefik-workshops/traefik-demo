@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scaffold.sh — generate a new module under traefik-demo following
-# the canonical layout documented in /CLAUDE.md.
+# the canonical layout documented in /AGENTS.md.
 #
 # Invoked by the new-module skill, but also runnable on its own.
 #

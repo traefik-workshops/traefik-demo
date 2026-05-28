@@ -29,7 +29,7 @@ Read the file at the given path before proceeding. If the file does not exist or
 Before mapping, ground yourself in the current module set:
 
 - Run `find terraform -name versions.tf -not -path '*/.terraform/*' | xargs dirname | sort` (TF) and `find helm -name Chart.yaml -maxdepth 2 | xargs dirname | sort` (Helm) to list every leaf module that actually exists.
-- Skim [`/CLAUDE.md`](../../CLAUDE.md) for section ownership rules — what belongs in `terraform/ai/` vs `terraform/tools/` vs `terraform/traefik/` etc.
+- Skim [`/AGENTS.md`](../../AGENTS.md) for section ownership rules — what belongs in `terraform/ai/` vs `terraform/tools/` vs `terraform/traefik/` etc.
 
 Then map every technical signal in the prospect input to a module that you have confirmed exists. The table below is a starting heuristic — verify each match by reading the module's `variables.tf`:
 
