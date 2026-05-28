@@ -95,11 +95,11 @@ module "transit_traefik" {
   enable_api_gateway    = true
   enable_api_management = true
 
-  enable_otlp_metrics      = true
-  enable_otlp_traces       = true
-  enable_otlp_access_logs  = true
-  otlp_service_name        = "traefik-transit"
-  otlp_address             = "http://opentelemetry-opentelemetry-collector.${kubernetes_namespace_v1.transit_observability.metadata[0].name}.svc.cluster.local:4318"
+  enable_otlp_metrics     = true
+  enable_otlp_traces      = true
+  enable_otlp_access_logs = true
+  otlp_service_name       = "traefik-transit"
+  otlp_address            = "http://opentelemetry-opentelemetry-collector.${kubernetes_namespace_v1.transit_observability.metadata[0].name}.svc.cluster.local:4318"
 
   dashboard_entrypoints = ["websecure"]
   dashboard_match_rule  = "Host(`dashboard.${var.domain}`)"
@@ -139,9 +139,9 @@ module "app_workload_traefik" {
     kubernetes = kubernetes.app_workload
   }
 
-  namespace          = kubernetes_namespace_v1.app_workload_traefik.metadata[0].name
-  traefik_hub_token  = var.traefik_hub_token
-  enable_api_gateway = true
+  namespace             = kubernetes_namespace_v1.app_workload_traefik.metadata[0].name
+  traefik_hub_token     = var.traefik_hub_token
+  enable_api_gateway    = true
   dashboard_entrypoints = ["websecure"]
 }
 

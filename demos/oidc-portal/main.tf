@@ -49,12 +49,12 @@ module "traefik" {
   namespace             = kubernetes_namespace_v1.traefik.metadata[0].name
   traefik_hub_token     = var.traefik_hub_token
   enable_api_gateway    = true
-  enable_api_management = true   # API Portal lives here
+  enable_api_management = true # API Portal lives here
   dashboard_entrypoints = ["websecure"]
 }
 
 module "whoami" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/apps/whoami/k8s?ref=v4.0.0"
+  source    = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/apps/whoami/k8s?ref=v4.0.0"
   namespace = kubernetes_namespace_v1.apps.metadata[0].name
   domain    = "whoami.${var.domain}"
 }

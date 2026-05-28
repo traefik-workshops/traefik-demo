@@ -5,12 +5,17 @@ output "load_balancer_ip" {
 
 output "domain" {
   description = "The computed domain for Traefik"
-  value       = var.dns_traefiker.enabled && length(data.kubernetes_secret_v1.dns_domain) > 0 ? data.kubernetes_secret_v1.dns_domain[0].data.domain : var.cloudflare_dns.domain
+  # nonsensitive: inherits sensitivity from var.cloudflare_dns (sensitive
+  # whole-struct due to api_token) and from k8s secret data, but the
+  # domain string itself is just a DNS name used in URLs.
+  value = nonsensitive(var.dns_traefiker.enabled && length(data.kubernetes_secret_v1.dns_domain) > 0 ? data.kubernetes_secret_v1.dns_domain[0].data.domain : var.cloudflare_dns.domain)
 }
 
 output "dashboard_url" {
   description = "The Traefik dashboard URL"
-  value       = "https://dashboard.${var.dns_traefiker.enabled && length(data.kubernetes_secret_v1.dns_domain) > 0 ? data.kubernetes_secret_v1.dns_domain[0].data.domain : var.cloudflare_dns.domain}"
+  # nonsensitive: same reason as `domain` — composes the non-secret domain
+  # into the dashboard URL.
+  value = nonsensitive("https://dashboard.${var.dns_traefiker.enabled && length(data.kubernetes_secret_v1.dns_domain) > 0 ? data.kubernetes_secret_v1.dns_domain[0].data.domain : var.cloudflare_dns.domain}")
 }
 
 data "kubernetes_service_v1" "traefik" {

@@ -43,6 +43,7 @@ variable "oracle_pwd" {
   type        = string
   default     = "topSecretpa33word"
   description = "SYS/SYSTEM/PDBADMIN password injected via the `ORACLE_PWD` env var. Demo default is intentionally low-effort — rotate when exposing the DB outside the cluster."
+  sensitive   = true
 }
 
 variable "oracle_characterset" {

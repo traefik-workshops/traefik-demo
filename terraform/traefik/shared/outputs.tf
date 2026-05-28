@@ -231,10 +231,16 @@ output "custom_plugins" {
 
 output "computed_dns_domain" {
   description = "Computed DNS domain (from dns_traefiker or cloudflare_dns)"
-  value       = local.dns_domain
+  # nonsensitive: the domain string itself isn't a secret — it just inherits
+  # the sensitive flag from var.cloudflare_dns (which is marked sensitive
+  # whole-struct because it carries api_token). Consumers need the domain
+  # plain to build URLs.
+  value = nonsensitive(local.dns_domain)
 }
 
 output "computed_dashboard_match_rule" {
   description = "Computed dashboard match rule"
-  value       = local.helm_values.ingressRoute.dashboard.matchRule
+  # nonsensitive: same reason as computed_dns_domain — the match rule
+  # composes the (non-secret) domain into a routing predicate.
+  value = nonsensitive(local.helm_values.ingressRoute.dashboard.matchRule)
 }

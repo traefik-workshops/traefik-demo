@@ -7,7 +7,7 @@ module "cluster" {
 
   cluster_name       = var.cluster_name
   cluster_location   = var.cluster_location
-  cluster_node_count = 3   # Helm AI gateway pulls weaviate + presidio + embeddings
+  cluster_node_count = 3 # Helm AI gateway pulls weaviate + presidio + embeddings
 }
 
 provider "kubernetes" {
@@ -39,11 +39,11 @@ resource "kubernetes_namespace_v1" "auth" {
 module "traefik" {
   source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/traefik/k8s?ref=v4.0.0"
 
-  namespace          = kubernetes_namespace_v1.traefik.metadata[0].name
-  traefik_hub_token  = var.traefik_hub_token
-  enable_api_gateway = true
-  enable_ai_gateway  = true
-  enable_mcp_gateway = true
+  namespace             = kubernetes_namespace_v1.traefik.metadata[0].name
+  traefik_hub_token     = var.traefik_hub_token
+  enable_api_gateway    = true
+  enable_ai_gateway     = true
+  enable_mcp_gateway    = true
   dashboard_entrypoints = ["websecure"]
 }
 
@@ -71,5 +71,5 @@ module "ollama" {
   source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/ai/ollama/k8s?ref=v4.0.0"
 
   namespace      = kubernetes_namespace_v1.ai.metadata[0].name
-  enable_llama32 = true   # small model for CPU
+  enable_llama32 = true # small model for CPU
 }
