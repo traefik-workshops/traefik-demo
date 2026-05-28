@@ -51,13 +51,13 @@ help: ## Show this help.
 	@echo "$(BOLD)traefik-demo$(RESET) — current tag: $(YELLOW)$(CURRENT_TAG)$(RESET)"
 	@echo
 	@echo "$(BOLD)Terraform quality:$(RESET)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-z][a-zA-Z_-]+:.*?## TF: / {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, substr($$2, 5)}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-z][a-zA-Z0-9_-]+:.*?## TF: / {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, substr($$2, 5)}' $(MAKEFILE_LIST)
 	@echo
 	@echo "$(BOLD)Helm quality + publish:$(RESET)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-z][a-zA-Z_-]+:.*?## H: / {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, substr($$2, 4)}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-z][a-zA-Z0-9_-]+:.*?## H: / {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, substr($$2, 4)}' $(MAKEFILE_LIST)
 	@echo
 	@echo "$(BOLD)Cross-cutting:$(RESET)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-z][a-zA-Z_-]+:.*?## X: / {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, substr($$2, 4)}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-z][a-zA-Z0-9_-]+:.*?## X: / {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, substr($$2, 4)}' $(MAKEFILE_LIST)
 	@echo
 	@echo "$(BOLD)Release:$(RESET)"
 	@awk 'BEGIN {FS = ":.*?## "} /^release[a-z-]+:.*?## / {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -131,6 +131,22 @@ helm-test: ## H: ct lint --all (chart-testing).
 	@if ! command -v ct > /dev/null; then echo "$(RED)ct not installed.$(RESET) See https://github.com/helm/chart-testing"; exit 1; fi
 	@ct lint --config helm/ct.yaml --all
 
+.PHONY: helm-install
+helm-install: ## H: Spin up a kind cluster, `ct install` every chart, tear down. Requires kind + ct.
+	@set -euo pipefail
+	@if ! command -v kind > /dev/null; then echo "$(RED)kind not installed.$(RESET) See https://kind.sigs.k8s.io/"; exit 1; fi
+	@if ! command -v ct > /dev/null; then echo "$(RED)ct not installed.$(RESET) See https://github.com/helm/chart-testing"; exit 1; fi
+	@if ! command -v kubectl > /dev/null; then echo "$(RED)kubectl not installed.$(RESET)"; exit 1; fi
+	@cluster_name="traefik-demo-e2e"
+	@echo "$(BOLD)Creating kind cluster: $$cluster_name$(RESET)"
+	@trap 'echo "$(DIM)tearing down $$cluster_name...$(RESET)"; kind delete cluster --name "$$cluster_name" > /dev/null 2>&1 || true' EXIT
+	@kind create cluster --name "$$cluster_name"
+	@echo "$(BOLD)Installing Traefik CRDs (charts assume Traefik is present)...$(RESET)"
+	@kubectl apply -f https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/traefikio_ingressroutes.yaml 2>/dev/null || true
+	@kubectl apply -f https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/traefikio_middlewares.yaml 2>/dev/null || true
+	@echo "$(BOLD)Running ct install --all on $$cluster_name...$(RESET)"
+	@ct install --config helm/ct.yaml --all
+
 .PHONY: helm-deps
 helm-deps: ## H: helm dep update on every chart with dependencies (regenerates Chart.lock).
 	@set -euo pipefail
@@ -171,7 +187,10 @@ helm-push: ## H: push every dist/*.tgz to $(OCI_REGISTRY). Requires `helm regist
 # ============================================================================
 
 .PHONY: check
-check: tf-fmt-check tf-validate tf-lint tf-security helm-lint helm-template helm-test catalog-check ## X: Run every quality check (CI).
+check: tf-fmt-check tf-validate tf-lint tf-security helm-lint helm-template helm-test catalog-check ## X: Run every quality check (CI — no cluster needed).
+
+.PHONY: e2e
+e2e: check helm-install ## X: Full ladder — every static check + actually install every chart on a kind cluster. Requires kind + ct + kubectl.
 
 .PHONY: fmt
 fmt: tf-fmt ## X: Run all formatters.
