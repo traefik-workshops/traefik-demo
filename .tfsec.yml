@@ -13,7 +13,16 @@ minimum_severity: HIGH
 exclude:
   # Single-AZ resources are fine for demos.
   - aws-elb-alb-not-public
+
+  # The demo security group (compute/aws/vpc `demo_sg`) intentionally opens
+  # 80/443/8080/22 ingress + all egress to 0.0.0.0/0 so a demo is reachable
+  # without per-environment CIDR wiring. These are the current tfsec IDs
+  # (the older aws-vpc-* spellings below are kept for forward/back compat).
+  - aws-ec2-no-public-ingress-sgr
+  - aws-ec2-no-public-egress-sgr
+  - aws-vpc-no-public-ingress
   - aws-vpc-no-public-egress-sgr
+  - aws-vpc-add-description-to-security-group-rule
 
   # Demo k8s clusters intentionally expose the API server.
   - aws-eks-no-public-cluster-access
@@ -24,10 +33,6 @@ exclude:
   # Demos run small/cheap; we don't enforce node-level encryption-at-rest.
   - aws-eks-encrypt-secrets
   - aws-ec2-enable-at-rest-encryption
-
-  # Open dashboards by design for demos.
-  - aws-vpc-no-public-ingress
-  - aws-vpc-add-description-to-security-group-rule
 
 # Rules we keep (representative; full set runs by default):
 #   - hardcoded-credentials   (catches SEC-01..06)
