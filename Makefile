@@ -89,17 +89,17 @@ tf-validate: ## TF: terraform validate every leaf module (or one via MODULE=<pat
 	if [ "$$fail" -eq 0 ]; then echo "$(GREEN)tf-validate: ok$(RESET)"; else echo "$(RED)tf-validate: failed$(RESET)"; exit 1; fi
 
 .PHONY: tf-lint
-tf-lint: ## TF: tflint --recursive across the repo.
-	@echo "$(BOLD)tflint --recursive$(RESET)"
+tf-lint: ## TF: tflint --recursive over terraform/ (demos/ are root configs, not modules).
+	@echo "$(BOLD)tflint --recursive (terraform/)$(RESET)"
 	@if ! command -v tflint > /dev/null; then echo "$(RED)tflint not installed.$(RESET) See https://github.com/terraform-linters/tflint#installation"; exit 1; fi
 	@tflint --init > /dev/null
-	@tflint --recursive --config "$$PWD/.tflint.hcl"
+	@tflint --chdir=terraform --recursive --config "$(CURDIR)/.tflint.hcl"
 
 .PHONY: tf-security
-tf-security: ## TF: tfsec security scan.
+tf-security: ## TF: tfsec security scan over terraform/.
 	@echo "$(BOLD)tfsec$(RESET)"
 	@if ! command -v tfsec > /dev/null; then echo "$(RED)tfsec not installed.$(RESET) See https://github.com/aquasecurity/tfsec#installation"; exit 1; fi
-	@tfsec --config-file .tfsec.yml .
+	@tfsec --config-file .tfsec.yml terraform
 
 # ============================================================================
 # 2. Helm quality + publish targets

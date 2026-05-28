@@ -38,8 +38,10 @@ jobs:
       - name: terraform init + validate per module
         run: |
           set -euo pipefail
-          # Find every directory containing .tf files directly (leaf modules).
-          mapfile -t mods < <(find . -name '*.tf' -not -path '*/.terraform/*' \
+          # Leaf modules live under terraform/. demos/ holds root example configs
+          # (provider blocks, git:: module sources) that are not library modules and
+          # aren't gated here — mirrors `make tf-validate` (LEAF_MODULES = find terraform).
+          mapfile -t mods < <(find terraform -name '*.tf' -not -path '*/.terraform/*' \
             -exec dirname {} \; | sort -u)
           fail=0
           for d in "${mods[@]}"; do
@@ -66,8 +68,8 @@ jobs:
         run: tflint --init
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: tflint --recursive
-        run: tflint --recursive --config "$PWD/.tflint.hcl"
+      - name: tflint --recursive (terraform/ only; demos/ are root configs, not modules)
+        run: tflint --chdir=terraform --recursive --config "$PWD/.tflint.hcl"
 
   tfsec:
     name: tfsec
@@ -77,7 +79,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: aquasecurity/tfsec-action@v1.0.3
         with:
-          additional_args: --config-file=.tfsec.yml --soft-fail=false
+          # Scan terraform/ only — demos/ pull modules via git:: refs, which tfsec
+          # would resolve and scan (incl. upstream third-party modules we don't own).
+          working_directory: terraform
+          additional_args: --config-file=../.tfsec.yml --soft-fail=false
 
   catalog-check:
     name: catalog.json in sync
