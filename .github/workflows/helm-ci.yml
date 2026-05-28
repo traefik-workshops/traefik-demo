@@ -104,6 +104,9 @@ jobs:
         with:
           version: ${{ env.CT_VERSION }}
 
+      - name: Add external chart repos (ct builds deps; weaviate is an external subchart of ai-gateway)
+        run: helm repo add weaviate https://weaviate.github.io/weaviate-helm
+
       - name: ct list-changed
         id: list-changed
         run: |
@@ -138,6 +141,9 @@ jobs:
       - uses: helm/chart-testing-action@v2.6.1
         with:
           version: ${{ env.CT_VERSION }}
+
+      - name: Add external chart repos (ct builds deps; weaviate is an external subchart of ai-gateway)
+        run: helm repo add weaviate https://weaviate.github.io/weaviate-helm
 
       - name: ct list-changed
         id: list-changed
