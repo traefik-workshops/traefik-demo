@@ -11,14 +11,14 @@
 # ----------------------------------------------------------------------------
 
 module "transit_cluster" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/compute/digitalocean/doks?ref=v4.0.0"
+  source = "../../terraform/compute/digitalocean/doks"
 
   cluster_name     = "${var.cluster_prefix}-transit"
   cluster_location = var.cluster_location
 }
 
 module "app_workload_cluster" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/compute/digitalocean/doks?ref=v4.0.0"
+  source = "../../terraform/compute/digitalocean/doks"
 
   cluster_name     = "${var.cluster_prefix}-app"
   cluster_location = var.cluster_location
@@ -75,7 +75,7 @@ resource "kubernetes_namespace_v1" "transit_observability" {
 }
 
 module "transit_observability" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/observability/opentelemetry/k8s?ref=v4.0.0"
+  source = "../../terraform/observability/opentelemetry/k8s"
   providers = {
     helm       = helm.transit
     kubernetes = kubernetes.transit
@@ -84,7 +84,7 @@ module "transit_observability" {
 }
 
 module "transit_traefik" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/traefik/k8s?ref=v4.0.0"
+  source = "../../terraform/traefik/k8s"
   providers = {
     helm       = helm.transit
     kubernetes = kubernetes.transit
@@ -133,7 +133,7 @@ resource "kubernetes_namespace_v1" "app_workload_apps" {
 }
 
 module "app_workload_traefik" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/traefik/k8s?ref=v4.0.0"
+  source = "../../terraform/traefik/k8s"
   providers = {
     helm       = helm.app_workload
     kubernetes = kubernetes.app_workload
@@ -146,11 +146,19 @@ module "app_workload_traefik" {
 }
 
 module "whoami" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/apps/whoami/k8s?ref=v4.0.0"
+  source = "../../terraform/apps/whoami/k8s"
   providers = {
     helm       = helm.app_workload
     kubernetes = kubernetes.app_workload
   }
   namespace = kubernetes_namespace_v1.app_workload_apps.metadata[0].name
-  domain    = "whoami.${var.domain}"
+  apps = {
+    whoami = {
+      ingress_route = {
+        enabled     = true
+        host        = "whoami.${var.domain}"
+        entrypoints = ["websecure"]
+      }
+    }
+  }
 }

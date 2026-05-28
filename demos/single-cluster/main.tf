@@ -5,7 +5,7 @@
 
 # 1. Cluster. Swap the source for any compute/<cloud> module.
 module "cluster" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/compute/digitalocean/doks?ref=v4.0.0"
+  source = "../../terraform/compute/digitalocean/doks"
 
   cluster_name     = var.cluster_name
   cluster_location = var.cluster_location
@@ -37,7 +37,7 @@ resource "kubernetes_namespace_v1" "apps" {
 
 # 4. Traefik Hub.
 module "traefik" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/traefik/k8s?ref=v4.0.0"
+  source = "../../terraform/traefik/k8s"
 
   namespace             = kubernetes_namespace_v1.traefik.metadata[0].name
   traefik_hub_token     = var.traefik_hub_token
@@ -47,8 +47,16 @@ module "traefik" {
 
 # 5. Sample workload to prove ingress works.
 module "whoami" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/apps/whoami/k8s?ref=v4.0.0"
+  source = "../../terraform/apps/whoami/k8s"
 
   namespace = kubernetes_namespace_v1.apps.metadata[0].name
-  domain    = var.domain
+  apps = {
+    whoami = {
+      ingress_route = {
+        enabled     = true
+        host        = "whoami.${var.domain}"
+        entrypoints = ["websecure"]
+      }
+    }
+  }
 }
