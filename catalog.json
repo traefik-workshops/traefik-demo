@@ -864,6 +864,12 @@
           "default_kind": "literal"
         },
         {
+          "name": "uplink_name",
+          "type": "string",
+          "description": "Uplink name to advertise on (must match the child's --hub.uplinkEntryPoints.<name> entrypoint and the parent's <name>@multicluster service ref). Used only when uplink_enabled. Defaults to \\\"whoami\\\" when empty.",
+          "default_kind": "literal"
+        },
+        {
           "name": "namespace",
           "type": "string",
           "description": "Kubernetes namespace to deploy applications",
@@ -5337,6 +5343,12 @@
           "default_kind": "literal"
         },
         {
+          "name": "kubeconfig",
+          "type": "string",
+          "description": "Path to a kubeconfig the CRD install (local-exec kubectl) should use. Empty = ambient kubeconfig / current context. Set this when the cluster is created in the same terraform run, so kubectl has no current context yet (e.g. demos that build a k3d cluster in-config).",
+          "default_kind": "literal"
+        },
+        {
           "name": "skip_gateway_api_crds",
           "type": "bool",
           "description": "Skip Gateway API CRD installation",
@@ -5441,7 +5453,7 @@
         {
           "name": "traefik_chart_version",
           "type": "string",
-          "description": "Traefik Helm chart version",
+          "description": "Traefik Helm chart version. The default's values (e.g. metrics.otlp.resourceAttributes) require a 40.x chart \u2014 older defaults fail to render.",
           "default_kind": "literal"
         },
         {
@@ -5453,7 +5465,7 @@
         {
           "name": "traefik_hub_tag",
           "type": "string",
-          "description": "Traefik Hub version tag",
+          "description": "Traefik Hub image tag (paired with the default chart version above).",
           "default_kind": "literal"
         },
         {

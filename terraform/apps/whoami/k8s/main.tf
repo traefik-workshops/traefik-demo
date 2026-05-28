@@ -1,3 +1,9 @@
+locals {
+  # The uplink identifier is shared by the Uplink CRD (name + exposeName), the
+  # router.uplinks annotation, and the parent's <name>@multicluster service ref.
+  uplink_name = var.uplink_name != "" ? var.uplink_name : "whoami"
+}
+
 # Create Kubernetes deployments for each app
 resource "kubernetes_deployment_v1" "echo" {
   for_each = var.apps
@@ -139,11 +145,11 @@ resource "kubectl_manifest" "uplink" {
     apiVersion = "hub.traefik.io/v1alpha1"
     kind       = "Uplink"
     metadata = {
-      name      = "whoami"
+      name      = local.uplink_name
       namespace = var.namespace
     }
     spec = {
-      exposeName = "whoami"
+      exposeName = local.uplink_name
     }
   })
 }
@@ -161,7 +167,7 @@ resource "kubectl_manifest" "ingress_route" {
       name      = "${each.key}-ingress-route"
       namespace = var.namespace
       annotations = merge(
-        var.uplink_enabled ? { "hub.traefik.io/router.uplinks" = "whoami" } : {},
+        var.uplink_enabled ? { "hub.traefik.io/router.uplinks" = local.uplink_name } : {},
         var.ingress_observability ? {} : {
           "traefik.ingress.kubernetes.io/router.observability.accesslogs" = "false"
           "traefik.ingress.kubernetes.io/router.observability.metrics"    = "false"
@@ -170,33 +176,38 @@ resource "kubectl_manifest" "ingress_route" {
         var.ingress_annotations,
       )
     }
-    spec = {
-      entryPoints = var.uplink_enabled ? [] : each.value.ingress_route.entrypoints
-      routes = [
-        {
-          match = join(" && ", compact([
-            each.value.ingress_route.host != null && each.value.ingress_route.host != "" ? "Host(`${each.value.ingress_route.host}`)" : "",
-            each.value.ingress_route.strip_prefix.enabled && length(each.value.ingress_route.strip_prefix.prefixes) > 0 ? "PathPrefix(`${join("`, `", each.value.ingress_route.strip_prefix.prefixes)}`)" : ""
-          ]))
-          kind = "Rule"
-          middlewares = concat(
-            [for m in each.value.ingress_route.middlewares : {
-              name      = m.name
-              namespace = try(m.namespace, var.namespace)
-            }],
-            each.value.ingress_route.strip_prefix.enabled ? [{
-              name      = "${each.key}-strip-prefix"
-              namespace = var.namespace
-            }] : []
-          )
-          services = [
-            {
-              name = "${each.key}-svc"
-              port = each.value.port
-            }
-          ]
-        }
-      ]
-    }
+    # Child uplink routers cannot carry entryPoints (Hub attaches them to the
+    # uplink, not a local entrypoint), so omit the key entirely when advertising.
+    # The Host is matched by the parent's route; the child matches the path.
+    spec = merge(
+      var.uplink_enabled ? {} : { entryPoints = each.value.ingress_route.entrypoints },
+      {
+        routes = [
+          {
+            match = var.uplink_enabled ? "PathPrefix(`/`)" : join(" && ", compact([
+              each.value.ingress_route.host != null && each.value.ingress_route.host != "" ? "Host(`${each.value.ingress_route.host}`)" : "",
+              each.value.ingress_route.strip_prefix.enabled && length(each.value.ingress_route.strip_prefix.prefixes) > 0 ? "PathPrefix(`${join("`, `", each.value.ingress_route.strip_prefix.prefixes)}`)" : ""
+            ]))
+            kind = "Rule"
+            middlewares = concat(
+              [for m in each.value.ingress_route.middlewares : {
+                name      = m.name
+                namespace = try(m.namespace, var.namespace)
+              }],
+              each.value.ingress_route.strip_prefix.enabled ? [{
+                name      = "${each.key}-strip-prefix"
+                namespace = var.namespace
+              }] : []
+            )
+            services = [
+              {
+                name = "${each.key}-svc"
+                port = each.value.port
+              }
+            ]
+          }
+        ]
+      }
+    )
   })
 }

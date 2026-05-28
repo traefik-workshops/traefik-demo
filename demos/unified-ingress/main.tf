@@ -218,10 +218,13 @@ module "whoami" {
   depends_on = [module.app_workload_traefik]
 
   namespace = kubernetes_namespace_v1.app_workload_apps.metadata[0].name
-  # Advertise whoami over the multicluster uplink (adds the Uplink CRD +
-  # hub.traefik.io/router.uplinks annotation, entryPoints=[]) so the transit
-  # parent discovers and serves it — not a local route on the child.
+  # Advertise whoami over the multicluster uplink. uplink_name must match the
+  # child's uplink entrypoint (--hub.uplinkEntryPoints.app-workload) and the
+  # parent's "app-workload@multicluster" service ref below. The module emits the
+  # Uplink CRD (exposeName=app-workload) + a path-matched child route annotated
+  # with hub.traefik.io/router.uplinks; the Host is matched by the parent route.
   uplink_enabled = true
+  uplink_name    = "app-workload"
   apps = {
     whoami = {
       ingress_route = {
@@ -230,4 +233,40 @@ module "whoami" {
       }
     }
   }
+}
+
+# Parent (transit) route — the other half of the unified ingress. It terminates
+# Host(`whoami.<domain>`) on the transit websecure entrypoint (host :443) and
+# forwards to "app-workload@multicluster": the Hub multicluster provider
+# reference (<exposeName>@<provider>) to the whoami service the app-workload
+# child advertises over its uplink. Without this, the discovered child service
+# has no parent-side router and the host 404s. Lives in the transit traefik
+# namespace (the transit Traefik watches all namespaces by default).
+resource "kubectl_manifest" "transit_whoami" {
+  provider   = kubectl.transit
+  depends_on = [module.transit_traefik]
+
+  yaml_body = yamlencode({
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "IngressRoute"
+    metadata = {
+      name      = "whoami-uplink"
+      namespace = kubernetes_namespace_v1.transit_traefik.metadata[0].name
+    }
+    spec = {
+      entryPoints = ["websecure"]
+      routes = [
+        {
+          kind  = "Rule"
+          match = "Host(`whoami.${var.domain}`)"
+          services = [
+            {
+              kind = "TraefikService"
+              name = "app-workload@multicluster"
+            }
+          ]
+        }
+      ]
+    }
+  })
 }

@@ -62,6 +62,7 @@ module "whoami" {
 | namespace | Kubernetes namespace to deploy applications | `string` | `"apps"` | no |
 | node_selector | Node selector for pod scheduling | `map(string)` | `{}` | no |
 | uplink_enabled | Enable Uplink CRD and IngressRoute annotation for multicluster routing | `bool` | `false` | no |
+| uplink_name | Uplink name to advertise on (must match the child's `--hub.uplinkEntryPoints.<name>` entrypoint and the parent's `<name>@multicluster` service ref). Used only when `uplink_enabled`. Defaults to `whoami` when empty. | `string` | `""` | no |
 
 ## Outputs
 

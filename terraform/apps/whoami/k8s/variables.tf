@@ -28,6 +28,12 @@ variable "uplink_enabled" {
   default     = false
 }
 
+variable "uplink_name" {
+  description = "Uplink name to advertise on (must match the child's --hub.uplinkEntryPoints.<name> entrypoint and the parent's <name>@multicluster service ref). Used only when uplink_enabled. Defaults to \"whoami\" when empty."
+  type        = string
+  default     = ""
+}
+
 variable "namespace" {
   description = "Kubernetes namespace to deploy applications"
   type        = string
