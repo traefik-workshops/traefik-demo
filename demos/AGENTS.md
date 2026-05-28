@@ -7,8 +7,8 @@
   composition; they aren't meant to be run end-to-end. This is what the
   `build-poc` / `sa-assistant` skill pattern-matches against.
 - **Runnable demos** — self-contained, k3d-based, white-labeled demos
-  (`hub-from-source`, `ai-gateway-openai`, `llm-observability`) you can actually
-  bring up locally for free. Each ships a `Makefile` + `scenarios.sh`.
+  (`hub-from-source`, `ai-gateway-openai`) you can actually bring up locally for
+  free. Each ships a `Makefile` + `scenarios.sh`.
 
 ## Module sources: relative, not pinned
 

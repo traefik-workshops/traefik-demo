@@ -24,7 +24,6 @@ White-labeled, k3d-based, free to run. `make up` / `make scenarios` / `make down
 |---|---|---|
 | [`hub-from-source`](./hub-from-source) | Run Traefik Hub built from your local source on k3d, via the module's `custom_image_*` override. The dev loop for testing a Hub change on a cluster. | `k3d-unified-ingress` |
 | [`ai-gateway-openai`](./ai-gateway-openai) | Traefik AI Gateway over an OpenAI-compatible backend with token rate-limit + Presidio + regex content-guards. | `clients/Mercury` |
-| [`llm-observability`](./llm-observability) | A weather agent + MCP server behind the AI/MCP gateway, with end-to-end OTEL traces to Langfuse and a guard-scenario suite. | `traefik-langsmith` |
 
 ## Conventions
 
