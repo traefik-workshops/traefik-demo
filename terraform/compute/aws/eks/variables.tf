@@ -87,4 +87,3 @@ variable "public_subnet_ids" {
     error_message = "public_subnet_ids must be provided if create_vpc is false"
   }
 }
-

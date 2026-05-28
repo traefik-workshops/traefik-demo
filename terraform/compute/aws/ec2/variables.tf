@@ -41,17 +41,6 @@ variable "create_vpc" {
   default     = true
 }
 
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-  default     = ""
-
-  validation {
-    condition     = var.create_vpc || var.vpc_id != ""
-    error_message = "vpc_id must be provided if create_vpc is false"
-  }
-}
-
 variable "subnet_ids" {
   description = "List of subnet IDs"
   type        = list(string)
@@ -108,4 +97,15 @@ variable "associate_public_ip_address" {
   description = "Associate a public IP address with an instance in a VPC"
   type        = bool
   default     = true
+}
+
+variable "vpc_id" {
+  description = "VPC ID"
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.create_vpc || var.vpc_id != ""
+    error_message = "vpc_id must be provided if create_vpc is false"
+  }
 }

@@ -4,12 +4,6 @@ variable "nkp_version" {
   default     = "2.17.1"
 }
 
-variable "nkp_bundle_file" {
-  description = "Filename of the NKP airgap bundle tarball — kept for callers that need to reference the basename separately. Pair with `nkp_bundle_path` for the full path."
-  type        = string
-  default     = ""
-}
-
 variable "nkp_bundle_path" {
   description = "Absolute or `~`-prefixed path to the NKP airgap bundle tarball. The build step extracts the `nkp` CLI and feeds the bundle to Packer to assemble the bastion qcow2."
   type        = string

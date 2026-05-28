@@ -49,6 +49,6 @@ module "redis" {
 | extra_values | Extra values to merge into the Helm chart values | `any` | `{}` | no |
 | name | The name of the redis release | `string` | `"traefik"` | no |
 | password | Redis password | `string` | `"topsecretpassword"` | no |
-| replicaCount | Number of replicas for the Redis deployment | `number` | `1` | no |
+| replica_count | Number of replicas for the Redis deployment | `number` | `1` | no |
 
 <!-- END_TF_DOCS -->

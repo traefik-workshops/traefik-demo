@@ -57,9 +57,3 @@ resource "kubectl_manifest" "traefik_app_deployment" {
   depends_on = [kubectl_manifest.traefik_overrides]
 }
 
-data "kubernetes_service_v1" "kommander_traefik" {
-  metadata {
-    name      = "kommander-traefik"
-    namespace = "kommander"
-  }
-}

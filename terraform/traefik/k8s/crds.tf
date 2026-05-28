@@ -1,5 +1,5 @@
 
-resource "null_resource" "traefik-crds" {
+resource "null_resource" "traefik_crds" {
   count = var.skip_crds ? 0 : 1
 
   triggers = {

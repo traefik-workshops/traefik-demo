@@ -9,6 +9,12 @@ variable "namespace" {
   description = "Namespace for the Grafana deployment"
 }
 
+variable "extra_values" {
+  type        = any
+  description = "Extra values to pass to the Grafana deployment."
+  default     = {}
+}
+
 variable "tolerations" {
   type = list(object({
     key      = string
@@ -18,10 +24,4 @@ variable "tolerations" {
   }))
   description = "Tolerations for the Grafana deployment."
   default     = []
-}
-
-variable "extra_values" {
-  type        = any
-  description = "Extra values to pass to the Grafana deployment."
-  default     = {}
 }

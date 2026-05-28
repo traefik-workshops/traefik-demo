@@ -13,7 +13,7 @@ resource "helm_release" "redis" {
         password = var.password
       }
       replica = {
-        replicaCount = var.replicaCount
+        replicaCount = var.replica_count
       }
     }, var.extra_values))
   ]

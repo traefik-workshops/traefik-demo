@@ -22,17 +22,6 @@ variable "traefik_metrics_job_metrics_path" {
   default     = "/metrics"
 }
 
-variable "tolerations" {
-  type = list(object({
-    key      = string
-    operator = string
-    value    = string
-    effect   = string
-  }))
-  description = "Tolerations for the Prometheus deployment."
-  default     = []
-}
-
 variable "extra_values" {
   type        = any
   description = "Extra values to pass to the Prometheus deployment."
@@ -67,4 +56,15 @@ variable "ingress_annotations" {
   type        = map(string)
   description = "Additional metadata annotations merged onto the Ingress. Useful for custom router options beyond the three observability toggles."
   default     = {}
+}
+
+variable "tolerations" {
+  type = list(object({
+    key      = string
+    operator = string
+    value    = string
+    effect   = string
+  }))
+  description = "Tolerations for the Prometheus deployment."
+  default     = []
 }

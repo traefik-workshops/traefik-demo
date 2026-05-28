@@ -16,7 +16,7 @@ variable "password" {
   sensitive   = true
 }
 
-variable "replicaCount" {
+variable "replica_count" {
   description = "Number of replicas for the Redis deployment"
   type        = number
   default     = 1

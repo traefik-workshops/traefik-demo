@@ -1,4 +1,4 @@
-module "observability-prometheus" {
+module "observability_prometheus" {
   source = "../../prometheus/k8s"
 
   namespace             = var.namespace
@@ -13,14 +13,14 @@ module "observability-prometheus" {
   traefik_metrics_job_url = "${var.metrics_host}:${var.metrics_port}"
 }
 
-module "observability-grafana-loki" {
+module "observability_grafana_loki" {
   source = "../../grafana-loki/k8s"
 
   namespace   = var.namespace
   tolerations = var.tolerations
 }
 
-module "observability-grafana-tempo" {
+module "observability_grafana_tempo" {
   source = "../../grafana-tempo/k8s"
 
   namespace   = var.namespace

@@ -11,3 +11,8 @@ output "services" {
     }
   }
 }
+
+output "vpc_id" {
+  description = "VPC ID the ECS services run in (created VPC, or the provided vpc_id)."
+  value       = var.create_vpc ? module.vpc[0].vpc_id : var.vpc_id
+}

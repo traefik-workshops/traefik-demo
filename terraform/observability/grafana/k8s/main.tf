@@ -29,7 +29,7 @@ locals {
   aigateway_dashboard = "aigateway-dashboards"
   aigateway_path      = "/dashboards/hub/aigateway"
 
-  dashboardProviders = concat(
+  dashboard_providers = concat(
     var.dashboards.aigateway ? [{
       name                  = local.aigateway_dashboard
       orgId                 = "1"
@@ -54,7 +54,7 @@ locals {
     }]
   )
 
-  configmapMounts = concat(
+  configmap_mounts = concat(
     var.dashboards.aigateway ? [{
       name      = local.aigateway_dashboard
       mountPath = "${local.aigateway_path}/dashboard.json"
@@ -102,10 +102,10 @@ resource "helm_release" "grafana" {
       dashboardProviders = {
         "dashboardproviders.yaml" = {
           apiVersion = 1
-          providers  = local.dashboardProviders
+          providers  = local.dashboard_providers
         }
       }
-      extraConfigmapMounts = local.configmapMounts
+      extraConfigmapMounts = local.configmap_mounts
       tolerations          = var.tolerations
     }),
     var.image_renderer ? yamlencode({

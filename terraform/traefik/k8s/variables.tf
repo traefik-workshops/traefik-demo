@@ -16,19 +16,19 @@ variable "namespace" {
   type        = string
 }
 
-variable "deploymentType" {
+variable "deployment_type" {
   description = "Traefik deployment type"
   type        = string
   default     = "Deployment"
 }
 
-variable "replicaCount" {
+variable "replica_count" {
   description = "Number of replicas for the Traefik Hub deployment"
   type        = number
   default     = 1
 }
 
-variable "serviceType" {
+variable "service_type" {
   description = "Traefik service type"
   type        = string
   default     = "LoadBalancer"
@@ -131,4 +131,316 @@ variable "external_traffic_policy" {
   description = "The external traffic policy for the Traefik service"
   type        = string
   default     = "Cluster"
+}
+
+# =============================================================================
+# Shared Variable Declarations
+# =============================================================================
+
+# Feature Flags
+variable "enable_api_gateway" {
+  description = "Enable Traefik Hub API Gateway features"
+  type        = bool
+  default     = false
+}
+
+variable "enable_ai_gateway" {
+  description = "Enable Traefik Hub AI Gateway features"
+  type        = bool
+  default     = false
+}
+
+variable "enable_mcp_gateway" {
+  description = "Enable MCP Gateway (Claude, etc.)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_api_management" {
+  description = "Enable Traefik Hub API Management features"
+  type        = bool
+  default     = false
+}
+
+variable "enable_offline_mode" {
+  description = "Enable Traefik Hub Offline mode"
+  type        = bool
+  default     = false
+}
+
+variable "enable_preview_mode" {
+  description = "Enable Traefik Hub Preview features"
+  type        = bool
+  default     = false
+}
+
+variable "enable_debug" {
+  description = "Enable Traefik debug mode (pprof)"
+  type        = bool
+  default     = false
+}
+
+# Versions & Images
+variable "traefik_chart_version" {
+  description = "Traefik Helm chart version"
+  type        = string
+  default     = "38.0.1"
+}
+
+variable "traefik_tag" {
+  description = "Traefik OSS version tag"
+  type        = string
+  default     = "v3.6.6"
+}
+
+variable "traefik_hub_tag" {
+  description = "Traefik Hub version tag"
+  type        = string
+  default     = "v3.19.0"
+}
+
+variable "traefik_hub_preview_tag" {
+  description = "Traefik Hub preview version tag"
+  type        = string
+  default     = ""
+}
+
+variable "custom_image_registry" {
+  description = "Custom image registry"
+  type        = string
+  default     = ""
+}
+
+variable "custom_image_repository" {
+  description = "Custom image repository"
+  type        = string
+  default     = ""
+}
+
+variable "custom_image_tag" {
+  description = "Custom image tag"
+  type        = string
+  default     = ""
+}
+
+# Observability
+variable "log_level" {
+  description = "Log level (DEBUG, INFO, WARN, ERROR)"
+  type        = string
+  default     = "INFO"
+}
+
+variable "otlp_address" {
+  description = "OTLP collector endpoint"
+  type        = string
+  default     = ""
+}
+
+variable "otlp_service_name" {
+  description = "Service name for telemetry"
+  type        = string
+  default     = "traefik"
+}
+
+variable "enable_otlp_access_logs" {
+  description = "Enable OTLP access logs"
+  type        = bool
+  default     = false
+}
+
+variable "enable_otlp_application_logs" {
+  description = "Enable OTLP application logs"
+  type        = bool
+  default     = false
+}
+
+variable "enable_access_logs" {
+  description = "Enable Traefik access logs"
+  type        = bool
+  default     = true
+}
+
+variable "enable_otlp_metrics" {
+  description = "Enable OTLP metrics"
+  type        = bool
+  default     = false
+}
+
+variable "enable_otlp_traces" {
+  description = "Enable OTLP traces"
+  type        = bool
+  default     = false
+}
+
+variable "enable_prometheus" {
+  description = "Enable Prometheus metrics"
+  type        = bool
+  default     = false
+}
+
+# Plugins & Extensions
+variable "custom_plugins" {
+  description = "Custom plugins to use for the deployment"
+  type = map(object({
+    moduleName = string
+    version    = string
+  }))
+  default = {}
+}
+
+variable "custom_ports" {
+  description = "Custom ports configuration"
+  type        = any
+  default     = {}
+}
+
+variable "custom_arguments" {
+  description = "Additional CLI arguments for Traefik"
+  type        = list(string)
+  default     = []
+}
+
+variable "custom_envs" {
+  description = "Custom environment variables"
+  type = list(object({
+    name  = string
+    value = string
+  }))
+  default = []
+}
+
+variable "additional_volumes" {
+  description = "Additional volumes to mount in the Traefik pod"
+  type        = list(any)
+  default     = []
+}
+
+variable "additional_volume_mounts" {
+  description = "Additional volume mounts for the Traefik container"
+  type        = list(any)
+  default     = []
+}
+
+variable "file_provider_config" {
+  description = "YAML configuration for Traefik file provider"
+  type        = string
+  default     = ""
+}
+
+variable "file_provider_path" {
+  description = "Path where the file provider config is mounted"
+  type        = string
+  default     = "/etc/traefik/dynamic"
+}
+
+# Licensing & DNS
+variable "traefik_hub_token" {
+  description = "Traefik Hub license token"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "cloudflare_dns" {
+  description = "Cloudflare DNS configuration for certificate resolver"
+  type = object({
+    enabled           = optional(bool, false)
+    domain            = optional(string, "")
+    api_token         = optional(string, "")
+    extra_san_domains = optional(list(string), [])
+  })
+  default = {
+    enabled           = false
+    domain            = ""
+    api_token         = ""
+    extra_san_domains = []
+  }
+  sensitive = true
+}
+
+variable "is_staging_letsencrypt" {
+  description = "Use Let's Encrypt staging environment"
+  type        = bool
+  default     = false
+}
+
+variable "use_distributed_acme" {
+  description = "Use distributedAcme instead of acme (stores certs in K8s secrets instead of acme.json file)"
+  type        = bool
+  default     = true
+}
+
+# Dashboard
+variable "dashboard_entrypoints" {
+  description = "Dashboard entry points"
+  type        = list(string)
+  default     = ["traefik"]
+}
+
+variable "dashboard_match_rule" {
+  description = "Match rule for the Traefik dashboard router"
+  type        = string
+  default     = ""
+}
+
+variable "enable_dashboard" {
+  description = "Enable Traefik dashboard"
+  type        = bool
+  default     = true
+}
+
+variable "dashboard_insecure" {
+  description = "Enable insecure dashboard access (no auth)"
+  type        = bool
+  default     = false
+}
+
+# -----------------------------------------------------------------------------
+# Providers
+# -----------------------------------------------------------------------------
+variable "multicluster_provider" {
+  description = "Traefik Hub multicluster provider configuration"
+  type = object({
+    enabled      = optional(bool, false)
+    pollInterval = optional(number, null)
+    pollTimeout  = optional(number, null)
+    children     = optional(any, {})
+  })
+  default = {
+    enabled = false
+  }
+}
+
+variable "nutanix_provider" {
+  description = "Nutanix Prism Central provider configuration for VM discovery"
+  type = object({
+    enabled              = optional(bool, false)
+    endpoint             = optional(string, "")
+    username             = optional(string, "")
+    password             = optional(string, "")
+    api_key              = optional(string, "")
+    insecure_skip_verify = optional(bool, false)
+    poll_interval        = optional(string, "30s")
+    poll_timeout         = optional(string, "5s")
+  })
+  default = {
+    enabled = false
+  }
+  sensitive = true
+}
+
+variable "dns_traefiker" {
+  description = "DNS Traefiker configuration for automatic domain registration"
+  type = object({
+    enabled                   = optional(bool, false)
+    chart                     = optional(string, "")
+    unique_domain             = optional(bool, false)
+    domain                    = optional(string, "")
+    enable_airlines_subdomain = optional(bool, false)
+    ip_override               = optional(string, "")
+    proxied                   = optional(bool, false)
+  })
+  default = {
+    enabled = false
+  }
 }

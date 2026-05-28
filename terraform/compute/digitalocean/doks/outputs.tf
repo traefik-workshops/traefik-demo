@@ -14,6 +14,11 @@ output "host" {
   value       = local.cluster_server
 }
 
+output "namespace" {
+  description = "Namespace consumers should deploy demo workloads into on this cluster."
+  value       = var.namespace
+}
+
 output "cluster_ca_certificate" {
   sensitive   = true
   description = "DOKS cluster CA certificate"

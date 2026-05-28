@@ -55,13 +55,14 @@ variable "worker_nodes" {
   description = "Worker node pool definitions. Each entry creates a dedicated node pool with the given label and taint."
 }
 
-variable "namespace" {
-  type        = string
-  default     = "default"
-  description = "Kubernetes namespace to use for resources"
-}
 variable "update_kubeconfig" {
   type        = bool
   default     = true
   description = "Update kubeconfig after cluster creation"
+}
+
+variable "namespace" {
+  type        = string
+  default     = "default"
+  description = "Kubernetes namespace to use for resources"
 }

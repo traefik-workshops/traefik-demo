@@ -17,6 +17,8 @@ module "eks" {
 
   vpc_id     = var.create_vpc ? module.vpc[0].vpc_id : var.vpc_id
   subnet_ids = var.create_vpc ? module.vpc[0].private_subnet_ids : var.private_subnet_ids
+  # Control-plane ENIs use the public subnets (the cluster has a public endpoint).
+  control_plane_subnet_ids = var.create_vpc ? module.vpc[0].public_subnet_ids : var.public_subnet_ids
 
   create_cloudwatch_log_group = false
 

@@ -42,7 +42,7 @@ resource "helm_release" "argocd" {
   }
 }
 
-resource "kubernetes_ingress_v1" "argocd-traefik" {
+resource "kubernetes_ingress_v1" "argocd_traefik" {
   metadata {
     name      = "argocd"
     namespace = "traefik-tools"

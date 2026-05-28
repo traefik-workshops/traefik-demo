@@ -58,7 +58,7 @@ resource "kubernetes_service_v1" "sqlcl" {
   }
 }
 
-resource "kubernetes_ingress_v1" "sqlcl-traefik" {
+resource "kubernetes_ingress_v1" "sqlcl_traefik" {
   metadata {
     name      = var.name
     namespace = var.namespace

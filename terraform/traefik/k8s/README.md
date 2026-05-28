@@ -67,7 +67,7 @@ module "traefik" {
 | dashboard_entrypoints | Dashboard entry points | `list(string)` | `["traefik"]` | no |
 | dashboard_insecure | Enable insecure dashboard access (no auth) | `bool` | `false` | no |
 | dashboard_match_rule | Match rule for the Traefik dashboard router | `string` | `""` | no |
-| deploymentType | Traefik deployment type | `string` | `"Deployment"` | no |
+| deployment_type | Traefik deployment type | `string` | `"Deployment"` | no |
 | dns_traefiker | DNS Traefiker configuration for automatic domain registration | `object({enabled = optional(bool, false), chart = optional(string, ""), unique_domain = optional(bool, false), domain = optional(string, ""), enable_airlines_subdomain = optional(bool, false), ip_override = optional(string, ""), proxied = optional(bool, false))` | `{"enabled":false}` | no |
 | enable_access_logs | Enable Traefik access logs | `bool` | `true` | no |
 | enable_ai_gateway | Enable Traefik Hub AI Gateway features | `bool` | `false` | no |
@@ -99,10 +99,10 @@ module "traefik" {
 | otlp_address | OTLP collector endpoint | `string` | `""` | no |
 | otlp_service_name | Service name for telemetry | `string` | `"traefik"` | no |
 | redis_password | Redis password for API Management | `string` | `"topsecretpassword"` | no |
-| replicaCount | Number of replicas for the Traefik Hub deployment | `number` | `1` | no |
+| replica_count | Number of replicas for the Traefik Hub deployment | `number` | `1` | no |
 | replica_count | Number of replicas (K8s pods) | `number` | `1` | no |
 | resources | Resources for the Traefik deployment. Set to null or leave empty strings to use chart defaults. | `object({requests = object({cpu = string, memory = string), limits = object({cpu = string, memory = string))` | `None` | no |
-| serviceType | Traefik service type | `string` | `"LoadBalancer"` | no |
+| service_type | Traefik service type | `string` | `"LoadBalancer"` | no |
 | service_annotations | Extra annotations for the Traefik service | `map(string)` | `{}` | no |
 | skip_crds | Skip CRD installation (for NKP/Kommander clusters with pre-installed CRDs) | `bool` | `false` | no |
 | skip_gateway_api_crds | Skip Gateway API CRD installation | `bool` | `false` | no |

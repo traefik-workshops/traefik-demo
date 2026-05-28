@@ -36,8 +36,3 @@ module "whoami_vm" {
 
   cloud_init_user_data = module.cloud_init.rendered
 }
-
-output "ip_address" {
-  description = "Ip address."
-  value       = module.whoami_vm.ip_address
-}

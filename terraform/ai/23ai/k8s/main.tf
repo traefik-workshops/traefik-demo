@@ -117,7 +117,7 @@ resource "kubernetes_service_v1" "db" {
   }
 }
 
-resource "kubernetes_ingress_v1" "oracle-23ai-traefik" {
+resource "kubernetes_ingress_v1" "oracle_23ai_traefik" {
   metadata {
     name      = var.name
     namespace = var.namespace

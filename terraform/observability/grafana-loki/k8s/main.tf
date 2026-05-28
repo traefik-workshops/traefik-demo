@@ -11,7 +11,8 @@ resource "helm_release" "loki" {
     yamlencode({
       deploymentMode = "SingleBinary"
       singleBinary = {
-        replicas = 1
+        replicas    = 1
+        tolerations = var.tolerations
       }
       loki = {
         commonConfig = {

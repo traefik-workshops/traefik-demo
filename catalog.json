@@ -668,8 +668,33 @@
       "description": "> **Status:** stub module. Intentionally minimal; expand only if a demo needs it. Documented at this minimum scope rather than removed because demo wrappers reference it.",
       "keywords": [],
       "required_inputs": [],
-      "optional_inputs": [],
-      "outputs": []
+      "optional_inputs": [
+        {
+          "name": "whoami_version",
+          "type": "string",
+          "description": "The Whoami version to install",
+          "default_kind": "literal"
+        },
+        {
+          "name": "arch",
+          "type": "string",
+          "description": "The architecture (amd64, arm64)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "port",
+          "type": "number",
+          "description": "Port for whoami to listen on",
+          "default_kind": "literal"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "rendered",
+          "description": "Rendered.",
+          "sensitive": false
+        }
+      ]
     },
     {
       "path": "terraform/apps/whoami/ec2",
@@ -966,7 +991,13 @@
           "default_kind": "literal"
         }
       ],
-      "outputs": []
+      "outputs": [
+        {
+          "name": "ip_address",
+          "description": "Ip address.",
+          "sensitive": false
+        }
+      ]
     },
     {
       "path": "terraform/apps/whoami/nutanix/image_builder",
@@ -981,12 +1012,6 @@
           "name": "arch",
           "type": "string",
           "description": "Architecture for the image build (amd64 or arm64)",
-          "default_kind": "literal"
-        },
-        {
-          "name": "vm_name",
-          "type": "string",
-          "description": "Name prefix for the image",
           "default_kind": "literal"
         },
         {
@@ -1177,12 +1202,6 @@
           "default_kind": "literal"
         },
         {
-          "name": "vpc_id",
-          "type": "string",
-          "description": "VPC ID",
-          "default_kind": "literal"
-        },
-        {
           "name": "subnet_ids",
           "type": "list(string)",
           "description": "List of subnet IDs",
@@ -1229,6 +1248,12 @@
           "type": "bool",
           "description": "Associate a public IP address with an instance in a VPC",
           "default_kind": "literal"
+        },
+        {
+          "name": "vpc_id",
+          "type": "string",
+          "description": "VPC ID",
+          "default_kind": "literal"
         }
       ],
       "outputs": [
@@ -1245,6 +1270,11 @@
         {
           "name": "public_ips",
           "description": "Map of instance keys to public IP addresses",
+          "sensitive": false
+        },
+        {
+          "name": "vpc_id",
+          "description": "VPC ID the instances are attached to (created VPC, or the provided vpc_id).",
           "sensitive": false
         }
       ]
@@ -1282,6 +1312,12 @@
           "default_kind": "literal"
         },
         {
+          "name": "common_labels",
+          "type": "map(string)",
+          "description": "Common labels to apply to all resources",
+          "default_kind": "literal"
+        },
+        {
           "name": "vpc_id",
           "type": "string",
           "description": "VPC ID for ECS resources",
@@ -1298,18 +1334,17 @@
           "type": "list(string)",
           "description": "List of security group IDs",
           "default_kind": "literal"
-        },
-        {
-          "name": "common_labels",
-          "type": "map(string)",
-          "description": "Common labels to apply to all resources",
-          "default_kind": "literal"
         }
       ],
       "outputs": [
         {
           "name": "services",
           "description": "Map of all ECS services with their details",
+          "sensitive": false
+        },
+        {
+          "name": "vpc_id",
+          "description": "VPC ID the ECS services run in (created VPC, or the provided vpc_id).",
           "sensitive": false
         }
       ]
@@ -1682,15 +1717,15 @@
           "default_kind": "literal"
         },
         {
-          "name": "namespace",
-          "type": "string",
-          "description": "Kubernetes namespace to use for resources",
-          "default_kind": "literal"
-        },
-        {
           "name": "update_kubeconfig",
           "type": "bool",
           "description": "Update kubeconfig after cluster creation",
+          "default_kind": "literal"
+        },
+        {
+          "name": "namespace",
+          "type": "string",
+          "description": "Kubernetes namespace to use for resources",
           "default_kind": "literal"
         }
       ],
@@ -1699,6 +1734,11 @@
           "name": "host",
           "description": "DOKS cluster host",
           "sensitive": true
+        },
+        {
+          "name": "namespace",
+          "description": "Namespace consumers should deploy demo workloads into on this cluster.",
+          "sensitive": false
         },
         {
           "name": "cluster_ca_certificate",
@@ -2242,12 +2282,6 @@
           "default_kind": "literal"
         },
         {
-          "name": "nkp_bundle_file",
-          "type": "string",
-          "description": "Filename of the NKP airgap bundle tarball \u2014 kept for callers that need to reference the basename separately. Pair with `nkp_bundle_path` for the full path.",
-          "default_kind": "literal"
-        },
-        {
           "name": "nkp_bundle_path",
           "type": "string",
           "description": "Absolute or `~`-prefixed path to the NKP airgap bundle tarball. The build step extracts the `nkp` CLI and feeds the bundle to Packer to assemble the bastion qcow2.",
@@ -2269,18 +2303,7 @@
       "name": "kommander",
       "description": "Provisions a Floating IP for the Kommander/Traefik LoadBalancer service on an NKP cluster and wires the in-cluster `LoadBalancer` Service to it.",
       "keywords": [],
-      "required_inputs": [
-        {
-          "name": "external_subnet_uuid",
-          "type": "string",
-          "description": "UUID of the external subnet for FIP creation"
-        },
-        {
-          "name": "vpc_uuid",
-          "type": "string",
-          "description": "UUID of the VPC"
-        }
-      ],
+      "required_inputs": [],
       "optional_inputs": [],
       "outputs": []
     },
@@ -2371,12 +2394,6 @@
           "name": "nkp_version",
           "type": "string",
           "description": "Nutanix Kubernetes Platform release version embedded in the registry image (e.g. `2.17.1`). Used by Packer to pull the matching `nkp` CLI out of the bundle tarball.",
-          "default_kind": "literal"
-        },
-        {
-          "name": "nkp_bundle_file",
-          "type": "string",
-          "description": "Filename of the NKP airgap bundle tarball \u2014 kept for callers that need to reference the basename separately. Pair with `nkp_bundle_path` for the full path.",
           "default_kind": "literal"
         },
         {
@@ -3076,7 +3093,18 @@
       "name": "aigateway",
       "description": "> **Status:** dashboard fragment. Not a conventional module \u2014 emits a single Kubernetes ConfigMap that Grafana's dashboard sidecar picks up. Kept under `dashboards/<topic>/` to mirror the file layout consumers expect.",
       "keywords": [],
-      "required_inputs": [],
+      "required_inputs": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Name of the ConfigMap holding the AI Gateway dashboard JSON (Grafana's sidecar picks it up by label)."
+        },
+        {
+          "name": "namespace",
+          "type": "string",
+          "description": "Namespace to create the dashboard ConfigMap in \u2014 usually the namespace Grafana watches for dashboard ConfigMaps."
+        }
+      ],
       "optional_inputs": [],
       "outputs": []
     },
@@ -3106,15 +3134,15 @@
           "default_kind": "literal"
         },
         {
-          "name": "tolerations",
-          "type": "list(object({",
-          "description": "Tolerations for the Grafana deployment.",
-          "default_kind": "literal"
-        },
-        {
           "name": "extra_values",
           "type": "any",
           "description": "Extra values to pass to the Grafana deployment.",
+          "default_kind": "literal"
+        },
+        {
+          "name": "tolerations",
+          "type": "list(object({",
+          "description": "Tolerations for the Grafana deployment.",
           "default_kind": "literal"
         }
       ],
@@ -3690,12 +3718,6 @@
           "default_kind": "literal"
         },
         {
-          "name": "tolerations",
-          "type": "list(object({",
-          "description": "Tolerations for the Prometheus deployment.",
-          "default_kind": "literal"
-        },
-        {
           "name": "extra_values",
           "type": "any",
           "description": "Extra values to pass to the Prometheus deployment.",
@@ -3729,6 +3751,12 @@
           "name": "ingress_annotations",
           "type": "map(string)",
           "description": "Additional metadata annotations merged onto the Ingress. Useful for custom router options beyond the three observability toggles.",
+          "default_kind": "literal"
+        },
+        {
+          "name": "tolerations",
+          "type": "list(object({",
+          "description": "Tolerations for the Prometheus deployment.",
           "default_kind": "literal"
         }
       ],
@@ -4466,7 +4494,7 @@
           "default_kind": "literal"
         },
         {
-          "name": "replicaCount",
+          "name": "replica_count",
           "type": "number",
           "description": "Number of replicas for the Redis deployment",
           "default_kind": "literal"
@@ -4695,6 +4723,246 @@
           "type": "bool",
           "description": "Synchronize acme.json from the first instance to all others",
           "default_kind": "literal"
+        },
+        {
+          "name": "enable_api_gateway",
+          "type": "bool",
+          "description": "Enable Traefik Hub API Gateway features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_ai_gateway",
+          "type": "bool",
+          "description": "Enable Traefik Hub AI Gateway features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_mcp_gateway",
+          "type": "bool",
+          "description": "Enable MCP Gateway (Claude, etc.)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_offline_mode",
+          "type": "bool",
+          "description": "Enable Traefik Hub Offline mode",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_preview_mode",
+          "type": "bool",
+          "description": "Enable Traefik Hub Preview features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_debug",
+          "type": "bool",
+          "description": "Enable Traefik debug mode (pprof)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "replica_count",
+          "type": "number",
+          "description": "Number of replicas (EC2 instances)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_chart_version",
+          "type": "string",
+          "description": "Traefik Helm chart version",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_tag",
+          "type": "string",
+          "description": "Traefik OSS version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_tag",
+          "type": "string",
+          "description": "Traefik Hub version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_preview_tag",
+          "type": "string",
+          "description": "Traefik Hub preview version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_registry",
+          "type": "string",
+          "description": "Custom image registry",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_repository",
+          "type": "string",
+          "description": "Custom image repository",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_tag",
+          "type": "string",
+          "description": "Custom image tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "log_level",
+          "type": "string",
+          "description": "Log level (DEBUG, INFO, WARN, ERROR)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "otlp_address",
+          "type": "string",
+          "description": "OTLP collector endpoint",
+          "default_kind": "literal"
+        },
+        {
+          "name": "otlp_service_name",
+          "type": "string",
+          "description": "Service name for telemetry",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_access_logs",
+          "type": "bool",
+          "description": "Enable OTLP access logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_application_logs",
+          "type": "bool",
+          "description": "Enable OTLP application logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_access_logs",
+          "type": "bool",
+          "description": "Enable Traefik access logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_metrics",
+          "type": "bool",
+          "description": "Enable OTLP metrics",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_traces",
+          "type": "bool",
+          "description": "Enable OTLP traces",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_prometheus",
+          "type": "bool",
+          "description": "Enable Prometheus metrics",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_plugins",
+          "type": "map(object({",
+          "description": "Custom plugins to use for the deployment",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_ports",
+          "type": "map(object({",
+          "description": "Custom ports configuration",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_arguments",
+          "type": "list(string)",
+          "description": "Additional CLI arguments for Traefik",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_envs",
+          "type": "list(object({",
+          "description": "Custom environment variables",
+          "default_kind": "literal"
+        },
+        {
+          "name": "file_provider_config",
+          "type": "string",
+          "description": "YAML configuration for Traefik file provider",
+          "default_kind": "literal"
+        },
+        {
+          "name": "extra_files",
+          "type": "list(object({",
+          "description": "Extra files to write to the VM at cloud-init time",
+          "default_kind": "literal"
+        },
+        {
+          "name": "file_provider_path",
+          "type": "string",
+          "description": "Path where the file provider config is mounted",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_token",
+          "type": "string",
+          "description": "Traefik Hub license token",
+          "default_kind": "literal"
+        },
+        {
+          "name": "cloudflare_dns",
+          "type": "object({",
+          "description": "Cloudflare DNS configuration for certificate resolver",
+          "default_kind": "expression"
+        },
+        {
+          "name": "is_staging_letsencrypt",
+          "type": "bool",
+          "description": "Use Let's Encrypt staging environment",
+          "default_kind": "literal"
+        },
+        {
+          "name": "dashboard_entrypoints",
+          "type": "list(string)",
+          "description": "Dashboard entry points",
+          "default_kind": "expression"
+        },
+        {
+          "name": "dashboard_match_rule",
+          "type": "string",
+          "description": "Match rule for the Traefik dashboard router",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_dashboard",
+          "type": "bool",
+          "description": "Enable Traefik dashboard",
+          "default_kind": "literal"
+        },
+        {
+          "name": "dashboard_insecure",
+          "type": "bool",
+          "description": "Enable insecure dashboard access (no auth)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "multicluster_provider",
+          "type": "object({",
+          "description": "Traefik Hub multicluster provider configuration",
+          "default_kind": "expression"
+        },
+        {
+          "name": "nutanix_provider",
+          "type": "object({",
+          "description": "Nutanix Prism Central provider configuration for VM discovery",
+          "default_kind": "expression"
+        },
+        {
+          "name": "dns_traefiker",
+          "type": "object({",
+          "description": "DNS Traefiker configuration for automatic domain registration",
+          "default_kind": "expression"
         }
       ],
       "outputs": [
@@ -4759,6 +5027,234 @@
           "type": "map(string)",
           "description": "Extra labels to apply to the ECS task",
           "default_kind": "literal"
+        },
+        {
+          "name": "enable_api_gateway",
+          "type": "bool",
+          "description": "Enable Traefik Hub API Gateway features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_ai_gateway",
+          "type": "bool",
+          "description": "Enable Traefik Hub AI Gateway features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_mcp_gateway",
+          "type": "bool",
+          "description": "Enable MCP Gateway (Claude, etc.)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_offline_mode",
+          "type": "bool",
+          "description": "Enable Traefik Hub Offline mode",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_preview_mode",
+          "type": "bool",
+          "description": "Enable Traefik Hub Preview features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_debug",
+          "type": "bool",
+          "description": "Enable Traefik debug mode (pprof)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "replica_count",
+          "type": "number",
+          "description": "Number of replicas (ECS tasks)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_chart_version",
+          "type": "string",
+          "description": "Traefik Helm chart version",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_tag",
+          "type": "string",
+          "description": "Traefik OSS version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_tag",
+          "type": "string",
+          "description": "Traefik Hub version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_preview_tag",
+          "type": "string",
+          "description": "Traefik Hub preview version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_registry",
+          "type": "string",
+          "description": "Custom image registry",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_repository",
+          "type": "string",
+          "description": "Custom image repository",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_tag",
+          "type": "string",
+          "description": "Custom image tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "log_level",
+          "type": "string",
+          "description": "Log level (DEBUG, INFO, WARN, ERROR)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "otlp_address",
+          "type": "string",
+          "description": "OTLP collector endpoint",
+          "default_kind": "literal"
+        },
+        {
+          "name": "otlp_service_name",
+          "type": "string",
+          "description": "Service name for telemetry",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_access_logs",
+          "type": "bool",
+          "description": "Enable OTLP access logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_application_logs",
+          "type": "bool",
+          "description": "Enable OTLP application logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_access_logs",
+          "type": "bool",
+          "description": "Enable Traefik access logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_metrics",
+          "type": "bool",
+          "description": "Enable OTLP metrics",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_traces",
+          "type": "bool",
+          "description": "Enable OTLP traces",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_prometheus",
+          "type": "bool",
+          "description": "Enable Prometheus metrics",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_plugins",
+          "type": "map(object({",
+          "description": "Custom plugins to use for the deployment",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_ports",
+          "type": "map(object({",
+          "description": "Custom ports configuration",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_arguments",
+          "type": "list(string)",
+          "description": "Additional CLI arguments for Traefik",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_envs",
+          "type": "list(object({",
+          "description": "Custom environment variables",
+          "default_kind": "literal"
+        },
+        {
+          "name": "file_provider_config",
+          "type": "string",
+          "description": "YAML configuration for Traefik file provider",
+          "default_kind": "literal"
+        },
+        {
+          "name": "file_provider_path",
+          "type": "string",
+          "description": "Path where the file provider config is mounted",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_token",
+          "type": "string",
+          "description": "Traefik Hub license token",
+          "default_kind": "literal"
+        },
+        {
+          "name": "cloudflare_dns",
+          "type": "object({",
+          "description": "Cloudflare DNS configuration for certificate resolver",
+          "default_kind": "expression"
+        },
+        {
+          "name": "is_staging_letsencrypt",
+          "type": "bool",
+          "description": "Use Let's Encrypt staging environment",
+          "default_kind": "literal"
+        },
+        {
+          "name": "dashboard_entrypoints",
+          "type": "list(string)",
+          "description": "Dashboard entry points",
+          "default_kind": "expression"
+        },
+        {
+          "name": "dashboard_match_rule",
+          "type": "string",
+          "description": "Match rule for the Traefik dashboard router",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_dashboard",
+          "type": "bool",
+          "description": "Enable Traefik dashboard",
+          "default_kind": "literal"
+        },
+        {
+          "name": "dashboard_insecure",
+          "type": "bool",
+          "description": "Enable insecure dashboard access (no auth)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "multicluster_provider",
+          "type": "object({",
+          "description": "Traefik Hub multicluster provider configuration",
+          "default_kind": "expression"
+        },
+        {
+          "name": "nutanix_provider",
+          "type": "object({",
+          "description": "Nutanix Prism Central provider configuration for VM discovery",
+          "default_kind": "expression"
         }
       ],
       "outputs": [
@@ -4799,19 +5295,19 @@
           "default_kind": "literal"
         },
         {
-          "name": "deploymentType",
+          "name": "deployment_type",
           "type": "string",
           "description": "Traefik deployment type",
           "default_kind": "literal"
         },
         {
-          "name": "replicaCount",
+          "name": "replica_count",
           "type": "number",
           "description": "Number of replicas for the Traefik Hub deployment",
           "default_kind": "literal"
         },
         {
-          "name": "serviceType",
+          "name": "service_type",
           "type": "string",
           "description": "Traefik service type",
           "default_kind": "literal"
@@ -4899,6 +5395,258 @@
           "type": "string",
           "description": "The external traffic policy for the Traefik service",
           "default_kind": "literal"
+        },
+        {
+          "name": "enable_api_gateway",
+          "type": "bool",
+          "description": "Enable Traefik Hub API Gateway features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_ai_gateway",
+          "type": "bool",
+          "description": "Enable Traefik Hub AI Gateway features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_mcp_gateway",
+          "type": "bool",
+          "description": "Enable MCP Gateway (Claude, etc.)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_api_management",
+          "type": "bool",
+          "description": "Enable Traefik Hub API Management features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_offline_mode",
+          "type": "bool",
+          "description": "Enable Traefik Hub Offline mode",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_preview_mode",
+          "type": "bool",
+          "description": "Enable Traefik Hub Preview features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_debug",
+          "type": "bool",
+          "description": "Enable Traefik debug mode (pprof)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_chart_version",
+          "type": "string",
+          "description": "Traefik Helm chart version",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_tag",
+          "type": "string",
+          "description": "Traefik OSS version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_tag",
+          "type": "string",
+          "description": "Traefik Hub version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_preview_tag",
+          "type": "string",
+          "description": "Traefik Hub preview version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_registry",
+          "type": "string",
+          "description": "Custom image registry",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_repository",
+          "type": "string",
+          "description": "Custom image repository",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_tag",
+          "type": "string",
+          "description": "Custom image tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "log_level",
+          "type": "string",
+          "description": "Log level (DEBUG, INFO, WARN, ERROR)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "otlp_address",
+          "type": "string",
+          "description": "OTLP collector endpoint",
+          "default_kind": "literal"
+        },
+        {
+          "name": "otlp_service_name",
+          "type": "string",
+          "description": "Service name for telemetry",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_access_logs",
+          "type": "bool",
+          "description": "Enable OTLP access logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_application_logs",
+          "type": "bool",
+          "description": "Enable OTLP application logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_access_logs",
+          "type": "bool",
+          "description": "Enable Traefik access logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_metrics",
+          "type": "bool",
+          "description": "Enable OTLP metrics",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_traces",
+          "type": "bool",
+          "description": "Enable OTLP traces",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_prometheus",
+          "type": "bool",
+          "description": "Enable Prometheus metrics",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_plugins",
+          "type": "map(object({",
+          "description": "Custom plugins to use for the deployment",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_ports",
+          "type": "any",
+          "description": "Custom ports configuration",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_arguments",
+          "type": "list(string)",
+          "description": "Additional CLI arguments for Traefik",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_envs",
+          "type": "list(object({",
+          "description": "Custom environment variables",
+          "default_kind": "literal"
+        },
+        {
+          "name": "additional_volumes",
+          "type": "list(any)",
+          "description": "Additional volumes to mount in the Traefik pod",
+          "default_kind": "literal"
+        },
+        {
+          "name": "additional_volume_mounts",
+          "type": "list(any)",
+          "description": "Additional volume mounts for the Traefik container",
+          "default_kind": "literal"
+        },
+        {
+          "name": "file_provider_config",
+          "type": "string",
+          "description": "YAML configuration for Traefik file provider",
+          "default_kind": "literal"
+        },
+        {
+          "name": "file_provider_path",
+          "type": "string",
+          "description": "Path where the file provider config is mounted",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_token",
+          "type": "string",
+          "description": "Traefik Hub license token",
+          "default_kind": "literal"
+        },
+        {
+          "name": "cloudflare_dns",
+          "type": "object({",
+          "description": "Cloudflare DNS configuration for certificate resolver",
+          "default_kind": "expression"
+        },
+        {
+          "name": "is_staging_letsencrypt",
+          "type": "bool",
+          "description": "Use Let's Encrypt staging environment",
+          "default_kind": "literal"
+        },
+        {
+          "name": "use_distributed_acme",
+          "type": "bool",
+          "description": "Use distributedAcme instead of acme (stores certs in K8s secrets instead of acme.json file)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "dashboard_entrypoints",
+          "type": "list(string)",
+          "description": "Dashboard entry points",
+          "default_kind": "expression"
+        },
+        {
+          "name": "dashboard_match_rule",
+          "type": "string",
+          "description": "Match rule for the Traefik dashboard router",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_dashboard",
+          "type": "bool",
+          "description": "Enable Traefik dashboard",
+          "default_kind": "literal"
+        },
+        {
+          "name": "dashboard_insecure",
+          "type": "bool",
+          "description": "Enable insecure dashboard access (no auth)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "multicluster_provider",
+          "type": "object({",
+          "description": "Traefik Hub multicluster provider configuration",
+          "default_kind": "expression"
+        },
+        {
+          "name": "nutanix_provider",
+          "type": "object({",
+          "description": "Nutanix Prism Central provider configuration for VM discovery",
+          "default_kind": "expression"
+        },
+        {
+          "name": "dns_traefiker",
+          "type": "object({",
+          "description": "DNS Traefiker configuration for automatic domain registration",
+          "default_kind": "expression"
         }
       ],
       "outputs": [
@@ -4991,18 +5739,6 @@
           "default_kind": "literal"
         },
         {
-          "name": "traefik_static_config",
-          "type": "string",
-          "description": "Traefik static configuration (YAML string)",
-          "default_kind": "literal"
-        },
-        {
-          "name": "metrics_port",
-          "type": "number",
-          "description": "Port for metrics",
-          "default_kind": "literal"
-        },
-        {
           "name": "vip",
           "type": "string",
           "description": "Virtual IP for Keepalived",
@@ -5025,6 +5761,252 @@
           "type": "object({",
           "description": "OS-level performance tuning parameters for high-throughput workloads",
           "default_kind": "literal"
+        },
+        {
+          "name": "enable_api_gateway",
+          "type": "bool",
+          "description": "Enable Traefik Hub API Gateway features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_ai_gateway",
+          "type": "bool",
+          "description": "Enable Traefik Hub AI Gateway features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_mcp_gateway",
+          "type": "bool",
+          "description": "Enable MCP Gateway (Claude, etc.)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_offline_mode",
+          "type": "bool",
+          "description": "Enable Traefik Hub Offline mode",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_preview_mode",
+          "type": "bool",
+          "description": "Enable Traefik Hub Preview features",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_debug",
+          "type": "bool",
+          "description": "Enable Traefik debug mode (pprof)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "replica_count",
+          "type": "number",
+          "description": "Number of replicas (Nutanix VMs)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_chart_version",
+          "type": "string",
+          "description": "Traefik Helm chart version",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_tag",
+          "type": "string",
+          "description": "Traefik OSS version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_tag",
+          "type": "string",
+          "description": "Traefik Hub version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_preview_tag",
+          "type": "string",
+          "description": "Traefik Hub preview version tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_registry",
+          "type": "string",
+          "description": "Custom image registry",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_repository",
+          "type": "string",
+          "description": "Custom image repository",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_image_tag",
+          "type": "string",
+          "description": "Custom image tag",
+          "default_kind": "literal"
+        },
+        {
+          "name": "log_level",
+          "type": "string",
+          "description": "Log level (DEBUG, INFO, WARN, ERROR)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "otlp_address",
+          "type": "string",
+          "description": "OTLP collector endpoint",
+          "default_kind": "literal"
+        },
+        {
+          "name": "otlp_service_name",
+          "type": "string",
+          "description": "Service name for telemetry",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_access_logs",
+          "type": "bool",
+          "description": "Enable OTLP access logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_application_logs",
+          "type": "bool",
+          "description": "Enable OTLP application logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_access_logs",
+          "type": "bool",
+          "description": "Enable Traefik access logs",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_metrics",
+          "type": "bool",
+          "description": "Enable OTLP metrics",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_otlp_traces",
+          "type": "bool",
+          "description": "Enable OTLP traces",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_prometheus",
+          "type": "bool",
+          "description": "Enable Prometheus metrics",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_plugins",
+          "type": "map(object({",
+          "description": "Custom plugins to use for the deployment",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_ports",
+          "type": "map(object({",
+          "description": "Custom ports configuration",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_arguments",
+          "type": "list(string)",
+          "description": "Additional CLI arguments for Traefik",
+          "default_kind": "literal"
+        },
+        {
+          "name": "custom_envs",
+          "type": "list(object({",
+          "description": "Custom environment variables",
+          "default_kind": "literal"
+        },
+        {
+          "name": "file_provider_config",
+          "type": "string",
+          "description": "YAML configuration for Traefik file provider",
+          "default_kind": "literal"
+        },
+        {
+          "name": "extra_files",
+          "type": "list(object({",
+          "description": "Extra files to write to the VM at cloud-init time",
+          "default_kind": "literal"
+        },
+        {
+          "name": "file_provider_path",
+          "type": "string",
+          "description": "Path where the file provider config is mounted",
+          "default_kind": "literal"
+        },
+        {
+          "name": "traefik_hub_token",
+          "type": "string",
+          "description": "Traefik Hub license token",
+          "default_kind": "literal"
+        },
+        {
+          "name": "cloudflare_dns",
+          "type": "object({",
+          "description": "Cloudflare DNS configuration for certificate resolver",
+          "default_kind": "expression"
+        },
+        {
+          "name": "is_staging_letsencrypt",
+          "type": "bool",
+          "description": "Use Let's Encrypt staging environment",
+          "default_kind": "literal"
+        },
+        {
+          "name": "enable_dashboard",
+          "type": "bool",
+          "description": "Enable Traefik dashboard",
+          "default_kind": "literal"
+        },
+        {
+          "name": "dashboard_insecure",
+          "type": "bool",
+          "description": "Enable insecure dashboard access (no auth)",
+          "default_kind": "literal"
+        },
+        {
+          "name": "dashboard_entrypoints",
+          "type": "list(string)",
+          "description": "Dashboard entry points",
+          "default_kind": "expression"
+        },
+        {
+          "name": "dashboard_match_rule",
+          "type": "string",
+          "description": "Match rule for the Traefik dashboard router",
+          "default_kind": "literal"
+        },
+        {
+          "name": "entry_points",
+          "type": "map(object({",
+          "description": "Entry points configuration",
+          "default_kind": "expression"
+        },
+        {
+          "name": "multicluster_provider",
+          "type": "object({",
+          "description": "Traefik Hub multicluster provider configuration",
+          "default_kind": "expression"
+        },
+        {
+          "name": "nutanix_provider",
+          "type": "object({",
+          "description": "Nutanix Prism Central provider configuration for VM discovery",
+          "default_kind": "expression"
+        },
+        {
+          "name": "dns_traefiker",
+          "type": "object({",
+          "description": "DNS Traefiker configuration for automatic domain registration",
+          "default_kind": "expression"
         }
       ],
       "outputs": [
@@ -5303,6 +6285,12 @@
           "type": "object({",
           "description": "DNS Traefiker configuration for automatic domain registration",
           "default_kind": "expression"
+        },
+        {
+          "name": "extract_config",
+          "type": "bool",
+          "description": "Whether to run helm template extraction (for EC2/ECS/Nutanix)",
+          "default_kind": "literal"
         }
       ],
       "outputs": [

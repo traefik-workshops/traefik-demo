@@ -349,3 +349,10 @@ variable "dns_traefiker" {
     enabled = false
   }
 }
+
+# Variable to control extraction
+variable "extract_config" {
+  description = "Whether to run helm template extraction (for EC2/ECS/Nutanix)"
+  type        = bool
+  default     = false
+}

@@ -25,6 +25,12 @@ variable "create_vpc" {
   default     = true
 }
 
+variable "common_labels" {
+  description = "Common labels to apply to all resources"
+  type        = map(string)
+  default     = {}
+}
+
 variable "vpc_id" {
   description = "VPC ID for ECS resources"
   type        = string
@@ -56,10 +62,4 @@ variable "security_group_ids" {
     condition     = var.create_vpc || length(var.security_group_ids) != 0
     error_message = "security_group_ids must be provided if create_vpc is false"
   }
-}
-
-variable "common_labels" {
-  description = "Common labels to apply to all resources"
-  type        = map(string)
-  default     = {}
 }

@@ -13,8 +13,8 @@ locals {
         docker_command     = app_config.docker_command
         environment        = app_config.environment
         app_labels         = app_config.labels
-        subnet_ids         = app_config.subnet_ids
-        security_group_ids = app_config.security_group_ids
+        subnet_ids         = length(app_config.subnet_ids) > 0 ? app_config.subnet_ids : var.subnet_ids
+        security_group_ids = length(app_config.security_group_ids) > 0 ? app_config.security_group_ids : var.security_group_ids
       }
     ]
   ])

@@ -1,6 +1,5 @@
 locals {
-  bastion_vm_ip       = nutanix_floating_ip_v2.bastion_fip.floating_ip[0].ipv4[0].value
-  cluster_subnets_str = join(",", var.cluster_subnets)
+  bastion_vm_ip = nutanix_floating_ip_v2.bastion_fip.floating_ip[0].ipv4[0].value
 
   bastion_vm_cloud_init = templatefile("${path.module}/templates/cloud-init.tpl", {
     hostname             = "${var.cluster_name}-nkp-bastion"
@@ -16,7 +15,6 @@ locals {
   traefik_fip = var.enable_kommander_traefik_fip ? nutanix_floating_ip_v2.lb_fip[0].floating_ip[0].ipv4[0].value : ""
 
   control_plane_fip = var.control_plane_fip
-  cluster_hostnames = local.traefik_fip
 }
 
 resource "nutanix_floating_ip_v2" "lb_fip" {

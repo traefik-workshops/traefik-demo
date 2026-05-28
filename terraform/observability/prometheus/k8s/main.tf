@@ -11,6 +11,7 @@ resource "helm_release" "prometheus" {
     yamlencode({
       prometheus = {
         prometheusSpec = {
+          tolerations               = var.tolerations
           scrapeInterval            = "5s"
           evaluationInterval        = "5s"
           enableRemoteWriteReceiver = true

@@ -50,7 +50,7 @@ locals {
 
     # Deployment configuration
     deployment = {
-      kind              = var.deploymentType
+      kind              = var.deployment_type
       replicas          = module.config.replica_count
       additionalVolumes = local.deployment_volumes
       podAnnotations = var.file_provider_config != "" ? {
@@ -60,7 +60,7 @@ locals {
 
     # Service configuration
     service = {
-      kind                  = var.serviceType
+      kind                  = var.service_type
       annotations           = var.service_annotations
       externalTrafficPolicy = var.external_traffic_policy
     }
@@ -142,7 +142,7 @@ locals {
 }
 
 # K8s Secrets
-resource "kubernetes_secret_v1" "traefik-hub-license" {
+resource "kubernetes_secret_v1" "traefik_hub_license" {
   count = var.enable_api_gateway || var.enable_api_management ? 1 : 0
 
   metadata {
@@ -157,7 +157,7 @@ resource "kubernetes_secret_v1" "traefik-hub-license" {
 }
 
 # File provider ConfigMap
-resource "kubernetes_config_map_v1" "traefik-dynamic-config" {
+resource "kubernetes_config_map_v1" "traefik_dynamic_config" {
   count = var.file_provider_config != "" ? 1 : 0
 
   metadata {
@@ -192,14 +192,14 @@ resource "helm_release" "traefik" {
   ]
 
   depends_on = [
-    kubernetes_secret_v1.traefik-hub-license,
-    kubernetes_config_map_v1.traefik-dynamic-config,
-    null_resource.traefik-crds,
-    helm_release.dns-traefiker
+    kubernetes_secret_v1.traefik_hub_license,
+    kubernetes_config_map_v1.traefik_dynamic_config,
+    null_resource.traefik_crds,
+    helm_release.dns_traefiker
   ]
 }
 
-resource "helm_release" "dns-traefiker" {
+resource "helm_release" "dns_traefiker" {
   count = var.dns_traefiker.enabled ? 1 : 0
 
   name      = "dns-traefiker"
@@ -228,7 +228,7 @@ data "kubernetes_secret_v1" "dns_domain" {
     namespace = var.namespace
   }
 
-  depends_on = [helm_release.dns-traefiker]
+  depends_on = [helm_release.dns_traefiker]
 }
 
 # Redis for API Management
@@ -236,8 +236,8 @@ module "redis" {
   source = "../../tools/redis/k8s"
   count  = var.enable_api_management ? 1 : 0
 
-  name         = "traefik-redis"
-  namespace    = var.namespace
-  password     = var.redis_password
-  replicaCount = 1
+  name          = "traefik-redis"
+  namespace     = var.namespace
+  password      = var.redis_password
+  replica_count = var.replica_count
 }
