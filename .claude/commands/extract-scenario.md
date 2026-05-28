@@ -1,16 +1,30 @@
 # Extract Scenario
 
-Read unstructured prospect input and produce a structured scenario ready for `/build-poc`.
+Read unstructured prospect input (one or many) and produce structured scenarios ready for `/build-poc`.
 
 ## Invocation
 
 ```
-/extract-scenario <path-to-file>
+/extract-scenario <path>
 ```
 
-The file can be any plain text format: `.md`, `.txt`, `.pdf` (text-based), email export, transcript export.
+The path can be:
 
-Read the file at the given path before proceeding. If the file does not exist or is unreadable, report the error and stop.
+- **A single file** — `.md`, `.txt`, `.pdf` (text-based), email export, transcript export → produce **one scenario interactively** (current behavior).
+- **A directory** — iterate every non-hidden file inside (no recursion) → produce **one scenario per file**, write each to `~/poc-scenarios/<basename>.yaml`.
+- **A `.csv` file** with the schema below → produce **one scenario per row**, write each to `~/poc-scenarios/<prospect_name-slug>.yaml`.
+
+Resolve the path before proceeding. If the path does not exist or is unreadable, report the error and stop. For directory and CSV modes, also report at the end how many scenarios were written and where.
+
+### CSV schema (when path ends in `.csv`)
+
+```csv
+prospect_name,industry,cloud,pain_points,timeline,constraints,notes
+"Acme Retail","retail","aws","AI chatbot for support agents","next month","no GPU","existing EKS in us-east-1"
+"Contoso Bank","financial","azure","API gateway with SSO","Q3","SOC 2","EntraID is the IdP"
+```
+
+`prospect_name` is required; all other columns are optional. Treat the per-row values as the Step 1 fields below; the `notes` column is free-form context for Step 2 module matching.
 
 ## Step 1 — Extract prospect context
 
@@ -26,44 +40,28 @@ Read the file at the given path before proceeding. If the file does not exist or
 
 ## Step 2 — Map to modules
 
-Before mapping, ground yourself in the current module set:
+Ground yourself in the current module set by reading [`catalog.json`](../../catalog.json) at the repo root. Each entry has:
 
-- Run `find terraform -name versions.tf -not -path '*/.terraform/*' | xargs dirname | sort` (TF) and `find helm -name Chart.yaml -maxdepth 2 | xargs dirname | sort` (Helm) to list every leaf module that actually exists.
-- Skim [`/AGENTS.md`](../../AGENTS.md) for section ownership rules — what belongs in `terraform/ai/` vs `terraform/tools/` vs `terraform/traefik/` etc.
+- `path`, `section`, `platform`, `name`, `description`
+- `keywords` — synonyms / signals indexed for this matcher (see [`signals.yaml`](../../signals.yaml))
+- `required_inputs` (no default — caller must provide)
+- `optional_inputs` (with defaults)
+- `outputs` (and which are `sensitive`)
 
-Then map every technical signal in the prospect input to a module that you have confirmed exists. The table below is a starting heuristic — verify each match by reading the module's `variables.tf`:
+For each technical signal in the prospect input (cloud names, SSO providers, AI components, tools, demo names), find candidate entries whose `keywords` contain the signal as a substring (case-insensitive). Rank by:
 
-| Signal in text | Module |
-|---|---|
-| "AWS", "EKS", "Amazon" | terraform/compute/aws/eks + terraform/compute/aws/vpc |
-| "Azure", "AKS", "Microsoft" | terraform/compute/azure/aks |
-| "GCP", "GKE", "Google Cloud" | terraform/compute/gcp/gke |
-| "on-prem", "no cloud", "local" | terraform/compute/suse/k3d |
-| "Nutanix", "NKP" | terraform/compute/nutanix/nkp |
-| (always) | terraform/traefik/shared — include in every PoC |
-| "AI", "LLM", "chatbot", "copilot" | terraform/ai/ollama/k8s (CPU) or terraform/ai/LLMs/runpod (GPU) |
-| "AI gateway", "MCP", "model routing" | terraform/ai/ai-gateway-dependencies/k8s |
-| "vector search", "RAG", "embeddings" | terraform/ai/milvus/k8s or terraform/ai/weaviate/k8s |
-| "SSO", "OIDC", "Azure AD", "EntraID" | terraform/security/entraid |
-| "SSO", "OIDC", "Cognito" | terraform/security/cognito |
-| "SSO", "OIDC", "Keycloak", "generic" | terraform/security/keycloak/k8s |
-| "monitoring", "observability", "Grafana" | terraform/observability/grafana-stack/k8s |
-| "tracing", "OpenTelemetry" | terraform/observability/opentelemetry/k8s + terraform/observability/grafana-tempo/k8s |
-| "AI observability", "LLM tracing" | terraform/observability/langfuse/k8s |
-| "database", "PostgreSQL" | terraform/tools/postgresql/k8s |
-| "cache", "Redis" | terraform/tools/redis/k8s |
-| "DNS", "Cloudflare" | terraform/tools/cloudflare |
-| "load test", "k6" | terraform/tools/k6-operator/k8s |
-| "GitOps", "ArgoCD" | terraform/tools/argocd/k8s |
-| "data masking", "PII", "Presidio" | terraform/ai/presidio/k8s |
-| "demo app", "sample app" | terraform/apps/whoami/k8s or terraform/apps/httpbin/k8s |
-| "Traefik AI gateway", "AI middleware", "PII guard", "topic control", "content safety" | helm/ai-gateway |
-| "airlines demo", "full demo", "scalar mock", "API management demo" | helm/airlines (umbrella — pulls keycloak + hoppscotch + ai-gateway as subcharts) |
-| "API testing UI", "Hoppscotch", "Postman alternative" | helm/hoppscotch |
-| "self-hosted Keycloak", "in-cluster IdP", "OIDC realm with seeded users" | helm/keycloak |
-| "PII detection backend", "Presidio analyzer" | helm/presidio |
-| "embedding server", "RAG embeddings", "Infinity", "nomic-embed" | helm/embeddings |
-| "wildcard DNS for demos", "*.demo.X domain", "Cloudflare auto record" | helm/dns-traefiker |
+1. Number of distinct keyword matches.
+2. Tie-break by `section` priority for the demo arc: `compute` > `traefik` > `security` > `observability` > `ai` > `tools` > `apps`.
+3. Verify each finalist by reading its `required_inputs` — flag any required input that has no matching answer in the prospect input.
+
+Rules of thumb that aren't in `keywords`:
+
+- **Always include `terraform/traefik/shared`** — it's the point of every demo, even if not named.
+- **Cloud is mutually exclusive** — pick the one with the strongest signal; flag ambiguity.
+- **CPU vs GPU LLMs** — `terraform/ai/ollama/k8s` is CPU; `terraform/ai/LLMs/runpod` is GPU. Default to CPU unless the prospect mentions GPU, latency, or model size > 8B.
+- **Umbrella charts win over their parts** — if `helm/airlines` matches, do NOT also add `helm/keycloak`, `helm/hoppscotch`, `helm/ai-gateway` standalone (they're subcharts).
+
+`catalog.json` is regenerated by `make catalog`; CI gates drift. If you find a module that obviously matches a prospect signal but isn't indexed in [`signals.yaml`](../../signals.yaml), surface it as a follow-up — adding the keyword is a one-line change.
 
 ## Step 3 — Identify gaps
 
@@ -74,7 +72,9 @@ Flag anything with NO matching module:
 
 ## Step 4 — Output
 
-### A. Scenario summary
+### Single-file mode (default)
+
+Print the scenario summary in chat. Format:
 
 ```
 Prospect:    <name>
@@ -96,10 +96,47 @@ Questions before building:
   1. <question if critical info missing>
 ```
 
+### Batch mode (directory or CSV input)
+
+For each input row/file, write a scenario YAML to `~/poc-scenarios/<prospect-slug>.yaml`:
+
+```yaml
+prospect_name: Acme Retail
+industry: retail
+cloud: aws
+constraints:
+  - "no GPU"
+timeline: "next month"
+source: "<path of the file or CSV row index>"
+
+modules:
+  - path: terraform/compute/aws/eks
+    reason: "Prospect runs EKS in us-east-1"
+  - path: terraform/traefik/shared
+    reason: "always included"
+  # ...
+
+charts:
+  - path: helm/airlines
+    reason: "Full API management demo with seeded mock APIs"
+
+gaps:
+  - requirement: "<thing>"
+    explanation: "<why no module fits>"
+
+questions:
+  - "<question if critical info missing>"
+```
+
+`<prospect-slug>` is the prospect name lowercased with non-alphanumerics replaced by `-`. Refuse to overwrite an existing scenario file — bump the slug with `-2`, `-3`, etc. and warn.
+
+After all rows are processed, print a one-line summary per scenario (`✅ <slug>` or `⚠️ <slug> (N gaps, M questions)`) plus a count.
+
 ## Rules
 
-- Never invent a cloud provider — if not mentioned, ask SA before defaulting
-- Always include `terraform/traefik/shared` — it's the point of every demo
-- If transcript mentions multiple clouds, pick the one with strongest signal and flag ambiguity
-- If no AI components mentioned, do not add AI modules — match what was asked
-- Keep gaps list honest — do not map requirements to modules that don't fit
+- Never invent a cloud provider — if not mentioned, ask SA before defaulting (single-file mode) or leave `cloud: ""` and flag in `questions:` (batch mode).
+- Always include `terraform/traefik/shared` — it's the point of every demo.
+- If transcript mentions multiple clouds, pick the one with strongest signal and flag ambiguity.
+- If no AI components mentioned, do not add AI modules — match what was asked.
+- Keep gaps list honest — do not map requirements to modules that don't fit.
+- Batch mode never asks interactive questions — capture everything in the YAML's `questions:` list.

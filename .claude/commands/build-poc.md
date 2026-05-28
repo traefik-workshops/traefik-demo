@@ -22,7 +22,7 @@ From the description, extract:
 - **Components**: AI, observability, security/SSO, tools
 - **Prospect name**: used for snapshot folder
 
-Confirm every module exists before planning: `find terraform -name versions.tf -not -path '*/.terraform/*' | xargs dirname | sort` (TF) and `find helm -name Chart.yaml -maxdepth 2 | xargs dirname | sort` (Helm). Read each candidate module's `variables.tf` to determine required inputs and `outputs.tf` for credentials/endpoints it will produce.
+Confirm every module exists by reading [`catalog.json`](../../catalog.json) at the repo root — it lists every leaf TF module and Helm chart with their `required_inputs`, `optional_inputs`, `outputs`, and `dependencies`. CI keeps it in sync with the tree.
 
 Deploy order is always:
 
@@ -77,10 +77,9 @@ Wait for SA confirmation before proceeding.
 ## Step 3 — Collect inputs
 
 For each module in the plan:
-1. Read `variables.tf`
-2. Identify vars with no default
-3. Ask SA for all missing values — one round, grouped together
-4. Do NOT ask for vars that have defaults unless SA wants to override
+1. Look up the module in [`catalog.json`](../../catalog.json) — `required_inputs` gives you the no-default vars with their type + description.
+2. Ask SA for all missing values — one round, grouped together.
+3. Do NOT ask for vars in `optional_inputs` unless SA wants to override.
 
 ## Step 4 — Deploy
 
