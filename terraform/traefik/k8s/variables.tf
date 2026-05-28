@@ -188,9 +188,9 @@ variable "enable_debug" {
 
 # Versions & Images
 variable "traefik_chart_version" {
-  description = "Traefik Helm chart version"
+  description = "Traefik Helm chart version. The default's values (e.g. metrics.otlp.resourceAttributes) require a 40.x chart — older defaults fail to render."
   type        = string
-  default     = "38.0.1"
+  default     = "40.0.0-rc.2"
 }
 
 variable "traefik_tag" {
@@ -200,9 +200,9 @@ variable "traefik_tag" {
 }
 
 variable "traefik_hub_tag" {
-  description = "Traefik Hub version tag"
+  description = "Traefik Hub image tag (paired with the default chart version above)."
   type        = string
-  default     = "v3.19.0"
+  default     = "v3.20.0-rc.1"
 }
 
 variable "traefik_hub_preview_tag" {

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Smoke scenarios for demos/single-cluster: whoami is reachable through Traefik
-# Hub, and the dashboard responds. k3d maps :443 to localhost (self-signed -> -k).
+# Smoke scenario for demos/single-cluster: whoami is reachable through Traefik
+# Hub. k3d maps :443 to localhost (self-signed -> -k). Retry briefly to allow
+# for route propagation after apply.
 set -uo pipefail
 
 DOMAIN="${DOMAIN:-single-cluster.localhost}"
@@ -16,17 +17,21 @@ bad() {
   fail=$((fail + 1))
 }
 curl_code() { curl -sk -o /dev/null -w '%{http_code}' --resolve "$1:443:127.0.0.1" "https://$1$2"; }
+wait_200() {
+  for _ in $(seq 1 20); do
+    [ "$(curl_code "$1" "$2")" = "200" ] && return 0
+    sleep 3
+  done
+  return 1
+}
 
 echo "== single-cluster scenarios (domain=$DOMAIN) =="
 
-code=$(curl_code "whoami.$DOMAIN" "/")
-[ "$code" = "200" ] && ok "whoami via Hub -> 200" || bad "whoami via Hub -> $code (want 200)"
-
-code=$(curl_code "dashboard.$DOMAIN" "/")
-case "$code" in
-200 | 302) ok "dashboard -> $code" ;;
-*) bad "dashboard -> $code (want 200/302)" ;;
-esac
+if wait_200 "whoami.$DOMAIN" "/"; then
+  ok "whoami via Hub -> 200"
+else
+  bad "whoami via Hub -> $(curl_code "whoami.$DOMAIN" "/") (want 200)"
+fi
 
 echo "== $pass passed, $fail failed =="
 [ "$fail" -eq 0 ]

@@ -199,6 +199,10 @@ module "whoami" {
     kubernetes = kubernetes.app_workload
     kubectl    = kubectl.app_workload
   }
+  # IngressRoute is a kubectl_manifest; wait for the child traefik module to
+  # install the traefik.io CRDs on the app-workload cluster.
+  depends_on = [module.app_workload_traefik]
+
   namespace = kubernetes_namespace_v1.app_workload_apps.metadata[0].name
   apps = {
     whoami = {

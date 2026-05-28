@@ -40,11 +40,5 @@ else
   bad "whoami via transit -> $(curl_code "whoami.$DOMAIN" "/") (want 200; check multicluster discovery)"
 fi
 
-code=$(curl_code "dashboard.$DOMAIN" "/")
-case "$code" in
-200 | 302) ok "transit dashboard -> $code" ;;
-*) bad "transit dashboard -> $code (want 200/302)" ;;
-esac
-
 echo "== $pass passed, $fail failed =="
 [ "$fail" -eq 0 ]

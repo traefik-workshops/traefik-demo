@@ -110,6 +110,10 @@ module "traefik" {
 module "whoami" {
   source = "../../terraform/apps/whoami/k8s"
 
+  # The IngressRoute is a kubectl_manifest; wait for the traefik module to
+  # install the traefik.io CRDs first.
+  depends_on = [module.traefik]
+
   namespace = kubernetes_namespace_v1.apps.metadata[0].name
   apps = {
     whoami = {
