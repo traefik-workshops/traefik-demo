@@ -32,6 +32,12 @@ blocked() { echo "$1" | grep -qi 'request blocked'; }
 
 echo "== ai-gateway-openai scenarios (host=$HOST) =="
 
+# Wait for the AI route to propagate after apply (a fresh route 404s briefly).
+for _ in $(seq 1 20); do
+  post '"ping"' | grep -q '404 page not found' || break
+  sleep 3
+done
+
 # 1. Credit card -> Presidio guard blocks (4111… is the standard Visa test number).
 r=$(post '"my card is 4111 1111 1111 1111"')
 blocked "$r" && ok "credit card blocked" || bad "credit card NOT blocked: $r"

@@ -16,12 +16,10 @@ module "transit_cluster" {
 module "app_workload_cluster" {
   source       = "../../terraform/compute/suse/k3d"
   cluster_name = "${var.cluster_prefix}-app"
-  # Non-colliding host ports; the parent reaches this cluster's Traefik at
-  # host.k3d.internal:9443.
-  ports = [
-    { from = 443, to = 9443 },
-    { from = 80, to = 9080 },
-  ]
+  # Expose the child's Hub uplink entrypoint (:9443) on the host so the transit
+  # parent can reach it at host.k3d.internal:9443. (The child's app traffic is
+  # served by the parent after discovery, so its web/websecure need no host port.)
+  ports = [{ from = 9443, to = 9443 }]
 }
 
 # --- Providers (one set per cluster; k3d uses client-cert auth) ---------------
@@ -190,6 +188,22 @@ module "app_workload_traefik" {
   enable_offline_mode   = true
   dashboard_entrypoints = ["websecure"]
   kubeconfig            = abspath(local_file.app_workload_kubeconfig.filename)
+
+  # Multicluster child: expose a Hub uplink entrypoint the transit parent dials.
+  # The entrypoint name ("app-workload") matches the parent's child key.
+  multicluster_provider = { enabled = true }
+  custom_ports = {
+    "app-workload" = {
+      port   = 9443
+      uplink = true
+      expose = { default = true }
+      http   = { tls = { enabled = true } }
+    }
+  }
+  custom_arguments = [
+    "--hub.uplinkEntryPoints.app-workload.address=:9443",
+    "--hub.uplinkEntryPoints.app-workload.http.tls=true",
+  ]
 }
 
 module "whoami" {
