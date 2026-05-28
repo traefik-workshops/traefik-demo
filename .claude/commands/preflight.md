@@ -69,3 +69,24 @@ terraform/ai/ollama/k8s          ❌ Error: unsupported argument
 - Files failing `make fmt-check`
 
 **Skip:** `.terraform/` directories
+
+## On broken modules — escalate, do not fix
+
+If preflight finds a broken module (lint error, validate error, missing `versions.tf`):
+
+1. **Stop.** Do not continue to deployment.
+2. **Report clearly:** exact error, file, line.
+3. **Escalate to dev context:**
+
+```
+⛔ Module terraform/<path> failed preflight.
+
+This requires a code fix outside SA scope.
+Open a new session without sa-assistant loaded and use the dev skills:
+  - new-module skill — if the module needs to be rebuilt
+  - contributing guide — CONTRIBUTING.md
+
+Do not attempt to fix Terraform code in an SA session.
+```
+
+4. Wait for SA to confirm the module is fixed and re-run preflight before proceeding.
