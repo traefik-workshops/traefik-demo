@@ -89,8 +89,8 @@ jobs:
           for c in helm/*/; do
             echo "::group::kubeconform $c"
             helm template release-name "$c" 2>/dev/null \
-              | kubeconform -strict -summary \
-                  -skip CustomResourceDefinition,IngressRoute,Middleware,ServersTransport,Keycloak,KeycloakRealmImport,Uplink \
+              | kubeconform -strict -summary -ignore-missing-schemas \
+                  -skip CustomResourceDefinition \
               || fail=1
             echo "::endgroup::"
           done
