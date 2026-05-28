@@ -5,7 +5,7 @@
 #
 # Three groups of targets:
 #   1. Quality:  terraform fmt/validate/lint/security + helm lint/template + ct lint
-#   2. Helm:     dep-update, package, push, helm-test (ct install on kind)
+#   2. Helm:     dep-update, package, push, helm-test (ct install on k3d)
 #   3. Release:  release-bug, release-feature, release-major
 #                  - sweep helm/*/Chart.yaml `version:` (and in-repo `file://` dep versions)
 #                  - sweep terraform leaf README `?ref=v...` example lines
@@ -131,19 +131,30 @@ helm-test: ## H: ct lint --all (chart-testing).
 	@if ! command -v ct > /dev/null; then echo "$(RED)ct not installed.$(RESET) See https://github.com/helm/chart-testing"; exit 1; fi
 	@ct lint --config helm/ct.yaml --all
 
+# Traefik proxy + Hub CRDs the charts render (k3s ships older proxy CRDs, so we
+# disable its bundled Traefik and apply current ones; Hub CRDs aren't bundled).
+TRAEFIK_CRD_BASE := https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds
+TRAEFIK_CRDS := traefik.io_ingressroutes traefik.io_ingressroutetcps traefik.io_ingressrouteudps \
+	traefik.io_middlewares traefik.io_middlewaretcps traefik.io_serverstransports \
+	traefik.io_serverstransporttcps traefik.io_tlsoptions traefik.io_tlsstores traefik.io_traefikservices \
+	hub.traefik.io_accesscontrolpolicies hub.traefik.io_aiservices hub.traefik.io_apiauths \
+	hub.traefik.io_apibundles hub.traefik.io_apicatalogitems hub.traefik.io_apiplans \
+	hub.traefik.io_apiportalauths hub.traefik.io_apiportals hub.traefik.io_apiratelimits \
+	hub.traefik.io_apis hub.traefik.io_apiversions hub.traefik.io_contentitems \
+	hub.traefik.io_managedapplications hub.traefik.io_managedsubscriptions hub.traefik.io_uplinks
+
 .PHONY: helm-install
-helm-install: ## H: Spin up a kind cluster, `ct install` every chart, tear down. Requires kind + ct.
+helm-install: ## H: Spin up a k3d cluster, apply Traefik+Hub CRDs, `ct install` every chart, tear down. Requires k3d + ct.
 	@set -euo pipefail
-	@if ! command -v kind > /dev/null; then echo "$(RED)kind not installed.$(RESET) See https://kind.sigs.k8s.io/"; exit 1; fi
+	@if ! command -v k3d > /dev/null; then echo "$(RED)k3d not installed.$(RESET) See https://k3d.io/"; exit 1; fi
 	@if ! command -v ct > /dev/null; then echo "$(RED)ct not installed.$(RESET) See https://github.com/helm/chart-testing"; exit 1; fi
 	@if ! command -v kubectl > /dev/null; then echo "$(RED)kubectl not installed.$(RESET)"; exit 1; fi
 	@cluster_name="traefik-demo-e2e"
-	@echo "$(BOLD)Creating kind cluster: $$cluster_name$(RESET)"
-	@trap 'echo "$(DIM)tearing down $$cluster_name...$(RESET)"; kind delete cluster --name "$$cluster_name" > /dev/null 2>&1 || true' EXIT
-	@kind create cluster --name "$$cluster_name"
-	@echo "$(BOLD)Installing Traefik CRDs (charts assume Traefik is present)...$(RESET)"
-	@kubectl apply -f https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/traefikio_ingressroutes.yaml 2>/dev/null || true
-	@kubectl apply -f https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/traefikio_middlewares.yaml 2>/dev/null || true
+	@echo "$(BOLD)Creating k3d cluster: $$cluster_name (k3s Traefik disabled)$(RESET)"
+	@trap 'echo "$(DIM)tearing down $$cluster_name...$(RESET)"; k3d cluster delete "$$cluster_name" > /dev/null 2>&1 || true' EXIT
+	@k3d cluster create "$$cluster_name" --servers 1 --k3s-arg '--disable=traefik@server:*' --wait --timeout 180s
+	@echo "$(BOLD)Applying Traefik proxy + Hub CRDs...$(RESET)"
+	@for crd in $(TRAEFIK_CRDS); do kubectl apply --server-side -f "$(TRAEFIK_CRD_BASE)/$$crd.yaml" > /dev/null; done
 	@echo "$(BOLD)Running ct install --all on $$cluster_name...$(RESET)"
 	@ct install --config helm/ct.yaml --all
 
@@ -190,7 +201,7 @@ helm-push: ## H: push every dist/*.tgz to $(OCI_REGISTRY). Requires `helm regist
 check: tf-fmt-check tf-validate tf-lint tf-security helm-lint helm-template helm-test catalog-check ## X: Run every quality check (CI — no cluster needed).
 
 .PHONY: e2e
-e2e: check helm-install ## X: Full ladder — every static check + actually install every chart on a kind cluster. Requires kind + ct + kubectl.
+e2e: check helm-install ## X: Full ladder — every static check + actually install every chart on a k3d cluster. Requires k3d + ct + kubectl.
 
 .PHONY: fmt
 fmt: tf-fmt ## X: Run all formatters.

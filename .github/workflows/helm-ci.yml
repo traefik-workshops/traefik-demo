@@ -24,8 +24,8 @@ env:
   HELM_VERSION: "v3.16.2"
   KUBECONFORM_VERSION: "v0.6.7"
   CT_VERSION: "v3.11.0"
-  KIND_VERSION: "v0.24.0"
-  KIND_K8S_VERSION: "v1.30.4"
+  K3D_VERSION: "v5.8.3"
+  TRAEFIK_CRD_BASE: "https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds"
 
 jobs:
   # --------------------------------------------------------------------------
@@ -137,7 +137,7 @@ jobs:
   # Install: ct install on a kind cluster (only for charts that changed)
   # --------------------------------------------------------------------------
   ct-install:
-    name: ct install (kind)
+    name: ct install (k3d)
     runs-on: ubuntu-latest
     needs: ct-lint
     steps:
@@ -167,19 +167,31 @@ jobs:
             echo "any=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create kind cluster
-        if: ${{ steps.list-changed.outputs.any == 'true' }}
-        uses: helm/kind-action@v1.10.0
-        with:
-          version: ${{ env.KIND_VERSION }}
-          node_image: kindest/node:${{ env.KIND_K8S_VERSION }}
-          cluster_name: ct-install
-
-      - name: Install Traefik CRDs (charts assume Traefik is present)
+      - name: Create k3d cluster
         if: ${{ steps.list-changed.outputs.any == 'true' }}
         run: |
-          kubectl apply -f https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/traefikio_ingressroutes.yaml 2>/dev/null || true
-          kubectl apply -f https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/crds/traefikio_middlewares.yaml 2>/dev/null || true
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=${{ env.K3D_VERSION }} bash
+          # Disable k3s's bundled Traefik: it ships older CRDs (no per-route
+          # observability field) that conflict with the charts' resources. We
+          # apply current Traefik proxy + Hub CRDs ourselves below.
+          k3d cluster create ct --servers 1 --k3s-arg '--disable=traefik@server:*' --wait --timeout 180s
+
+      - name: Install Traefik proxy + Hub CRDs (charts render both)
+        if: ${{ steps.list-changed.outputs.any == 'true' }}
+        run: |
+          set -euo pipefail
+          for crd in \
+            traefik.io_ingressroutes traefik.io_ingressroutetcps traefik.io_ingressrouteudps \
+            traefik.io_middlewares traefik.io_middlewaretcps \
+            traefik.io_serverstransports traefik.io_serverstransporttcps \
+            traefik.io_tlsoptions traefik.io_tlsstores traefik.io_traefikservices \
+            hub.traefik.io_accesscontrolpolicies hub.traefik.io_aiservices hub.traefik.io_apiauths \
+            hub.traefik.io_apibundles hub.traefik.io_apicatalogitems hub.traefik.io_apiplans \
+            hub.traefik.io_apiportalauths hub.traefik.io_apiportals hub.traefik.io_apiratelimits \
+            hub.traefik.io_apis hub.traefik.io_apiversions hub.traefik.io_contentitems \
+            hub.traefik.io_managedapplications hub.traefik.io_managedsubscriptions hub.traefik.io_uplinks; do
+            kubectl apply --server-side -f "${TRAEFIK_CRD_BASE}/${crd}.yaml"
+          done
 
       - name: ct install
         if: ${{ steps.list-changed.outputs.any == 'true' }}
