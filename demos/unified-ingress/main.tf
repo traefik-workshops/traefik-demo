@@ -63,6 +63,53 @@ provider "helm" {
   }
 }
 
+# kubectl providers for the whoami IngressRoute (a kubectl_manifest), per cluster.
+provider "kubectl" {
+  alias                  = "transit"
+  host                   = module.transit_cluster.host
+  client_certificate     = module.transit_cluster.client_certificate
+  client_key             = module.transit_cluster.client_key
+  cluster_ca_certificate = module.transit_cluster.cluster_ca_certificate
+  load_config_file       = false
+}
+
+provider "kubectl" {
+  alias                  = "app_workload"
+  host                   = module.app_workload_cluster.host
+  client_certificate     = module.app_workload_cluster.client_certificate
+  client_key             = module.app_workload_cluster.client_key
+  cluster_ca_certificate = module.app_workload_cluster.cluster_ca_certificate
+  load_config_file       = false
+}
+
+# Per-cluster kubeconfigs for each traefik module's CRD local-exec (no current
+# context yet — the clusters are created in this same run).
+resource "local_file" "transit_kubeconfig" {
+  filename        = "${path.module}/.transit.kubeconfig"
+  file_permission = "0600"
+  content = yamlencode({
+    apiVersion        = "v1"
+    kind              = "Config"
+    "current-context" = "transit"
+    clusters          = [{ name = "transit", cluster = { server = module.transit_cluster.host, "certificate-authority-data" = base64encode(module.transit_cluster.cluster_ca_certificate) } }]
+    users             = [{ name = "transit", user = { "client-certificate-data" = base64encode(module.transit_cluster.client_certificate), "client-key-data" = base64encode(module.transit_cluster.client_key) } }]
+    contexts          = [{ name = "transit", context = { cluster = "transit", user = "transit" } }]
+  })
+}
+
+resource "local_file" "app_workload_kubeconfig" {
+  filename        = "${path.module}/.app.kubeconfig"
+  file_permission = "0600"
+  content = yamlencode({
+    apiVersion        = "v1"
+    kind              = "Config"
+    "current-context" = "app"
+    clusters          = [{ name = "app", cluster = { server = module.app_workload_cluster.host, "certificate-authority-data" = base64encode(module.app_workload_cluster.cluster_ca_certificate) } }]
+    users             = [{ name = "app", user = { "client-certificate-data" = base64encode(module.app_workload_cluster.client_certificate), "client-key-data" = base64encode(module.app_workload_cluster.client_key) } }]
+    contexts          = [{ name = "app", context = { cluster = "app", user = "app" } }]
+  })
+}
+
 # --- Transit (parent) ---------------------------------------------------------
 resource "kubernetes_namespace_v1" "transit_traefik" {
   provider = kubernetes.transit
@@ -95,6 +142,7 @@ module "transit_traefik" {
   enable_api_gateway    = true
   enable_api_management = true
   enable_offline_mode   = true
+  kubeconfig            = abspath(local_file.transit_kubeconfig.filename)
 
   enable_otlp_metrics     = true
   enable_otlp_traces      = true
@@ -141,6 +189,7 @@ module "app_workload_traefik" {
   enable_api_gateway    = true
   enable_offline_mode   = true
   dashboard_entrypoints = ["websecure"]
+  kubeconfig            = abspath(local_file.app_workload_kubeconfig.filename)
 }
 
 module "whoami" {
@@ -148,6 +197,7 @@ module "whoami" {
   providers = {
     helm       = helm.app_workload
     kubernetes = kubernetes.app_workload
+    kubectl    = kubectl.app_workload
   }
   namespace = kubernetes_namespace_v1.app_workload_apps.metadata[0].name
   apps = {

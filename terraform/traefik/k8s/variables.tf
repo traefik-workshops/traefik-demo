@@ -73,6 +73,12 @@ variable "skip_crds" {
   default     = false
 }
 
+variable "kubeconfig" {
+  description = "Path to a kubeconfig the CRD install (local-exec kubectl) should use. Empty = ambient kubeconfig / current context. Set this when the cluster is created in the same terraform run, so kubectl has no current context yet (e.g. demos that build a k3d cluster in-config)."
+  type        = string
+  default     = ""
+}
+
 variable "skip_gateway_api_crds" {
   description = "Skip Gateway API CRD installation"
   type        = bool

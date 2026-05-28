@@ -26,6 +26,35 @@ provider "helm" {
   }
 }
 
+# Used by the whoami module's IngressRoute (a kubectl_manifest).
+provider "kubectl" {
+  host                   = module.cluster.host
+  client_certificate     = module.cluster.client_certificate
+  client_key             = module.cluster.client_key
+  cluster_ca_certificate = module.cluster.cluster_ca_certificate
+  load_config_file       = false
+}
+
+# The traefik module installs CRDs via a local-exec kubectl, which needs a
+# kubeconfig — the cluster is created in this same run, so there's no current
+# context. Build one from the cluster's cert outputs.
+locals {
+  kubeconfig = yamlencode({
+    apiVersion        = "v1"
+    kind              = "Config"
+    "current-context" = var.cluster_name
+    clusters          = [{ name = var.cluster_name, cluster = { server = module.cluster.host, "certificate-authority-data" = base64encode(module.cluster.cluster_ca_certificate) } }]
+    users             = [{ name = var.cluster_name, user = { "client-certificate-data" = base64encode(module.cluster.client_certificate), "client-key-data" = base64encode(module.cluster.client_key) } }]
+    contexts          = [{ name = var.cluster_name, context = { cluster = var.cluster_name, user = var.cluster_name } }]
+  })
+}
+
+resource "local_file" "kubeconfig" {
+  content         = local.kubeconfig
+  filename        = "${path.module}/.kubeconfig"
+  file_permission = "0600"
+}
+
 resource "kubernetes_namespace_v1" "traefik" {
   metadata { name = "traefik" }
 }
@@ -42,6 +71,7 @@ module "traefik" {
   enable_api_gateway    = true
   enable_offline_mode   = true
   dashboard_entrypoints = ["websecure"]
+  kubeconfig            = abspath(local_file.kubeconfig.filename)
 }
 
 module "whoami" {
