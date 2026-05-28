@@ -6,7 +6,7 @@ Deploys Ollama on a Kubernetes cluster via Helm and optionally pre-pulls a selec
 
 ```hcl
 module "ollama" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/ollama/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/ollama/k8s?ref=v4.0.0"
 
   name        = "ollama"
   namespace   = "ollama"

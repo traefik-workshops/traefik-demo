@@ -7,13 +7,13 @@ Charts are published to `oci://ghcr.io/traefik-workshops/<chart>` on every repo 
 ```hcl
 # Terraform module
 module "ai_gateway_demo" {
-  source = "git::https://github.com/<org>/traefik-demo.git//compute/aws/eks?ref=v3.2.0"
+  source = "git::https://github.com/<org>/traefik-demo.git//compute/aws/eks?ref=v4.0.0"
 }
 ```
 
 ```bash
 # Helm chart from the same tag
-helm install ai-gateway oci://ghcr.io/traefik-workshops/ai-gateway --version 3.2.0
+helm install ai-gateway oci://ghcr.io/traefik-workshops/ai-gateway --version 4.0.0
 ```
 
 If a chart's *upstream* app changes version, that lives in `appVersion` and moves independently.
@@ -51,7 +51,7 @@ When you install `airlines`, you get the whole graph by default — gate sub-fea
 ### From OCI (recommended)
 
 ```bash
-helm install my-airlines oci://ghcr.io/traefik-workshops/airlines --version 3.2.0
+helm install my-airlines oci://ghcr.io/traefik-workshops/airlines --version 4.0.0
 ```
 
 Each chart's own README has its install snippet and the values you typically override.

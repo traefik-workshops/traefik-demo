@@ -6,7 +6,7 @@ Creates a Nutanix VPC and a map of overlay subnets, with configurable DNS and ex
 
 ```hcl
 module "vpc" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/vpc?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/vpc?ref=v4.0.0"
 
   vpc_name             = "demo"
   external_subnet_uuid = var.external_subnet_uuid

@@ -6,7 +6,7 @@ Provisions an AWS VPC with public and private subnets (via the community `terraf
 
 ```hcl
 module "vpc" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/aws/vpc?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/aws/vpc?ref=v4.0.0"
 
   name = "demo"
 }

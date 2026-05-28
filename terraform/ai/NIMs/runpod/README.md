@@ -6,7 +6,7 @@ Provisions NVIDIA NIM safety microservices (Topic Control, Content Safety, Jailb
 
 ```hcl
 module "nims" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/NIMs/runpod?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/NIMs/runpod?ref=v4.0.0"
 
   runpod_api_key            = var.runpod_api_key
   ngc_token                 = var.ngc_token

@@ -6,7 +6,7 @@ Deploys the Weaviate vector database into a Kubernetes cluster via Helm.
 
 ```hcl
 module "weaviate" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/weaviate/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/weaviate/k8s?ref=v4.0.0"
 
   namespace = "weaviate"
 }

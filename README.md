@@ -44,7 +44,7 @@ Terraform module:
 
 ```hcl
 module "eks" {
-  source = "git::https://github.com/<org>/traefik-demo.git//terraform/compute/aws/eks?ref=v3.2.0"
+  source = "git::https://github.com/<org>/traefik-demo.git//terraform/compute/aws/eks?ref=v4.0.0"
 
   cluster_name     = "demo"
   cluster_location = "us-east-1"
@@ -55,7 +55,7 @@ module "eks" {
 Helm chart (published to OCI on every tag):
 
 ```bash
-helm install my-airlines oci://ghcr.io/traefik-workshops/airlines --version 3.2.0
+helm install my-airlines oci://ghcr.io/traefik-workshops/airlines --version 4.0.0
 ```
 
 **Always pin `?ref=<tag>` and `--version <tag>`** — never consume from `main` / `latest`. Tags are immutable; `main` is not.

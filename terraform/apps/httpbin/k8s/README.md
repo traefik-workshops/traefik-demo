@@ -8,7 +8,7 @@ Deploys a minimal `httpbin` Deployment and Service in the `apps` namespace.
 
 ```hcl
 module "httpbin" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/httpbin/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/httpbin/k8s?ref=v4.0.0"
 }
 ```
 

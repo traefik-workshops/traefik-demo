@@ -6,7 +6,7 @@ Provisions one or more Traefik Hub instances on AWS EC2, wiring in `traefik/shar
 
 ```hcl
 module "traefik" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/traefik/ec2?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/traefik/ec2?ref=v4.0.0"
 
   traefik_hub_token = var.traefik_hub_token
   replica_count     = 1

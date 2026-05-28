@@ -6,7 +6,7 @@ Deploys one or more Traefik `whoami` instances on Kubernetes as Deployments + Se
 
 ```hcl
 module "whoami" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/k8s?ref=v4.0.0"
 
   namespace = "apps"
   apps = {

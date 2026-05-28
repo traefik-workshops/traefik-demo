@@ -6,7 +6,7 @@ Provisions an AWS Cognito User Pool, a domain, an App Client, and a set of demo 
 
 ```hcl
 module "cognito" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/security/cognito?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/security/cognito?ref=v4.0.0"
 
   users         = ["admin", "support"]
   redirect_uris = ["https://demo.traefik.ai/callback"]

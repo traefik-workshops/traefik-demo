@@ -6,7 +6,7 @@ Allocates a Nutanix Floating IP and associates it with a VM NIC or a VPC private
 
 ```hcl
 module "fip" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/fip?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/fip?ref=v4.0.0"
 
   name                 = "whoami-fip"
   external_subnet_uuid = var.external_subnet_uuid

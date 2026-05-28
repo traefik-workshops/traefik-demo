@@ -2,7 +2,7 @@ apiVersion: v2
 name: presidio
 description: A Helm chart for Microsoft Presidio Analyzer
 type: application
-version: 3.2.0
+version: 4.0.0
 appVersion: "2.2.358"
 kubeVersion: ">= 1.27.0-0"
 

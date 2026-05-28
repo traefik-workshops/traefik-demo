@@ -6,7 +6,7 @@ Creates an OCI dynamic group and policy so instances in a compartment can authen
 
 ```hcl
 module "oci_instance_principal" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/security/oci-instance-principal?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/security/oci-instance-principal?ref=v4.0.0"
 
   compartment_id = var.compartment_id
 }

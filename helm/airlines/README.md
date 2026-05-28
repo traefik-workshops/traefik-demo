@@ -2,13 +2,13 @@
 
 Airlines Demo - Scalar Mock Server APIs with Traefik Hub API Management
 
-- **Chart version:** `3.2.0` (slaved to the repo tag — see [`../AGENTS.md`](../AGENTS.md))
+- **Chart version:** `4.0.0` (slaved to the repo tag — see [`../AGENTS.md`](../AGENTS.md))
 - **App version:** `2.0.0`
 
 ## Install
 
 ```bash
-helm install my-airlines oci://ghcr.io/traefik-workshops/airlines --version 3.2.0
+helm install my-airlines oci://ghcr.io/traefik-workshops/airlines --version 4.0.0
 ```
 
 From source (for development against this repo):
@@ -21,7 +21,7 @@ helm install my-airlines .
 
 ## Conventions
 
-See [`../AGENTS.md`](./AGENTS.md) for repo-wide rules and [`./AGENTS.md`](./AGENTS.md) for chart-specific conventions.
+See [`../AGENTS.md`](../AGENTS.md) for chart conventions and [the root `AGENTS.md`](../../AGENTS.md) for repo-wide rules.
 
 <!-- BEGIN_HELM_DOCS -->
 
@@ -36,9 +36,9 @@ See [`../AGENTS.md`](./AGENTS.md) for repo-wide rules and [`./AGENTS.md`](./AGEN
 
 | Name | Version | Repository | Condition |
 |------|---------|------------|-----------|
-| keycloak | `3.2.0` | `file://../keycloak` | `keycloak.enabled` |
-| hoppscotch | `3.2.0` | `file://../hoppscotch` | `hoppscotch.enabled` |
-| ai-gateway | `3.2.0` | `file://../ai-gateway` | `aiGateway.enabled` |
+| keycloak | `4.0.0` | `file://../keycloak` | `keycloak.enabled` |
+| hoppscotch | `4.0.0` | `file://../hoppscotch` | `hoppscotch.enabled` |
+| ai-gateway | `4.0.0` | `file://../ai-gateway` | `aiGateway.enabled` |
 
 ## Values
 

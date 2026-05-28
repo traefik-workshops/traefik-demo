@@ -6,7 +6,7 @@ Builds a Whoami qcow2 image with Packer (via `local-exec`) and uploads it to Nut
 
 ```hcl
 module "whoami_image" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/nutanix/image_builder?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/nutanix/image_builder?ref=v4.0.0"
 
   arch = "amd64"
 }

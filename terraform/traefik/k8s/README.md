@@ -6,7 +6,7 @@ Deploys Traefik Hub on Kubernetes via Helm, with the full feature-flag matrix (A
 
 ```hcl
 module "traefik" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/traefik/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/traefik/k8s?ref=v4.0.0"
 
   name              = "traefik"
   namespace         = "traefik"

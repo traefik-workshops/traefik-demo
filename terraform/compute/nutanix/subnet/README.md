@@ -6,7 +6,7 @@ Creates a Nutanix subnet (VLAN-backed) with optional external flag and DNS confi
 
 ```hcl
 module "subnet" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/subnet?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/subnet?ref=v4.0.0"
 
   name        = "demo-subnet"
   cluster_id  = var.cluster_uuid

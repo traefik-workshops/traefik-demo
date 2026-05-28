@@ -2,13 +2,13 @@
 
 Keycloak identity and access management with operator
 
-- **Chart version:** `3.2.0` (slaved to the repo tag — see [`../AGENTS.md`](../AGENTS.md))
+- **Chart version:** `4.0.0` (slaved to the repo tag — see [`../AGENTS.md`](../AGENTS.md))
 - **App version:** `26.5.2`
 
 ## Install
 
 ```bash
-helm install my-keycloak oci://ghcr.io/traefik-workshops/keycloak --version 3.2.0
+helm install my-keycloak oci://ghcr.io/traefik-workshops/keycloak --version 4.0.0
 ```
 
 From source (for development against this repo):
@@ -33,7 +33,7 @@ There is also a Terraform module that wraps a similar Keycloak install:
 
 ## Conventions
 
-See [`../AGENTS.md`](./AGENTS.md) for repo-wide rules and [`./AGENTS.md`](./AGENTS.md) for chart-specific conventions.
+See [`../AGENTS.md`](../AGENTS.md) for chart conventions and [the root `AGENTS.md`](../../AGENTS.md) for repo-wide rules.
 
 <!-- BEGIN_HELM_DOCS -->
 

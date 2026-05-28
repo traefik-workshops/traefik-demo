@@ -2,13 +2,13 @@
 
 A Helm chart for Microsoft Presidio Analyzer
 
-- **Chart version:** `3.2.0` (slaved to the repo tag — see [`../AGENTS.md`](../AGENTS.md))
+- **Chart version:** `4.0.0` (slaved to the repo tag — see [`../AGENTS.md`](../AGENTS.md))
 - **App version:** `2.2.358`
 
 ## Install
 
 ```bash
-helm install my-presidio oci://ghcr.io/traefik-workshops/presidio --version 3.2.0
+helm install my-presidio oci://ghcr.io/traefik-workshops/presidio --version 4.0.0
 ```
 
 From source (for development against this repo):
@@ -34,7 +34,7 @@ There is also a Terraform module that ships Presidio for the same role:
 
 ## Conventions
 
-See [`../AGENTS.md`](./AGENTS.md) for repo-wide rules and [`./AGENTS.md`](./AGENTS.md) for chart-specific conventions.
+See [`../AGENTS.md`](../AGENTS.md) for chart conventions and [the root `AGENTS.md`](../../AGENTS.md) for repo-wide rules.
 
 <!-- BEGIN_HELM_DOCS -->
 

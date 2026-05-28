@@ -6,7 +6,7 @@ Provisions Traefik `whoami` services across one or more ECS clusters, wrapping `
 
 ```hcl
 module "whoami_ecs" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/ecs?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/ecs?ref=v4.0.0"
 
   name = "whoami"
   clusters = {

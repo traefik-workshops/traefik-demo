@@ -8,7 +8,7 @@ Renders a cloud-init template that installs and starts the Traefik `whoami` bina
 
 ```hcl
 module "whoami_cloud_init" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/cloud-init?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/cloud-init?ref=v4.0.0"
 
   whoami_version = "v1.10.1"
   arch           = "amd64"

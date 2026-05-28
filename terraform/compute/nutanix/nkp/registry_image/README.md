@@ -6,7 +6,7 @@ Extracts the NKP registry image from the NKP bundle and uploads it to Nutanix as
 
 ```hcl
 module "nkp_registry_image" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/nkp/registry_image?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/nkp/registry_image?ref=v4.0.0"
 
   nkp_version     = "2.17.1"
   nkp_bundle_path = "/path/to/nkp-bundle.tar.gz"

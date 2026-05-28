@@ -6,7 +6,7 @@ Deploys the SQLcl MCP server as a Kubernetes Deployment + Service, optionally fr
 
 ```hcl
 module "sqlcl" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/sqlcl/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/sqlcl/k8s?ref=v4.0.0"
 
   namespace = "sqlcl"
 }

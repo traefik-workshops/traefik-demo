@@ -6,7 +6,7 @@ Creates a RunPod registry auth (using NGC credentials) via the RunPod GraphQL AP
 
 ```hcl
 module "runpod_auth" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/runpod/auth?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/runpod/auth?ref=v4.0.0"
 
   runpod_api_key = var.runpod_api_key
   ngc_token      = var.ngc_token

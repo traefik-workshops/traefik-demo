@@ -6,7 +6,7 @@ Provisions a set of LLM pods (Llama 3.1 8B, GPT OSS 20B) on RunPod, gated by per
 
 ```hcl
 module "llms" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/LLMs/runpod?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/LLMs/runpod?ref=v4.0.0"
 
   runpod_api_key       = var.runpod_api_key
   hugging_face_api_key = var.hugging_face_api_key

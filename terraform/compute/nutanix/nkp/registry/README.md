@@ -6,7 +6,7 @@ Provisions a self-hosted container registry VM on Nutanix for use as an NKP regi
 
 ```hcl
 module "nkp_registry" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/nkp/registry?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/nkp/registry?ref=v4.0.0"
 
   cluster_name        = "demo"
   nutanix_cluster_id  = var.cluster_uuid

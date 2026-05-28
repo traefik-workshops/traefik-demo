@@ -6,7 +6,7 @@ Deploys a full Grafana + Prometheus stack (kube-prometheus-stack) with optional 
 
 ```hcl
 module "grafana_stack" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/observability/grafana-stack/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/observability/grafana-stack/k8s?ref=v4.0.0"
 
   namespace  = "observability"
   dashboards = { aigateway = true, mcpgateway = false, apim = false }

@@ -6,7 +6,7 @@ Deploys Langfuse (LLM observability) on Kubernetes via the `langfuse/langfuse-k8
 
 ```hcl
 module "langfuse" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/observability/langfuse/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/observability/langfuse/k8s?ref=v4.0.0"
 
   name      = "langfuse"
   namespace = "traefik-observability"

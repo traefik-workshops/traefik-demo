@@ -6,7 +6,7 @@ Creates a set of RunPod pods from a map definition, optionally using a registry 
 
 ```hcl
 module "pods" {
-  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/runpod/pod?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/runpod/pod?ref=v4.0.0"
 
   runpod_api_key = var.runpod_api_key
   pods = {
