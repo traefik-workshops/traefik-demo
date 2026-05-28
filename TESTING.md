@@ -353,8 +353,15 @@ The `new-module` skill (see [`./.claude/skills/new-module/SKILL.md`](./.claude/s
 - `.github/workflows/integration.yml` — Full tier. Nightly on `main`; PR opt-in via `test:full` label.
 - `.github/workflows/helm-ci.yml` — Helm static + ct install on kind. See [the helm section below](#helm).
 - `.github/workflows/helm-publish.yml` — Helm OCI publish on repo tag push. See helm section below.
+- `.github/workflows/demos-ci.yml` — `demos/` static (`terraform validate` per demo) + a `deploy` job that stands each k3d demo up on the runner and runs its `scenarios.sh` (curl of the deployed route), torn down after. The deploy job is gated on the `TRAEFIK_HUB_TOKEN` secret (Hub is licensed), so fork PRs skip it. Cloud demos (e.g. `oidc-portal`) are validate-only. See [`demos/AGENTS.md`](./demos/AGENTS.md).
 
 If a workflow doesn't exist yet, write it before promoting the first module to that tier. Don't expand the matrix faster than the workflow can support it.
+
+### Secrets in CI for demos
+
+| Secret | Where | Used by |
+|---|---|---|
+| `TRAEFIK_HUB_TOKEN` | repo secret (offline JWT) | `demos-ci.yml` `deploy` job — every demo runs Traefik Hub, which is licensed. Absent on fork PRs, so the deploy job skips. |
 
 ---
 

@@ -39,40 +39,12 @@ jobs:
         run: |
           set -euo pipefail
           # Leaf modules live under terraform/. demos/ are root configs validated
-          # separately by the `demos` job below — mirrors `make tf-validate`
+          # by the dedicated demos-ci.yml workflow — mirrors `make tf-validate`
           # (LEAF_MODULES = find terraform).
           mapfile -t mods < <(find terraform -name '*.tf' -not -path '*/.terraform/*' \
             -exec dirname {} \; | sort -u)
           fail=0
           for d in "${mods[@]}"; do
-            echo "::group::validate $d"
-            (
-              cd "$d"
-              terraform init -backend=false -input=false -no-color > /dev/null
-              terraform validate -no-color
-            ) || fail=1
-            echo "::endgroup::"
-          done
-          exit "$fail"
-
-  demos:
-    name: demos validate
-    runs-on: ubuntu-latest
-    needs: fmt
-    steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.9.5"
-      - name: terraform init + validate per demo
-        run: |
-          set -euo pipefail
-          # demos/ are root configs that compose the library via relative paths
-          # (../../terraform/...), so init resolves modules locally and validate
-          # runs offline. See demos/AGENTS.md for the testing convention.
-          fail=0
-          for d in demos/*/; do
-            [ -f "${d}main.tf" ] || continue
             echo "::group::validate $d"
             (
               cd "$d"
