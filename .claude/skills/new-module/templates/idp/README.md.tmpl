@@ -8,7 +8,7 @@ IdP module. Seeds users with random passwords and exposes the standard IdP outpu
 
 ```hcl
 module "{{NAME}}" {
-  source = "git::https://github.com/<org>/terraform-demo-modules.git//security/{{PLATFORM}}/{{NAME}}?ref=vX.Y.Z"
+  source = "git::https://github.com/<org>/traefik-demo.git//security/{{PLATFORM}}/{{NAME}}?ref=vX.Y.Z"
 
   users = [
     { email = "demo@example.com" },

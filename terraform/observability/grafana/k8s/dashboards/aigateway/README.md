@@ -1,12 +1,14 @@
 # observability/grafana/k8s/dashboards/aigateway
 
+> **Status:** dashboard fragment. Not a conventional module — emits a single Kubernetes ConfigMap that Grafana's dashboard sidecar picks up. Kept under `dashboards/<topic>/` to mirror the file layout consumers expect.
+
 Renders the AI-Gateway Grafana dashboard JSON as a Kubernetes ConfigMap. Intentionally a "dashboard fragment" module — no Helm release, no provider declarations.
 
 ## Example usage
 
 ```hcl
 module "aigateway_dashboard" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/observability/grafana/k8s/dashboards/aigateway?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/observability/grafana/k8s/dashboards/aigateway?ref=v3.2.0"
 
   name      = "grafana-dashboard-aigateway"
   namespace = "observability"
@@ -19,8 +21,6 @@ module "aigateway_dashboard" {
 - A Grafana deployment configured to pick up dashboard ConfigMaps via the dashboard sidecar.
 
 ## Notes
-
-- See **DASH-01** and **PROV-01** in [../../../../../ISSUES.md](../../../../../ISSUES.md).
 
 <!-- BEGIN_TF_DOCS -->
 

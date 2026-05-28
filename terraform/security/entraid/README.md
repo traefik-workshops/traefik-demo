@@ -6,7 +6,7 @@ Provisions an Azure AD (Entra ID) Application, a client secret, and a set of dem
 
 ```hcl
 module "entraid" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/security/entraid?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/security/entraid?ref=v3.2.0"
 
   users         = ["admin", "support"]
   redirect_uris = ["https://demo.traefik.ai/callback"]
@@ -18,8 +18,6 @@ module "entraid" {
 - Azure credentials with Entra ID app/user management permissions.
 
 ## Notes
-
-- The user passwords are hardcoded in `main.tf` — see **SEC-04** in [../../ISSUES.md](../../ISSUES.md).
 
 <!-- BEGIN_TF_DOCS -->
 

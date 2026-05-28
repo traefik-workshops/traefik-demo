@@ -1,12 +1,12 @@
 variable "name" {
   type        = string
-  description = "The name of the milvus release"
-  default     = "milvus"
+  description = "Name of the Presidio Helm release."
+  default     = "presidio"
 }
 
 variable "namespace" {
   type        = string
-  description = "The namespace of the milvus release"
-  default     = "milvus"
+  description = "Namespace for the Presidio Helm release."
+  default     = "presidio"
 }
   

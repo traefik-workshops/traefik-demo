@@ -19,7 +19,7 @@ variable "prometheus" {
       namespace = string
     })
   })
-  description = "Prometheus datasource configuration."
+  description = "Prometheus datasource provisioned into Grafana when `enabled = true`. URL is `url.override` if set, otherwise built as `http://<service>.<namespace>.svc:<port>` (namespace optional). Prometheus is the implicit default datasource when present."
 }
 
 variable "tempo" {
@@ -32,7 +32,7 @@ variable "tempo" {
       namespace = string
     })
   })
-  description = "Tempo datasource configuration."
+  description = "Tempo datasource provisioned into Grafana when `enabled = true`. URL composition matches the `prometheus` variable. Becomes the default datasource only if Prometheus is disabled."
 }
 
 variable "loki" {
@@ -45,7 +45,7 @@ variable "loki" {
       namespace = string
     })
   })
-  description = "Loki datasource configuration."
+  description = "Loki datasource provisioned into Grafana when `enabled = true`. URL composition matches the `prometheus` variable. Becomes the default datasource only if both Prometheus and Tempo are disabled."
 }
 
 variable "tolerations" {
@@ -96,6 +96,7 @@ variable "ingress_annotations" {
 }
 
 variable "dashboards" {
+  description = "Bundled Traefik Hub dashboards to install as ConfigMaps and pre-provision in Grafana. Toggle each topic on/off independently — the AI Gateway, MCP Gateway, and API Management dashboards each pull from their own metrics source."
   type = object({
     aigateway  = bool
     mcpgateway = bool

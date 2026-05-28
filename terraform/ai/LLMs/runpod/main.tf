@@ -1,7 +1,3 @@
-terraform {
-  required_version = ">= 1.3.0"
-}
-
 locals {
   llms = merge(
     var.enable_llama31_8b ? {

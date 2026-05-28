@@ -11,4 +11,5 @@ output "cluster_ca_certificate" {
 output "token" {
   description = "GKE cluster auth token"
   value       = data.google_client_config.traefik_demo.access_token
+  sensitive   = true
 }

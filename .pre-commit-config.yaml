@@ -1,4 +1,4 @@
-# Pre-commit hooks for terraform-demo-modules.
+# Pre-commit hooks for traefik-demo.
 #
 # Install once:
 #   pip install pre-commit

@@ -41,7 +41,7 @@ resource "terraform_data" "registry_health_check" {
     connection {
       type     = "ssh"
       user     = "traefiker"
-      password = "topsecretpassword"
+      password = var.ssh_password
       host     = self.input
       timeout  = "10m"
     }
@@ -53,7 +53,7 @@ resource "terraform_data" "registry_health_check" {
     connection {
       type     = "ssh"
       user     = "traefiker"
-      password = "topsecretpassword"
+      password = var.ssh_password
       host     = self.input
       timeout  = "40m"
     }

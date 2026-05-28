@@ -7,7 +7,7 @@ Charts are published to `oci://ghcr.io/traefik-workshops/<chart>` on every repo 
 ```hcl
 # Terraform module
 module "ai_gateway_demo" {
-  source = "git::https://github.com/<org>/terraform-demo-modules.git//compute/aws/eks?ref=v3.2.0"
+  source = "git::https://github.com/<org>/traefik-demo.git//compute/aws/eks?ref=v3.2.0"
 }
 ```
 
@@ -64,11 +64,11 @@ helm dep update
 helm install my-airlines .
 ```
 
-`helm dep update` pulls subcharts from the sibling directories via `file://` URLs. This works locally but not after publishing — see `HELM-03` in [`../ISSUES.md`](../ISSUES.md).
+`helm dep update` pulls subcharts from the sibling directories via `file://` URLs. The CI publish workflow rewrites these to `oci://` before pushing so consumers pulling from OCI don't see the file paths.
 
 ## Where to look next
 
 - [Conventions for charts](./CLAUDE.md) — section-specific rules, on top of [the root CLAUDE.md](../CLAUDE.md)
-- [Open issues in helm/](../ISSUES.md#helm) — the `HELM-*` and `CHART-*` series
+- Open issues in helm/ — the `HELM-*` and `CHART-*` series
 - [Testing posture](../TESTING.md#helm) — lint + ct + values-schema for charts
 - Per-chart `README.md` — install snippet, values table (auto-generated)

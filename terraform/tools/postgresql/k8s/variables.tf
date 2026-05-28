@@ -1,19 +1,20 @@
 variable "name" {
-  description = "The name of the traefik release"
+  description = "Name of the PostgreSQL Helm release."
   type        = string
-  default     = "traefik"
+  default     = "postgresql"
 }
 
 variable "namespace" {
-  description = "Namespace for the Traefik Hub deployment"
+  description = "Namespace for the PostgreSQL deployment."
   type        = string
 }
 
 
 variable "password" {
-  description = "Redis password"
+  description = "PostgreSQL password. DEMO DEFAULT — override per environment."
   type        = string
   default     = "topsecretpassword"
+  sensitive   = true
 }
 
 variable "database" {

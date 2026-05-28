@@ -19,6 +19,18 @@ helm dep update
 helm install my-keycloak .
 ```
 
+## Related
+
+There is also a Terraform module that wraps a similar Keycloak install:
+[`terraform/security/keycloak/k8s`](../../terraform/security/keycloak/k8s). Pick which:
+
+- Use **this chart** when you want a plain `helm install` (Argo, Flux, or
+  manual). Realms, users, and clients are populated entirely from values.
+- Use the **Terraform module** when the demo also needs Keycloak to mint
+  per-user access tokens and write them to Kubernetes Secrets the rest of
+  the Terraform graph can read. The module wraps this chart and adds the
+  token-capture Job + Secret outputs on top.
+
 ## Conventions
 
 See [`../CLAUDE.md`](./CLAUDE.md) for repo-wide rules and [`./CLAUDE.md`](./CLAUDE.md) for chart-specific conventions.

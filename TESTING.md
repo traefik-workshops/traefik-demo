@@ -1,4 +1,4 @@
-# Testing strategy — terraform-demo-modules
+# Testing strategy — traefik-demo
 
 This file is the contract between contributors and CI. It answers three questions:
 

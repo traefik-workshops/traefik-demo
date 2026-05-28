@@ -3,7 +3,7 @@
 # Keycloak for OIDC. CPU-only — does not require GPU.
 
 module "cluster" {
-  source = "git::https://github.com/traefik-workshops/terraform-demo-modules.git//terraform/compute/digitalocean/doks?ref=v4.0.0"
+  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/compute/digitalocean/doks?ref=v4.0.0"
 
   cluster_name       = var.cluster_name
   cluster_location   = var.cluster_location
@@ -37,7 +37,7 @@ resource "kubernetes_namespace_v1" "auth" {
 
 # Traefik Hub with AI gateway features enabled.
 module "traefik" {
-  source = "git::https://github.com/traefik-workshops/terraform-demo-modules.git//terraform/traefik/k8s?ref=v4.0.0"
+  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/traefik/k8s?ref=v4.0.0"
 
   namespace          = kubernetes_namespace_v1.traefik.metadata[0].name
   traefik_hub_token  = var.traefik_hub_token
@@ -49,7 +49,7 @@ module "traefik" {
 
 # Keycloak — OIDC for the AI gateway.
 module "keycloak" {
-  source = "git::https://github.com/traefik-workshops/terraform-demo-modules.git//terraform/security/keycloak/k8s?ref=v4.0.0"
+  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/security/keycloak/k8s?ref=v4.0.0"
 
   namespace = kubernetes_namespace_v1.auth.metadata[0].name
   realm = {
@@ -68,7 +68,7 @@ module "keycloak" {
 
 # Ollama — in-cluster CPU model backend.
 module "ollama" {
-  source = "git::https://github.com/traefik-workshops/terraform-demo-modules.git//terraform/ai/ollama/k8s?ref=v4.0.0"
+  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/ai/ollama/k8s?ref=v4.0.0"
 
   namespace      = kubernetes_namespace_v1.ai.metadata[0].name
   enable_llama32 = true   # small model for CPU

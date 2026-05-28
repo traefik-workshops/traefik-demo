@@ -6,7 +6,7 @@ Provisions a Nutanix VM from a source image, with optional cloud-init user data,
 
 ```hcl
 module "vm" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/compute/nutanix/vm?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/vm?ref=v3.2.0"
 
   name         = "demo-vm"
   cluster_uuid = var.cluster_uuid

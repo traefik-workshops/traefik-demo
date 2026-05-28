@@ -6,7 +6,7 @@ Deploys Keycloak on Kubernetes, seeds users + groups + claims, mints per-user ac
 
 ```hcl
 module "keycloak" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/security/keycloak/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/security/keycloak/k8s?ref=v3.2.0"
 
   namespace = "security"
   users     = ["admin", "support"]
@@ -18,9 +18,20 @@ module "keycloak" {
 - A working Kubernetes cluster with `kubernetes`, `helm`, and `http`/`external` providers configured.
 - Traefik installed in-cluster if `ingress.enabled = true`.
 
-## Notes
+## Related
 
-- See PROV-01 in [../../../ISSUES.md](../../../ISSUES.md) — this module is missing `required_providers`.
+This module wraps the [`helm/keycloak`](../../../../helm/keycloak) chart and
+adds: a `null_resource` validation gate, a Kubernetes Job that mints per-user
+access tokens via the Keycloak admin API, and `kubernetes_secret_v1` resources
+that publish those tokens to the cluster. Pick which:
+
+- Use **the Helm chart directly** when the demo just needs an IdP with seeded
+  realms/users/clients and you'll handle token retrieval out of band.
+- Use **this Terraform module** when downstream modules need to read the
+  user tokens straight from Kubernetes Secrets (the common case for the
+  Hub-API-management demos in this repo).
+
+## Notes
 
 <!-- BEGIN_TF_DOCS -->
 

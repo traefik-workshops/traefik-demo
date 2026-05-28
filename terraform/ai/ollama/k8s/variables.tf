@@ -1,13 +1,13 @@
 variable "name" {
   type        = string
-  description = "The name of the milvus release"
-  default     = "milvus"
+  description = "Name of the Ollama Helm release."
+  default     = "ollama"
 }
 
 variable "namespace" {
   type        = string
-  description = "The namespace of the milvus release"
-  default     = "milvus"
+  description = "Namespace for the Ollama Helm release."
+  default     = "ollama"
 }
 
 variable "enable_qwen" {

@@ -62,6 +62,7 @@ variable "newrelic_license_key" {
   type        = string
   description = "New Relic license key"
   default     = ""
+  sensitive   = true
 }
 
 variable "enable_dash0" {

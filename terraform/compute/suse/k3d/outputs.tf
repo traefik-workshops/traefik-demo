@@ -11,6 +11,7 @@ output "client_certificate" {
 output "client_key" {
   description = "k3d cluster client key"
   value       = base64decode(k3d_cluster.traefik_demo.client_key)
+  sensitive   = true
 }
 
 output "cluster_ca_certificate" {

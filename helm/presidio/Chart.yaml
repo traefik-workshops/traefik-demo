@@ -4,3 +4,21 @@ description: A Helm chart for Microsoft Presidio Analyzer
 type: application
 version: 3.2.0
 appVersion: "2.2.358"
+kubeVersion: ">= 1.27.0-0"
+
+maintainers:
+  - name: Traefik SA team
+    email: sa@traefik.io
+
+sources:
+  - https://github.com/traefik-workshops/traefik-demo
+  - https://github.com/microsoft/presidio
+
+home: https://github.com/traefik-workshops/traefik-demo/tree/main/helm/presidio
+
+keywords:
+  - traefik
+  - ai
+  - pii
+  - presidio
+  - demo

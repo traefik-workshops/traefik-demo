@@ -4,7 +4,7 @@ Quick reference for adding or changing modules. The full conventions live in [`C
 
 ## Before you change anything
 
-1. Check [`ISSUES.md`](./ISSUES.md) — your change may overlap with known debt.
+1. Skim the relevant `<section>/CLAUDE.md` for section-specific rules before changing anything.
 2. Skim the section's `README.md` and `CLAUDE.md`.
 3. Look at the closest existing module — pattern-match, don't invent.
 

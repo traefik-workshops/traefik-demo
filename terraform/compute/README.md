@@ -60,11 +60,3 @@ Some modules add extras (`endpoint`, `region`, `version`, `node_pool_id`). New c
 2. Copy its file layout (`main.tf`, `metrics.tf` if relevant, `outputs.tf`, `variables.tf`, `versions.tf`).
 3. Match the five standard outputs.
 4. Pick a small default node size (free-tier-friendly if the cloud has one).
-
-## Known issues
-
-- **Hardcoded passwords** in `nutanix/nkp/main.tf` and `nutanix/nkp/registry/main.tf` (SEC-01, SEC-02 — critical)
-- Missing version constraint on `kubernetes` provider in `nutanix/nkp/kommander` (VER-01)
-- RunPod modules missing `versions.tf` (PROV-01)
-
-See [`../../ISSUES.md`](../../ISSUES.md).

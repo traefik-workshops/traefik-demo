@@ -65,7 +65,7 @@ variable "init_user_name" {
 
 variable "init_user_password" {
   type        = string
-  description = "Password of the seeded admin user (LANGFUSE_INIT_USER_PASSWORD). Demo default; override for anything real."
+  description = "Password of the seeded admin user (LANGFUSE_INIT_USER_PASSWORD). Demo default; override for anything real. DEMO DEFAULT — override per environment."
   sensitive   = true
   default     = "topsecretpassword"
 }

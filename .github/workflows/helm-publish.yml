@@ -38,7 +38,7 @@ jobs:
 
       - uses: azure/setup-helm@v4
         with:
-          version: ${{ env.HELM_VERSION} }
+          version: ${{ env.HELM_VERSION }}
 
       - name: Login to GHCR
         run: |
@@ -63,6 +63,25 @@ jobs:
             if grep -q '^dependencies:' "${c}Chart.yaml" 2>/dev/null; then
               echo "::group::helm dep update $c"
               helm dep update "$c"
+              echo "::endgroup::"
+            fi
+          done
+
+      # Rewrite in-repo file:// deps to oci:// so consumers that `helm pull` a
+      # packaged chart can still resolve dependencies (the file:// path points
+      # at a sibling dir that doesn't exist outside this repo). Deps are
+      # already vendored under charts/*.tgz by the previous step, so packaging
+      # itself doesn't need network access — this only changes what the
+      # embedded Chart.yaml advertises to downstream consumers.
+      - name: Rewrite file:// subchart deps to oci://
+        run: |
+          set -euo pipefail
+          for c in helm/*/; do
+            if grep -q '"file://\.\./' "${c}Chart.yaml" 2>/dev/null; then
+              echo "::group::rewrite ${c}Chart.yaml"
+              sed -i.bak "s|\"file://\.\./|\"${OCI_REGISTRY}/|g" "${c}Chart.yaml"
+              rm -f "${c}Chart.yaml.bak"
+              grep -E '^\s*repository:' "${c}Chart.yaml" || true
               echo "::endgroup::"
             fi
           done

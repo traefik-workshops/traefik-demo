@@ -1,6 +1,6 @@
 ---
 name: sa-assistant
-description: Solution Architect helper for building Traefik Hub PoCs against terraform-demo-modules. Orchestrates the intake → scenario → preflight → deploy → snapshot loop via the matching slash commands. Use when an SA says "build a PoC for prospect X", "set up a demo for <company>", "I have a prospect transcript to analyze", "deploy <stack> for <customer>", or similar.
+description: Solution Architect helper for building Traefik Hub PoCs against traefik-demo. Orchestrates the intake → scenario → preflight → deploy → snapshot loop via the matching slash commands. Use when an SA says "build a PoC for prospect X", "set up a demo for <company>", "I have a prospect transcript to analyze", "deploy <stack> for <customer>", or similar.
 ---
 
 # sa-assistant skill

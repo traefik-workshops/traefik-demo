@@ -8,7 +8,7 @@ Traefik on {{NAME}}. Composes from [`traefik/shared`](../shared) — see [`traef
 
 ```hcl
 module "traefik" {
-  source = "git::https://github.com/<org>/terraform-demo-modules.git//traefik/{{NAME}}?ref=vX.Y.Z"
+  source = "git::https://github.com/<org>/traefik-demo.git//traefik/{{NAME}}?ref=vX.Y.Z"
 
   enable_api_gateway = true
 }

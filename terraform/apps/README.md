@@ -21,8 +21,3 @@ If you're tempted to put real application logic here, stop. Real apps live in th
 Almost never. The bar is: "is there a *demo concept* that whoami and httpbin can't carry?" If yes, add it. If no, use what's here.
 
 The most common request is "an app that does X behavior" (slow response, error injection, large payload). Prefer adding a flag to `whoami/k8s` if possible.
-
-## Known issues
-
-- `httpbin/k8s` is a stub with no variables — see STUB-01 in [`../../ISSUES.md`](../../ISSUES.md)
-- `whoami/cloud-init` has no `main.tf` (it's a template-only "module")

@@ -10,9 +10,10 @@ variable "namespace" {
 }
 
 variable "password" {
-  description = "Redis password"
+  description = "Redis password. DEMO DEFAULT — override per environment."
   type        = string
   default     = "topsecretpassword"
+  sensitive   = true
 }
 
 variable "replicaCount" {

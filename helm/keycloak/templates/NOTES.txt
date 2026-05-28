@@ -48,3 +48,19 @@ To verify the installation:
   kubectl get pods -n {{ include "keycloak.namespace" . }}
 
 For more information, visit: https://www.keycloak.org/
+
+{{- if or (eq .Values.keycloak.adminPassword "") (eq .Values.postgres.password "") (eq .Values.realm.clientSecret "") }}
+
+⚠️  REQUIRED CREDENTIALS NOT SET:
+{{- if eq .Values.keycloak.adminPassword "" }}
+  - keycloak.adminPassword is empty. Set with --set keycloak.adminPassword=...
+{{- end }}
+{{- if eq .Values.postgres.password "" }}
+  - postgres.password is empty. Set with --set postgres.password=...
+{{- end }}
+{{- if eq .Values.realm.clientSecret "" }}
+  - realm.clientSecret is empty. Set with --set realm.clientSecret=...
+{{- end }}
+
+Generate strong values with:  openssl rand -hex 32
+{{- end }}

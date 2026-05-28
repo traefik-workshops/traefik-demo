@@ -1,11 +1,11 @@
 ---
 name: bump
-description: Cut a release of the terraform-demo-modules repo. Bumps the repo tag (patch/minor/major), sweeps every helm chart version + in-repo dependency version + terraform README ref examples to match, refreshes Chart.lock files, commits, tags, pushes. Use when the user says "release," "cut a release," "tag," "bump the version," "ship," or similar.
+description: Cut a release of the traefik-demo repo. Bumps the repo tag (patch/minor/major), sweeps every helm chart version + in-repo dependency version + terraform README ref examples to match, refreshes Chart.lock files, commits, tags, pushes. Use when the user says "release," "cut a release," "tag," "bump the version," "ship," or similar.
 ---
 
 # bump skill
 
-You are cutting a release of the terraform-demo-modules repo. The repo uses a **single unified semver tag** (`vX.Y.Z`) that drives both halves:
+You are cutting a release of the traefik-demo repo. The repo uses a **single unified semver tag** (`vX.Y.Z`) that drives both halves:
 
 - Terraform consumers pin to `?ref=vX.Y.Z`
 - Helm consumers pin to `--version X.Y.Z`

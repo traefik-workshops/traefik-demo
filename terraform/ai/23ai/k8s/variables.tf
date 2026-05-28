@@ -10,40 +10,45 @@ variable "namespace" {
 }
 
 variable "replicas" {
-  type    = number
-  default = 1
+  description = "Number of Oracle 23ai StatefulSet replicas. Default `1` is fine for demos; the chart isn't HA-aware so larger values aren't useful without external coordination."
+  type        = number
+  default     = 1
 }
 
 variable "storage_size" {
-  type    = string
-  default = "50Gi"
+  description = "PersistentVolumeClaim size requested per replica for `/opt/oracle/oradata`. Default `50Gi` covers a demo dataset; bump for benchmarks."
+  type        = string
+  default     = "50Gi"
 }
 
 variable "image" {
-  type    = string
-  default = "container-registry.oracle.com/database/free:latest"
+  description = "Container image for the Oracle 23ai database. Defaults to the public Oracle Free image; override to pin a tag or point at a mirrored registry."
+  type        = string
+  default     = "container-registry.oracle.com/database/free:latest"
 }
 
 variable "service_port" {
-  type    = number
-  default = 1521
+  description = "Cluster-IP Service port that exposes the Oracle TNS listener. Defaults to the Oracle standard `1521`."
+  type        = number
+  default     = 1521
 }
 
 variable "container_port" {
-  type    = number
-  default = 1521
+  description = "Pod port the TNS listener binds to inside the container. Defaults to `1521`; only change when overriding the image entrypoint."
+  type        = number
+  default     = 1521
 }
 
 variable "oracle_pwd" {
   type        = string
   default     = "topSecretpa33word"
-  description = "Oracle database password."
+  description = "SYS/SYSTEM/PDBADMIN password injected via the `ORACLE_PWD` env var. Demo default is intentionally low-effort — rotate when exposing the DB outside the cluster."
 }
 
 variable "oracle_characterset" {
   type        = string
   default     = "AL32UTF8"
-  description = "Oracle database character set."
+  description = "Database character set passed via the `ORACLE_CHARACTERSET` env var at first boot. AL32UTF8 is the Oracle-recommended UTF-8 default; only change for legacy compatibility."
 }
 
 variable "ingress" {

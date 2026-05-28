@@ -1,4 +1,4 @@
-# Agent Guide — terraform-demo-modules
+# Agent Guide — traefik-demo
 
 Authoritative conventions for agents (Claude, etc.) and contributors. Keep this file short and operational; deep dives belong in the per-section `CLAUDE.md` files.
 
@@ -58,7 +58,7 @@ Optional, only when justified:
 - `providers.tf` — *only* when the module needs configured provider blocks (e.g. aliases). Plain `required_providers` lives in `versions.tf`.
 - `<topic>.tf` — split files by topic when `main.tf` exceeds ~300 lines (e.g. `kubeconfig.tf`, `metrics.tf`, `storage.tf`). Don't split prematurely.
 
-**The current repo is inconsistent here** — see [`ISSUES.md`](./ISSUES.md) `CONV-01`. New modules follow this convention; existing modules are not retroactively renamed.
+The canonical convention: `versions.tf` holds `terraform { required_providers { ... } }`; `providers.tf` only exists when a module needs configured provider blocks (e.g. aliases). The repo's existing modules are now consistent with this; new modules follow it.
 
 ## Variable conventions
 
@@ -115,7 +115,7 @@ Each release target:
 
 ## When changing an existing module
 
-1. Open `ISSUES.md` and check if the issue you're fixing is listed.
+1. Skim the relevant `<section>/CLAUDE.md` for section-specific rules.
 2. If you're changing a variable name, default, or removing an output → it's a major release.
 3. If you're adding a variable, it must have a default (else minor becomes major).
 4. Update the module's `README.md` (the per-module one, not the section one).
@@ -137,7 +137,7 @@ Use **`.claude/skills/bump/`** (or `make release-bug/feature/major`). The skill 
 ## Repo-wide expectations for agents
 
 - **Don't rename existing variables** without explicit user approval — it's a breaking change and downstream demos will break.
-- **Don't introduce a new provider** without checking the existing distribution (see `ISSUES.md` for the inventory). Stick to providers already in use unless there's a strong reason.
+- **Don't introduce a new provider** without explicit justification. The repo deliberately keeps the provider count low; stick to providers already in use unless there's a strong reason.
 - **Don't commit `.tfstate`, `.tfvars`, or `.terraform/`.** `.gitignore` covers these but verify.
 - **Don't bypass `make lint`.** If the lint catches something, fix the code, not the lint rule.
 - **When asked to "add a module for X,"** check existing siblings under the same section first. If a similar one exists for a different platform, use it as the template.
@@ -146,7 +146,7 @@ Use **`.claude/skills/bump/`** (or `make release-bug/feature/major`). The skill 
 ## Where to look next
 
 - Per-section conventions (some sections add their own rules): `<section>/CLAUDE.md`, `helm/CLAUDE.md`
-- Open issues: [`ISSUES.md`](./ISSUES.md)
+
 - Testing posture: [`TESTING.md`](./TESTING.md)
 - Lint rules: [`.tflint.hcl`](./.tflint.hcl), [`.pre-commit-config.yaml`](./.pre-commit-config.yaml)
 - Skills: [`new-module`](./.claude/skills/new-module/README.md), [`new-chart`](./.claude/skills/new-chart/README.md), [`bump`](./.claude/skills/bump/README.md), [`sa-assistant`](./.claude/skills/sa-assistant/SKILL.md)

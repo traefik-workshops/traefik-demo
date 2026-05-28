@@ -6,7 +6,7 @@ Creates a Nutanix storage container with configurable replication factor, compre
 
 ```hcl
 module "storage_container" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/compute/nutanix/storage_container?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/storage_container?ref=v3.2.0"
 
   name           = "demo-sc"
   cluster_ext_id = var.cluster_ext_id

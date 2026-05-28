@@ -6,7 +6,7 @@ Renders a cloud-init template that installs and starts Traefik Hub on a VM, with
 
 ```hcl
 module "traefik_cloud_init" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/traefik/cloud-init?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/traefik/cloud-init?ref=v3.2.0"
 
   traefik_hub_version = "v3.16.0"
   arch                = "amd64"
@@ -18,8 +18,6 @@ module "traefik_cloud_init" {
 - Consumer module that accepts cloud-init user data (e.g., `traefik/ec2`, `traefik/nutanix`).
 
 ## Notes
-
-- See PROV-01 in [../../ISSUES.md](../../ISSUES.md) — this module is missing `required_providers`.
 
 <!-- BEGIN_TF_DOCS -->
 

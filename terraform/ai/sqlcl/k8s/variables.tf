@@ -10,23 +10,27 @@ variable "namespace" {
 }
 
 variable "replicas" {
-  type    = number
-  default = 1
+  description = "Number of sqlcl-mcp Deployment replicas. Default `1` matches the demo posture — the MCP server is stateless so scaling is safe."
+  type        = number
+  default     = 1
 }
 
 variable "image" {
-  type    = string
-  default = "zalbiraw/sqlcl:latest"
+  description = "Container image for the SQLcl MCP server. Defaults to the public `zalbiraw/sqlcl:latest` build; override to pin a digest or use a mirrored registry."
+  type        = string
+  default     = "zalbiraw/sqlcl:latest"
 }
 
 variable "service_port" {
-  type    = number
-  default = 8096
+  description = "Cluster-IP Service port exposing the MCP HTTP endpoint. Defaults to `8096` to match the image."
+  type        = number
+  default     = 8096
 }
 
 variable "container_port" {
-  type    = number
-  default = 8096
+  description = "Pod port the MCP HTTP server binds to inside the container. Defaults to `8096`; only change when overriding the image entrypoint."
+  type        = number
+  default     = 8096
 }
 
 variable "ingress" {

@@ -18,10 +18,11 @@ variable "worker_nodes" {
     count = number
   }))
   default     = []
-  description = "Worker node config."
+  description = "Worker node pools to create. Each entry sizes one pool with `count` agents and applies the given Kubernetes `label` and `taint`. Default `[]` runs control-plane-only — fine for small demos."
 }
 
 variable "ports" {
+  description = "Host→cluster port mappings exposed by the k3d load balancer. Default opens 80/443 (HTTP/HTTPS) and 8080 (Traefik dashboard) on the host. Add entries for any extra ingress ports the demo needs."
   type = list(object({
     from = number
     to   = number

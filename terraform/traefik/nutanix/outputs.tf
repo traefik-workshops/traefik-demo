@@ -1,4 +1,5 @@
 output "ip_address" {
+  description = "Ip address."
   value = module.traefik_vm.ip_address
 }
 

@@ -1,4 +1,5 @@
 variable "apis" {
+  description = "AI Gateway API endpoints the k6 scenario rotates through. Each entry is `{ url, models }` — the scenario picks an API at random per request, then a model from that API's list."
   type = list(object({
     url    = string
     models = list(string)

@@ -41,7 +41,7 @@ jobs:
 
       - uses: azure/setup-helm@v4
         with:
-          version: ${{ env.HELM_VERSION} }
+          version: ${{ env.HELM_VERSION }}
 
       - name: Install kubeconform
         run: |
@@ -98,11 +98,11 @@ jobs:
 
       - uses: azure/setup-helm@v4
         with:
-          version: ${{ env.HELM_VERSION} }
+          version: ${{ env.HELM_VERSION }}
 
       - uses: helm/chart-testing-action@v2.6.1
         with:
-          version: ${{ env.CT_VERSION} }
+          version: ${{ env.CT_VERSION }}
 
       - name: ct list-changed
         id: list-changed
@@ -133,11 +133,11 @@ jobs:
 
       - uses: azure/setup-helm@v4
         with:
-          version: ${{ env.HELM_VERSION} }
+          version: ${{ env.HELM_VERSION }}
 
       - uses: helm/chart-testing-action@v2.6.1
         with:
-          version: ${{ env.CT_VERSION} }
+          version: ${{ env.CT_VERSION }}
 
       - name: ct list-changed
         id: list-changed

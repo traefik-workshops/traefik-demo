@@ -6,7 +6,7 @@ Deploys an Oracle Database 23ai (Free) StatefulSet with a matching Service into 
 
 ```hcl
 module "oracle_23ai" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/ai/23ai/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/23ai/k8s?ref=v3.2.0"
 
   namespace = "oracle"
 }
@@ -20,7 +20,6 @@ module "oracle_23ai" {
 ## Notes
 
 - The default `oracle_pwd` is a demo value — override it for any non-throwaway deployment.
-- See PROV-01 in [../../../ISSUES.md](../../../ISSUES.md) — this module is missing `required_providers`.
 
 <!-- BEGIN_TF_DOCS -->
 

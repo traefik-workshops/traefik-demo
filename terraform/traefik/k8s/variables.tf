@@ -64,6 +64,7 @@ variable "redis_password" {
   description = "Redis password for API Management"
   type        = string
   default     = "topsecretpassword"
+  sensitive   = true
 }
 
 variable "skip_crds" {

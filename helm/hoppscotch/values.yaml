@@ -8,9 +8,9 @@ host: ""
 
 image: hoppscotch/hoppscotch:2026.2.0
 
-jwtSecret: "change-me-32-chars-long-exactly!"
-sessionSecret: "change-me-32-chars-long-exactly!"
-dataEncryptionKey: "change-me-32-chars-long-exactly!"
+jwtSecret: ""  # 32-char secret required; set per install
+sessionSecret: ""  # 32-char secret required; set per install
+dataEncryptionKey: ""  # 32-char secret required; set per install
 
 entryPoints:
   - websecure

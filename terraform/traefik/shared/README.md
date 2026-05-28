@@ -8,7 +8,7 @@ Consumed internally by the other `traefik/*` modules; rarely instantiated direct
 
 ```hcl
 module "traefik_config" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/traefik/shared?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/traefik/shared?ref=v3.2.0"
 
   traefik_hub_token = var.traefik_hub_token
   cloudflare_dns    = var.cloudflare_dns
@@ -21,8 +21,6 @@ module "traefik_config" {
 - Local `helm` binary if `extract_config = true` (the module shells out to `helm template`).
 
 ## Notes
-
-- See PROV-01 in [../../ISSUES.md](../../ISSUES.md) — this module is missing `required_providers`.
 
 <!-- BEGIN_TF_DOCS -->
 

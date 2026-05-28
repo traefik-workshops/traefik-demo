@@ -6,7 +6,7 @@ Provisions a Google Kubernetes Engine (GKE) cluster with optional GPU pool and e
 
 ```hcl
 module "gke" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/compute/gcp/gke?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/gcp/gke?ref=v3.2.0"
 
   cluster_name     = "demo"
   cluster_location = "us-west1-a"

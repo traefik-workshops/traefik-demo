@@ -6,7 +6,7 @@ Installs the in-cluster dependencies required by the AI Gateway demo (Helm-based
 
 ```hcl
 module "aigw_deps" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/ai/ai-gateway-dependencies/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/ai-gateway-dependencies/k8s?ref=v3.2.0"
 
   namespace = "ai-gateway"
 }

@@ -1,7 +1,3 @@
-terraform {
-  required_version = ">= 1.3.0"
-}
-
 locals {
   nims = merge(
     var.enable_topic_control_nim ? {

@@ -1,12 +1,14 @@
 # apps/httpbin/k8s
 
+> **Status:** stub module. Intentionally minimal; expand only if a demo needs it. Documented at this minimum scope rather than removed because demo wrappers reference it.
+
 Deploys a minimal `httpbin` Deployment and Service in the `apps` namespace.
 
 ## Example usage
 
 ```hcl
 module "httpbin" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/apps/httpbin/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/httpbin/k8s?ref=v3.2.0"
 }
 ```
 
@@ -16,8 +18,6 @@ module "httpbin" {
 - The `apps` namespace must exist.
 
 ## Notes
-
-- This module is a stub — see STUB-01 in [../../../ISSUES.md](../../../ISSUES.md). It exposes no variables and is missing `required_providers` (PROV-01).
 
 <!-- BEGIN_TF_DOCS -->
 

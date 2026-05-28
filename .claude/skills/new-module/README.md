@@ -1,6 +1,6 @@
 # new-module skill
 
-Scaffolds a new leaf module under `terraform-demo-modules` following the canonical layout in [`/CLAUDE.md`](../../../CLAUDE.md).
+Scaffolds a new leaf module under `traefik-demo` following the canonical layout in [`/CLAUDE.md`](../../../CLAUDE.md).
 
 Two ways to use it:
 

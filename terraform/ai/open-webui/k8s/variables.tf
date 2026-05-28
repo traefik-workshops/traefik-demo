@@ -6,8 +6,8 @@ variable "name" {
 
 variable "namespace" {
   type        = string
-  description = "The namespace of the milvus release"
-  default     = "milvus"
+  description = "Namespace for the Open WebUI Helm release."
+  default     = "open-webui"
 }
 
 variable "openai_api_base_urls" {

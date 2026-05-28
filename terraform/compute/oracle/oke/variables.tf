@@ -30,7 +30,6 @@ variable "cluster_node_type" {
 # Required OKE variables
 variable "compartment_id" {
   type        = string
-  default     = "ocid1.compartment.oc1..aaaaaaaa5lzebpklmesa7hqpi5242wdiqhhe5tjnha44ccxzcj4coekjpjvq"
   description = "Oracle Cloud compartment ID."
 }
 

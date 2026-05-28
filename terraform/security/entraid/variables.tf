@@ -9,3 +9,10 @@ variable "redirect_uris" {
   default     = []
   description = "EntraID redirect URIs"
 }
+
+variable "user_password" {
+  description = "Initial password assigned to every created EntraID user. Demo default — override for anything beyond ephemeral PoCs."
+  type        = string
+  sensitive   = true
+  default     = "topsecretpassword"
+}

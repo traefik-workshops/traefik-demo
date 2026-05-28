@@ -1,12 +1,14 @@
 # apps/whoami/cloud-init
 
+> **Status:** stub module. Intentionally minimal; expand only if a demo needs it. Documented at this minimum scope rather than removed because demo wrappers reference it.
+
 Renders a cloud-init template that installs and starts the Traefik `whoami` binary at a configurable version, architecture, and port. No resources — output-only.
 
 ## Example usage
 
 ```hcl
 module "whoami_cloud_init" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/apps/whoami/cloud-init?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/cloud-init?ref=v3.2.0"
 
   whoami_version = "v1.10.1"
   arch           = "amd64"
@@ -20,7 +22,7 @@ module "whoami_cloud_init" {
 
 ## Notes
 
-- This module currently keeps its `variable`/`output` blocks inline in `main.tf` and has no `required_providers` — see STUB-01 and PROV-01 in [../../../ISSUES.md](../../../ISSUES.md).
+- Stub module. Kept intentionally minimal because demo wrappers reference it; expand only if a demo needs more.
 
 <!-- BEGIN_TF_DOCS -->
 

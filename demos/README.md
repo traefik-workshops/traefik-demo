@@ -16,7 +16,6 @@ Use these to:
 | [`unified-ingress`](./unified-ingress) | Multicluster transit + app-workload pattern — the dominant real-world shape. | `terraform/compute/<cloud>` (×N), `terraform/traefik/k8s` (parent + children), `terraform/observability/opentelemetry/k8s`, `terraform/apps/whoami/k8s` | `dns-traefiker` |
 | [`ai-gateway`](./ai-gateway) | AI gateway + one model backend + Keycloak. Captures the AI workflow without RunPod cost. | `terraform/compute/<cloud>`, `terraform/traefik/k8s`, `terraform/security/keycloak/k8s`, `terraform/ai/ollama/k8s` | `ai-gateway`, `presidio`, `embeddings` |
 | [`oidc-portal`](./oidc-portal) | Traefik Hub API Portal + Cognito (swap for EntraID or Keycloak). | `terraform/compute/aws/eks`, `terraform/traefik/k8s`, `terraform/security/cognito`, `terraform/apps/whoami/k8s` | — |
-| [`nutanix-on-prem`](./nutanix-on-prem) | Full Nutanix infra stack — subnet → storage → VPC → FIP → NKP. | `terraform/compute/nutanix/*`, `terraform/traefik/k8s` | — |
 
 ## Conventions
 
@@ -36,4 +35,4 @@ Every archetype ships:
 
 ## Module sources
 
-All sources use the `terraform/<section>/<path>` layout introduced in v4.0.0. If you're updating an existing v3.x demo, hand-edit the `module "..." { source = ... }` lines to insert `terraform/` after `terraform-demo-modules.git//` and bump `?ref=v3.X.Y` to a v4.x.y tag.
+All sources use the `terraform/<section>/<path>` layout introduced in v4.0.0. If you're updating an existing v3.x demo, hand-edit the `module "..." { source = ... }` lines to insert `terraform/` after `traefik-demo.git//` and bump `?ref=v3.X.Y` to a v4.x.y tag.

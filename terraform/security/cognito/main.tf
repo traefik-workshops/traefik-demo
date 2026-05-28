@@ -64,7 +64,7 @@ resource "aws_cognito_user" "users" {
   username                 = each.key
   desired_delivery_mediums = ["EMAIL"]
 
-  password       = "topsecretpassword"
+  password       = var.user_password
   message_action = "SUPPRESS"
 
   attributes = {

@@ -1,3 +1,4 @@
 output "image_name" {
-  value = "nkp-registry.qcow2"
+  description = "Image name."
+  value       = "nkp-registry.qcow2"
 }

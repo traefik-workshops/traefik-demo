@@ -6,7 +6,7 @@ Provisions one or more Traefik `whoami` instances on AWS EC2, wrapping `compute/
 
 ```hcl
 module "whoami_ec2" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/apps/whoami/ec2?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/apps/whoami/ec2?ref=v3.2.0"
 
   apps = {
     "demo" = {
@@ -22,8 +22,6 @@ module "whoami_ec2" {
 - AWS credentials with EC2/VPC permissions.
 
 ## Notes
-
-- See PROV-01 in [../../../ISSUES.md](../../../ISSUES.md) — this module is missing `required_providers`.
 
 <!-- BEGIN_TF_DOCS -->
 

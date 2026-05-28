@@ -6,7 +6,7 @@ Provisions a Nutanix Kubernetes Platform (NKP) cluster end-to-end: bastion VM, c
 
 ```hcl
 module "nkp" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/compute/nutanix/nkp?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/compute/nutanix/nkp?ref=v3.2.0"
 
   cluster_name                       = "demo"
   nutanix_cluster_id                 = var.cluster_uuid
@@ -33,7 +33,6 @@ module "nkp" {
 
 ## Notes
 
-- The Kommander admin password is hardcoded in `main.tf` — see **SEC-01** in [../../../ISSUES.md](../../../ISSUES.md).
 - The bastion VM default password (`topsecretpassword`) is also a demo value — override it for non-throwaway clusters.
 
 <!-- BEGIN_TF_DOCS -->

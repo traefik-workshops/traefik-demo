@@ -6,6 +6,25 @@ Section-specific rules. Inherits everything from [`../../CLAUDE.md`](../../CLAUD
 
 Models, vector stores, and AI-adjacent tools. Anything that an LLM-powered demo would consume.
 
+## Modules in this section
+
+Live-derived; regenerate with `make discover | jq '.modules[] | select(.path | startswith("terraform/ai/"))'`.
+
+| Module | Purpose |
+|---|---|
+| [`23ai/k8s`](./23ai/k8s) | Oracle Database 23ai (Free) StatefulSet + Service, optional Traefik ingress. |
+| [`LLMs/runpod`](./LLMs/runpod) | LLM pods on RunPod (Llama 3.1 8B, GPT OSS 20B), gated by per-model `enable_*` flags. |
+| [`NIMs/runpod`](./NIMs/runpod) | NVIDIA NIM safety microservices (Topic Control, Content Safety, Jailbreak) on RunPod. |
+| [`ai-gateway-dependencies/k8s`](./ai-gateway-dependencies/k8s) | In-cluster dependencies the AI Gateway demo expects (Helm bundle). |
+| [`granite-guardian/runpod`](./granite-guardian/runpod) | IBM Granite Guardian safety model pod on RunPod. |
+| [`knative/k8s`](./knative/k8s) | Knative Serving install for the AI Gateway demo (Helm + CRDs). |
+| [`milvus/k8s`](./milvus/k8s) | Milvus vector database via Helm. |
+| [`ollama/k8s`](./ollama/k8s) | Ollama via Helm; optional pre-pulled model set (Qwen, DeepSeek, Llama). |
+| [`open-webui/k8s`](./open-webui/k8s) | Open WebUI via Helm; optional Traefik ingress + OpenAI-compatible backends + MCP wiring. |
+| [`presidio/k8s`](./presidio/k8s) | Microsoft Presidio (PII detection/anonymization) via raw Deployment+Service. |
+| [`sqlcl/k8s`](./sqlcl/k8s) | SQLcl MCP server Deployment + Service, optional Traefik ingress. |
+| [`weaviate/k8s`](./weaviate/k8s) | Weaviate vector database via Helm. |
+
 ## Sub-conventions
 
 - **Platform subdir is mandatory** (`<module>/k8s/` or `<module>/runpod/`). Don't put `.tf` files directly under `terraform/ai/<module>/`.

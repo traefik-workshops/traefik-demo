@@ -8,7 +8,7 @@ Managed Kubernetes on {{PLATFORM}}. Exposes the standard cluster output set so d
 
 ```hcl
 module "{{NAME}}" {
-  source = "git::https://github.com/<org>/terraform-demo-modules.git//compute/{{PLATFORM}}/{{NAME}}?ref=vX.Y.Z"
+  source = "git::https://github.com/<org>/traefik-demo.git//compute/{{PLATFORM}}/{{NAME}}?ref=vX.Y.Z"
 
   cluster_name     = "demo"
   cluster_location = "us-east-1"

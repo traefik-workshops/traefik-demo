@@ -6,7 +6,7 @@ Deploys Microsoft Presidio (PII detection / anonymization) into a Kubernetes clu
 
 ```hcl
 module "presidio" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/ai/presidio/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/presidio/k8s?ref=v3.2.0"
 
   name      = "presidio"
   namespace = "presidio"
@@ -17,9 +17,19 @@ module "presidio" {
 
 - A working Kubernetes cluster with the `helm` provider configured.
 
-## Notes
+## Related
 
-- Variable defaults/descriptions still reference Milvus — see DESC-01 in [../../../ISSUES.md](../../../ISSUES.md).
+There is also a Helm chart that ships Presidio with the full values surface:
+[`helm/presidio`](../../../../helm/presidio). Pick which:
+
+- Use **the Helm chart** when the demo runs Presidio with non-default
+  resource requests/limits, custom image tags, or is consumed by another
+  chart (notably the umbrella `ai-gateway` chart pulls it in as a subchart).
+- Use **this Terraform module** for the trivial in-Terraform demo case —
+  it stands up a single Deployment + Service with hardcoded image and
+  resources. Extend with the chart if you need real knobs.
+
+## Notes
 
 <!-- BEGIN_TF_DOCS -->
 

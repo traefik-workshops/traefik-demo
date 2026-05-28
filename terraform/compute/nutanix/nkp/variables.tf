@@ -123,7 +123,7 @@ variable "bastion_vm_username" {
 }
 
 variable "bastion_vm_password" {
-  description = "Password for the Bastion VM"
+  description = "Password for the Bastion VM. DEMO DEFAULT — override per environment."
   type        = string
   sensitive   = false
   default     = "topsecretpassword"

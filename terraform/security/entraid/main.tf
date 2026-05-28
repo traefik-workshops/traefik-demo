@@ -13,7 +13,7 @@ resource "azuread_user" "traefik_demo" {
 
   user_principal_name     = "${each.value}@${local.domain_name}"
   display_name            = each.value
-  password                = "topsecretpassword"
+  password                = var.user_password
   force_password_change   = false
   disable_strong_password = true
 }

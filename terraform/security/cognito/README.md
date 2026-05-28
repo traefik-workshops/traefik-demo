@@ -6,7 +6,7 @@ Provisions an AWS Cognito User Pool, a domain, an App Client, and a set of demo 
 
 ```hcl
 module "cognito" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/security/cognito?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/security/cognito?ref=v3.2.0"
 
   users         = ["admin", "support"]
   redirect_uris = ["https://demo.traefik.ai/callback"]
@@ -18,8 +18,6 @@ module "cognito" {
 - AWS credentials with Cognito permissions.
 
 ## Notes
-
-- The admin user password is hardcoded in `main.tf` — see **SEC-03** in [../../ISSUES.md](../../ISSUES.md).
 
 <!-- BEGIN_TF_DOCS -->
 

@@ -1,4 +1,4 @@
-# tflint configuration for terraform-demo-modules
+# tflint configuration for traefik-demo
 #
 # Enforces conventions documented in CLAUDE.md and CONTRIBUTING.md.
 # Run via:  make lint

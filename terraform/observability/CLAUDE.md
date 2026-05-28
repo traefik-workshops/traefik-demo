@@ -6,6 +6,21 @@ Inherits from [`../../CLAUDE.md`](../../CLAUDE.md).
 
 Metrics, logs, traces stacks. AI-specific observability (Langfuse) also lives here.
 
+## Modules in this section
+
+Live-derived; regenerate with `make discover | jq '.modules[] | select(.path | startswith("terraform/observability/"))'`.
+
+| Module | Purpose |
+|---|---|
+| [`grafana/k8s`](./grafana/k8s) | Grafana via Helm — wired Prometheus/Tempo/Loki datasources, optional Traefik ingress, image renderer, demo dashboards. |
+| [`grafana/k8s/dashboards/aigateway`](./grafana/k8s/dashboards/aigateway) | AI Gateway dashboard JSON as a ConfigMap (no Helm release, no providers — pure fragment). |
+| [`grafana-loki/k8s`](./grafana-loki/k8s) | Grafana Loki via Helm. |
+| [`grafana-stack/k8s`](./grafana-stack/k8s) | Full Grafana + Prometheus stack (kube-prometheus-stack) + optional ingress + demo dashboards. |
+| [`grafana-tempo/k8s`](./grafana-tempo/k8s) | Grafana Tempo via Helm. |
+| [`langfuse/k8s`](./langfuse/k8s) | Langfuse (LLM observability) via Helm with headless org/project/admin seeding + optional Traefik IngressRoute. |
+| [`opentelemetry/k8s`](./opentelemetry/k8s) | OpenTelemetry Collector via Helm with per-backend pipelines (Prometheus, Loki, Tempo, New Relic, Dash0, Honeycomb, LangSmith, Langfuse). |
+| [`prometheus/k8s`](./prometheus/k8s) | Prometheus via Helm (kube-prometheus-stack) + optional Traefik scrape job + ingress. |
+
 ## Sub-conventions
 
 - **Helm-based, k8s-only.** No multi-platform branches.

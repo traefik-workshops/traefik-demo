@@ -20,9 +20,4 @@ Identity providers and IAM scaffolding. The job of this section is "give the dem
 
 ## What users get seeded
 
-All three IdP modules accept a `users` variable (list of objects). They seed those users with passwords. Today those passwords are **hardcoded** in `cognito` and `entraid` — see SEC-03 / SEC-04 in [`../../ISSUES.md`](../../ISSUES.md).
-
-## Known issues
-
-- Hardcoded passwords in `cognito` and `entraid` (SEC-03, SEC-04 — critical)
-- `keycloak/k8s` is missing `versions.tf` (PROV-01)
+All three IdP modules accept a `users` variable (list of objects). They seed those users with passwords. User passwords are routed through `var.user_password` (sensitive); a demo default is provided.

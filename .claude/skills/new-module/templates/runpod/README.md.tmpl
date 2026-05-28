@@ -8,7 +8,7 @@ RunPod module. Uses the RunPod GraphQL API via `null_resource` + `curl`. Same pa
 
 ```hcl
 module "{{NAME}}" {
-  source = "git::https://github.com/<org>/terraform-demo-modules.git//{{SECTION}}/{{PLATFORM}}/{{NAME}}?ref=vX.Y.Z"
+  source = "git::https://github.com/<org>/traefik-demo.git//{{SECTION}}/{{PLATFORM}}/{{NAME}}?ref=vX.Y.Z"
 
   enable_{{NAME}}  = true
   runpod_api_key  = var.runpod_api_key

@@ -4,3 +4,20 @@ description: A Helm chart for the DNS Traefiker application
 type: application
 version: 3.2.0
 appVersion: "v1.0.2"
+kubeVersion: ">= 1.27.0-0"
+
+maintainers:
+  - name: Traefik SA team
+    email: sa@traefik.io
+
+sources:
+  - https://github.com/traefik-workshops/traefik-demo
+  - https://github.com/zalbiraw/dns-traefiker
+
+home: https://github.com/traefik-workshops/traefik-demo/tree/main/helm/dns-traefiker
+
+keywords:
+  - traefik
+  - dns
+  - cloudflare
+  - automation

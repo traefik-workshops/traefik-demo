@@ -1,10 +1,10 @@
 variable "name" {
-  description = "The name of the cert-manager release"
+  description = "Name of the NGINX ingress controller Helm release."
   type        = string
-  default     = "cert-manager"
+  default     = "nginx"
 }
 
 variable "namespace" {
-  description = "Namespace for the cert-manager deployment"
+  description = "Namespace for the NGINX deployment."
   type        = string
 }

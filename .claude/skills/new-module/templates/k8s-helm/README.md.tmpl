@@ -8,7 +8,7 @@ Thin Helm wrapper. Inherits demo-friendly defaults from this module; expose your
 
 ```hcl
 module "{{NAME}}" {
-  source = "git::https://github.com/<org>/terraform-demo-modules.git//{{SECTION}}/{{PLATFORM}}/{{NAME}}?ref=vX.Y.Z"
+  source = "git::https://github.com/<org>/traefik-demo.git//{{SECTION}}/{{PLATFORM}}/{{NAME}}?ref=vX.Y.Z"
 
   # Defaults are dev-grade. Override only what you need.
   values = {

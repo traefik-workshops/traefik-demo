@@ -1,4 +1,4 @@
-# terraform-demo-modules
+# traefik-demo
 
 Shared Terraform modules used by other repos to **build demos and POCs**. Every module here is consumed via `source = "git::..."` from one or more demo repos and is expected to have sensible defaults so a demo author can `module "x" { source = "..." }` with minimal configuration, while still exposing knobs for advanced scenarios.
 
@@ -31,7 +31,6 @@ Each section has its own `README.md` and `CLAUDE.md` — start with those when y
 ## Quick links
 
 - [Layout, conventions, and module patterns](./CLAUDE.md) — read this first if you're contributing
-- [Open issues / punch list](./ISSUES.md) — known problems waiting on triage
 - [Testing strategy](./TESTING.md) — what's tested, what isn't, why
 - [Contributing guide](./CONTRIBUTING.md) — how to add a module or chart
 - Terraform sections: [ai](./terraform/ai/README.md) · [apps](./terraform/apps/README.md) · [compute](./terraform/compute/README.md) · [observability](./terraform/observability/README.md) · [security](./terraform/security/README.md) · [tools](./terraform/tools/README.md) · [traefik](./terraform/traefik/README.md)
@@ -45,7 +44,7 @@ Terraform module:
 
 ```hcl
 module "eks" {
-  source = "git::https://github.com/<org>/terraform-demo-modules.git//terraform/compute/aws/eks?ref=v3.2.0"
+  source = "git::https://github.com/<org>/traefik-demo.git//terraform/compute/aws/eks?ref=v3.2.0"
 
   cluster_name     = "demo"
   cluster_location = "us-east-1"
@@ -87,7 +86,7 @@ See [`Makefile`](./Makefile) for the full target list. Run `make help`.
 **No:**
 - The actual demo. Demos live in their own repos and consume this one.
 - Anything that requires hand-holding to install (manual steps, missing inputs without defaults, secrets without a managed source).
-- Anything that hardcodes credentials (see [`ISSUES.md`](./ISSUES.md) for current debt).
+- Anything that hardcodes credentials.
 
 ## Adding a module or chart
 

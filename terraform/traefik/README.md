@@ -48,9 +48,3 @@ The most common knobs (set via `terraform/traefik/shared` or the platform module
 - `enable_preview_mode`
 - `enable_prometheus`
 - `enable_otlp_metrics` / `_traces` / `_access_logs` / `_application_logs`
-
-## Known issues
-
-- `terraform/traefik/cloud-init` and `terraform/traefik/shared` are missing `versions.tf` (PROV-01). `shared` is a logic-only module, but it should declare `required_version`.
-
-See [`../../ISSUES.md`](../../ISSUES.md).

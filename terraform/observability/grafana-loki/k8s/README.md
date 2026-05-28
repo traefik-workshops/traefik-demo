@@ -6,7 +6,7 @@ Deploys Grafana Loki on Kubernetes via Helm.
 
 ```hcl
 module "loki" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/observability/grafana-loki/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/observability/grafana-loki/k8s?ref=v3.2.0"
 
   name      = "loki"
   namespace = "observability"

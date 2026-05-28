@@ -6,7 +6,7 @@ Provisions a set of LLM pods (Llama 3.1 8B, GPT OSS 20B) on RunPod, gated by per
 
 ```hcl
 module "llms" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/ai/LLMs/runpod?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/LLMs/runpod?ref=v3.2.0"
 
   runpod_api_key       = var.runpod_api_key
   hugging_face_api_key = var.hugging_face_api_key
@@ -20,8 +20,6 @@ module "llms" {
 - A Hugging Face account/token with access to the requested model weights.
 
 ## Notes
-
-- See PROV-01 in [../../../ISSUES.md](../../../ISSUES.md) — this module is missing `required_providers`.
 
 <!-- BEGIN_TF_DOCS -->
 

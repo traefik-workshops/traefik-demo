@@ -6,6 +6,19 @@ Inherits from [`../../CLAUDE.md`](../../CLAUDE.md). This is the most opinionated
 
 Traefik installs and Traefik configuration logic across every supported platform.
 
+## Modules in this section
+
+Live-derived; regenerate with `make discover | jq '.modules[] | select(.path | startswith("terraform/traefik/"))'`.
+
+| Module | Purpose |
+|---|---|
+| [`shared`](./shared) | Library module: takes inputs, renders the upstream Traefik Helm chart, exposes CLI args / env vars / ports / image refs / static config. Consumed by every platform module below. |
+| [`cloud-init`](./cloud-init) | Template module: renders cloud-init for VM installs (Keepalived VRRP, OTLP, perf tuning, DNS Traefiker). No resources — output-only. |
+| [`k8s`](./k8s) | Traefik Hub on Kubernetes via Helm — full feature-flag matrix (API Gateway, AI Gateway, MCP Gateway, API Management, Knative provider). |
+| [`ec2`](./ec2) | Traefik Hub on AWS EC2 — wires `shared` + `cloud-init`. Optional Elastic IP and ACME sync. |
+| [`ecs`](./ecs) | Traefik Hub on AWS ECS — wires `shared` + `compute/aws/ecs`. |
+| [`nutanix`](./nutanix) | Traefik Hub VM on Nutanix AHV via `compute/nutanix/vm` — wires `shared` + `cloud-init`. Optional Keepalived HA. |
+
 ## Architecture
 
 ```

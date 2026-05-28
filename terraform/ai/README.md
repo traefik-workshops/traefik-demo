@@ -35,8 +35,3 @@ If you're adding a new vector store (Qdrant, pgvector, etc.), follow the `milvus
 ## Section-specific conventions
 
 See [`./CLAUDE.md`](./CLAUDE.md).
-
-## Known issues in this section
-
-- 5 modules missing `versions.tf` (PROV-01) — see [`../../ISSUES.md`](../../ISSUES.md)
-- `terraform/ai/ollama/k8s/variable.tf` should be `variables.tf` (NAME-01)

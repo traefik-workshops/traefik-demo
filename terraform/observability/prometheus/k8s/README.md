@@ -6,7 +6,7 @@ Deploys Prometheus on Kubernetes via Helm (kube-prometheus-stack), with an optio
 
 ```hcl
 module "prometheus" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/observability/prometheus/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/observability/prometheus/k8s?ref=v3.2.0"
 
   name      = "prometheus"
   namespace = "observability"

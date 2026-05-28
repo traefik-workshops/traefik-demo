@@ -1,4 +1,4 @@
-# tfsec configuration for terraform-demo-modules.
+# tfsec configuration for traefik-demo.
 #
 # tfsec is run via `make security`. The rules below are tuned for a
 # demo-modules repo, not a production module library. We disable a

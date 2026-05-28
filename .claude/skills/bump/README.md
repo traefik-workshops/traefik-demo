@@ -44,4 +44,3 @@ Two reasons:
 
 1. **Conversational confirmation** — agents (and humans) are more likely to pause and read the commit log when an LLM is asking "is this really a minor?"
 2. **Refuse on ambiguity** — if the recent commit log is ambiguous between two bump kinds, the skill stops and asks. The Makefile happily picks whatever you told it.
-

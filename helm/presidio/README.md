@@ -19,6 +19,19 @@ helm dep update
 helm install my-presidio .
 ```
 
+## Related
+
+There is also a Terraform module that ships Presidio for the same role:
+[`terraform/ai/presidio/k8s`](../../terraform/ai/presidio/k8s). Pick which:
+
+- Use **this chart** in any GitOps or `helm install` workflow — it is the
+  shape consumed by the umbrella `ai-gateway` chart for AI Gateway demos.
+- Use the **Terraform module** when you're already building the cluster with
+  Terraform and want the Presidio resources in the same plan/state. Note
+  that the module wires Presidio with raw `kubernetes_deployment_v1` /
+  `kubernetes_service_v1` rather than wrapping this chart, so its values
+  surface is smaller — extend it only for trivial demos.
+
 ## Conventions
 
 See [`../CLAUDE.md`](./CLAUDE.md) for repo-wide rules and [`./CLAUDE.md`](./CLAUDE.md) for chart-specific conventions.

@@ -6,7 +6,7 @@ Deploys NGINX on Kubernetes via Helm.
 
 ```hcl
 module "nginx" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/tools/nginx/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/tools/nginx/k8s?ref=v3.2.0"
 
   name      = "nginx"
   namespace = "nginx"
@@ -18,8 +18,6 @@ module "nginx" {
 - A working Kubernetes cluster with the `helm` provider configured.
 
 ## Notes
-
-- The default `name` is `"cert-manager"`, copy-pasted from another module — see DESC-01 in [../../../ISSUES.md](../../../ISSUES.md). Always set `name` explicitly.
 
 <!-- BEGIN_TF_DOCS -->
 

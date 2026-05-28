@@ -25,5 +25,6 @@ variable "hugging_face_api_key" {
 }
 
 variable "pods" {
-  type = any
+  description = "Map of RunPod pod definitions to create, keyed by an arbitrary id. Each value carries the fields the `manage_pod.sh` script consumes: `name`, `image`, `tag`, `command`, `pod_type`. Typed as `any` because the upstream `runpodctl` schema evolves — validate at the call site."
+  type        = any
 }

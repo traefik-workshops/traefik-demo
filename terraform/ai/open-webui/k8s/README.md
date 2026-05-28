@@ -6,7 +6,7 @@ Deploys Open WebUI on a Kubernetes cluster via Helm, with optional Traefik ingre
 
 ```hcl
 module "open_webui" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/ai/open-webui/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/open-webui/k8s?ref=v3.2.0"
 
   name      = "open-webui"
   namespace = "open-webui"
@@ -19,8 +19,6 @@ module "open_webui" {
 - Traefik installed in-cluster if `ingress = true`.
 
 ## Notes
-
-- Several variable defaults/descriptions still reference Milvus — see DESC-01 in [../../../ISSUES.md](../../../ISSUES.md).
 
 <!-- BEGIN_TF_DOCS -->
 

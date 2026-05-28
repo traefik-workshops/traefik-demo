@@ -165,27 +165,33 @@ output "dashboard_entrypoints" {
 }
 
 output "enable_api_gateway" {
-  value = var.enable_api_gateway
+  description = "Enable api gateway."
+  value       = var.enable_api_gateway
 }
 
 output "enable_ai_gateway" {
-  value = var.enable_ai_gateway
+  description = "Enable ai gateway."
+  value       = var.enable_ai_gateway
 }
 
 output "enable_mcp_gateway" {
-  value = var.enable_mcp_gateway
+  description = "Enable mcp gateway."
+  value       = var.enable_mcp_gateway
 }
 
 output "enable_api_management" {
-  value = var.enable_api_management
+  description = "Enable api management."
+  value       = var.enable_api_management
 }
 
 output "enable_offline_mode" {
-  value = var.enable_offline_mode
+  description = "Enable offline mode."
+  value       = var.enable_offline_mode
 }
 
 output "enable_preview_mode" {
-  value = var.enable_preview_mode
+  description = "Enable preview mode."
+  value       = var.enable_preview_mode
 }
 
 output "replica_count" {
@@ -194,27 +200,33 @@ output "replica_count" {
 }
 
 output "enable_prometheus" {
-  value = var.enable_prometheus
+  description = "Enable prometheus."
+  value       = var.enable_prometheus
 }
 
 output "enable_otlp_metrics" {
-  value = var.enable_otlp_metrics
+  description = "Enable otlp metrics."
+  value       = var.enable_otlp_metrics
 }
 
 output "enable_otlp_traces" {
-  value = var.enable_otlp_traces
+  description = "Enable otlp traces."
+  value       = var.enable_otlp_traces
 }
 
 output "enable_otlp_access_logs" {
-  value = var.enable_otlp_access_logs
+  description = "Enable otlp access logs."
+  value       = var.enable_otlp_access_logs
 }
 
 output "enable_otlp_application_logs" {
-  value = var.enable_otlp_application_logs
+  description = "Enable otlp application logs."
+  value       = var.enable_otlp_application_logs
 }
 
 output "custom_plugins" {
-  value = var.custom_plugins
+  description = "Custom plugins."
+  value       = var.custom_plugins
 }
 
 output "computed_dns_domain" {

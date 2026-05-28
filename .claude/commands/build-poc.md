@@ -98,8 +98,6 @@ terraform apply -auto-approve -var="<key>=<value>" ...
 - Never run `terraform destroy` — only `apply`
 - If KUBECONFIG not set after compute deploy, stop and report
 
-
-
 ## Step 5 — Helm install (if any helm/ charts in plan)
 
 For each chart in the helm phase:

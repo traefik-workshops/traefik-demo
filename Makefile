@@ -1,4 +1,4 @@
-# Master Makefile — terraform-demo-modules.
+# Master Makefile — traefik-demo.
 #
 # Single Makefile for both halves of the repo (Terraform modules + Helm charts).
 # Run `make help` for the full target list.
@@ -48,7 +48,7 @@ endif
 
 .PHONY: help
 help: ## Show this help.
-	@echo "$(BOLD)terraform-demo-modules$(RESET) — current tag: $(YELLOW)$(CURRENT_TAG)$(RESET)"
+	@echo "$(BOLD)traefik-demo$(RESET) — current tag: $(YELLOW)$(CURRENT_TAG)$(RESET)"
 	@echo
 	@echo "$(BOLD)Terraform quality:$(RESET)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-z][a-zA-Z_-]+:.*?## TF: / {printf "  $(GREEN)%-22s$(RESET) %s\n", $$1, substr($$2, 5)}' $(MAKEFILE_LIST)
@@ -175,6 +175,10 @@ check: tf-fmt-check tf-validate tf-lint tf-security helm-lint helm-template helm
 
 .PHONY: fmt
 fmt: tf-fmt ## X: Run all formatters.
+
+.PHONY: discover
+discover: ## X: Emit JSON inventory of every leaf TF module + Helm chart (stdout). Agent's first read.
+	@scripts/discover.sh
 
 # ============================================================================
 # 4. Release machinery

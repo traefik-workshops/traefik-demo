@@ -28,7 +28,7 @@ helm/<name>/
     └── *.yaml          # other resources
 ```
 
-The current charts are inconsistent here — see `HELM-*` in [`../ISSUES.md`](../ISSUES.md). New charts follow this convention; existing charts are fixed opportunistically.
+All charts follow this convention as of the v4 sweep. The `new-chart` skill scaffolds it.
 
 ## Versioning model (read this carefully)
 
@@ -63,7 +63,7 @@ This trades per-chart independence for cross-cutting simplicity. Consumers pin e
 - **Comment every top-level group.** Agents and humans read values.yaml first; uncommented YAML is opaque.
 - **Booleans use `enabled: true|false`** for feature toggles. Mirror the convention from the Terraform side.
 - **Defaults are dev-grade.** Single replica, in-cluster databases, demo passwords. Production-grade knobs are exposed but off.
-- **Never default a real secret.** Use a `"change-me-..."` placeholder or empty string + a `NOTES.txt` instruction to rotate. See `SEC-09` in `../ISSUES.md` for what NOT to do.
+- **Never default a real secret.** Use an empty string + a `NOTES.txt` instruction to set it at install time (`--set <key>=<value>`). The chart's `helm lint --strict` will not pass without explicit values for required secrets.
 - **Image tags are pinned**, not `latest`. `dns-traefiker` uses `latest` today — that's debt, not a pattern.
 - **Resources are always set** — at least `requests`; `limits` if the chart isn't burstable.
 - **securityContext + podSecurityContext** declared on every Deployment (drop ALL caps, readOnlyRootFilesystem when feasible, runAsNonRoot).
@@ -92,7 +92,7 @@ This trades per-chart independence for cross-cutting simplicity. Consumers pin e
 
 ## When changing an existing chart
 
-1. Check `../ISSUES.md` for relevant `HELM-*` / `CHART-*` / `SEC-*` debt.
+1. Skim `../helm/CLAUDE.md` for chart conventions before changing anything.
 2. If renaming/removing a value, or changing a default → `release-major` (breaks consumers' values.yaml).
 3. If adding a value, it must have a default — else minor becomes major.
 4. Run `make check` before committing.

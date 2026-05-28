@@ -1,4 +1,5 @@
 output "rendered" {
+  description = "Rendered."
   value = templatefile("${path.module}/cloud-init.tpl", {
     traefik_hub_version  = var.traefik_hub_version
     arch                 = var.arch

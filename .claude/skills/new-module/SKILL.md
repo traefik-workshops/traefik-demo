@@ -1,11 +1,11 @@
 ---
 name: new-module
-description: Scaffold a new Terraform module under the terraform-demo-modules repo following the canonical layout. Use when the user asks to "add a module," "create a module," "scaffold a module," "new module for X," or similar phrases that imply creating a new leaf module in this repo. Picks the right template based on section/platform (k8s-helm, cluster, iaas, traefik-platform, runpod, idp, base).
+description: Scaffold a new Terraform module under the traefik-demo repo following the canonical layout. Use when the user asks to "add a module," "create a module," "scaffold a module," "new module for X," or similar phrases that imply creating a new leaf module in this repo. Picks the right template based on section/platform (k8s-helm, cluster, iaas, traefik-platform, runpod, idp, base).
 ---
 
 # new-module skill
 
-You are scaffolding a new leaf module under `terraform-demo-modules`. The goal is a module that conforms to the conventions in [`/CLAUDE.md`](../../../CLAUDE.md) on first commit — no follow-up lint fixups required.
+You are scaffolding a new leaf module under `traefik-demo`. The goal is a module that conforms to the conventions in [`/CLAUDE.md`](../../../CLAUDE.md) on first commit — no follow-up lint fixups required.
 
 ## Gather requirements first
 
@@ -89,7 +89,7 @@ If `terraform` isn't on PATH, the script still scaffolds — it warns and skips 
 - Don't write outside the scaffolded module directory (and the one-line addition to the section README).
 - Don't bump the repo version. New module = `release-feature` (minor) but the maintainer tags, not the skill.
 - Don't pin provider versions to whatever's newest. Match the version already used in sibling modules. The script grep-checks siblings to surface the right version constraints.
-- Don't add a new provider without warning the user explicitly. The repo deliberately keeps the provider count low — see `ISSUES.md` PROV-01.
+- Don't add a new provider without warning the user explicitly. The repo deliberately keeps the provider count low.
 
 ## When to refuse
 

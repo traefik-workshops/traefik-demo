@@ -68,18 +68,22 @@ variable "access_token_lifespan" {
 }
 
 variable "host" {
-  type    = string
-  default = ""
+  description = "Kubernetes API server URL for the cluster Keycloak runs on. Used by the token-capture data source to build an isolated kubectl context when reading from a remote cluster. Leave empty to use the ambient kubeconfig."
+  type        = string
+  default     = ""
 }
 
 variable "client_certificate" {
-  type    = string
-  default = ""
+  description = "PEM-encoded client certificate matching `host`. Written to a temp file for the token-capture kubectl context. Required when `host` is set."
+  type        = string
+  default     = ""
 }
 
 variable "client_key" {
-  type    = string
-  default = ""
+  description = "PEM-encoded client key matching `client_certificate`. Written to a temp file for the token-capture kubectl context. Required when `host` is set."
+  type        = string
+  default     = ""
+  sensitive   = true
 }
 
 variable "instances" {

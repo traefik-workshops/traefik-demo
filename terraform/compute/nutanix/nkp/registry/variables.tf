@@ -42,3 +42,10 @@ variable "docker_hub_access_token" {
   sensitive   = true
   default     = ""
 }
+
+variable "ssh_password" {
+  description = "SSH password used to bootstrap the registry VM. Demo default — override for anything beyond ephemeral PoCs."
+  type        = string
+  sensitive   = true
+  default     = "topsecretpassword"
+}

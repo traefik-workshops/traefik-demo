@@ -26,7 +26,3 @@ A module belongs here if:
 - It's not Traefik (that has its own top-level section).
 
 If a module would be a stretch to fit elsewhere, default to `terraform/tools/`.
-
-## Known issues
-
-- All modules in this section have no `outputs.tf`. Most are fine (the Helm provider exposes everything), but ArgoCD should expose `dashboard_url`. See OUT-01 in [`../../ISSUES.md`](../../ISSUES.md).

@@ -28,8 +28,3 @@ Don't install `grafana-stack` *and* the individual modules — you'll get duplic
 
 - A new observability backend (Datadog Agent, New Relic, ...) — yes, add a module.
 - A new Grafana dashboard — *don't* add a new module. Add a JSON file under `grafana/k8s/dashboards/<topic>/` following the `aigateway` pattern.
-
-## Known issues
-
-- 7 of 8 modules have no `outputs.tf` — many can stay that way (Helm provider exposes everything), but Grafana and Prometheus should expose `dashboard_url` / `endpoint`. See OUT-01 in [`../../ISSUES.md`](../../ISSUES.md).
-- `grafana/k8s/dashboards/aigateway` is data-only (`dashboards.tf` only). See DASH-01.

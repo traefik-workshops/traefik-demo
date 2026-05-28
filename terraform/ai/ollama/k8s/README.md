@@ -6,7 +6,7 @@ Deploys Ollama on a Kubernetes cluster via Helm and optionally pre-pulls a selec
 
 ```hcl
 module "ollama" {
-  source = "git::https://github.com/traefik/terraform-demo-modules.git//terraform/ai/ollama/k8s?ref=v3.2.0"
+  source = "git::https://github.com/traefik/traefik-demo.git//terraform/ai/ollama/k8s?ref=v3.2.0"
 
   name        = "ollama"
   namespace   = "ollama"
@@ -19,9 +19,6 @@ module "ollama" {
 - A working Kubernetes cluster with the `helm` provider configured.
 
 ## Notes
-
-- The variables file is named `variable.tf` (singular) rather than `variables.tf` — see NAME-01 in [../../../ISSUES.md](../../../ISSUES.md).
-- Several variable defaults/descriptions still reference Milvus — see DESC-01 in [../../../ISSUES.md](../../../ISSUES.md).
 
 <!-- BEGIN_TF_DOCS -->
 

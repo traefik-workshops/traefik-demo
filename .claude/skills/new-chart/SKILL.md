@@ -1,6 +1,6 @@
 ---
 name: new-chart
-description: Scaffold a new Helm chart under helm/ in the terraform-demo-modules repo following the canonical layout. Use when the user asks to "add a chart," "create a chart," "scaffold a chart," "new helm chart for X," or similar phrases that imply creating a new chart in helm/.
+description: Scaffold a new Helm chart under helm/ in the traefik-demo repo following the canonical layout. Use when the user asks to "add a chart," "create a chart," "scaffold a chart," "new helm chart for X," or similar phrases that imply creating a new chart in helm/.
 ---
 
 # new-chart skill
