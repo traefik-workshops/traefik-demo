@@ -5,7 +5,7 @@ output "host" {
 
 output "cluster_ca_certificate" {
   description = "GKE cluster CA certificate"
-  value       = base64decode(google_container_cluster.traefik_demo.master_auth.0.cluster_ca_certificate)
+  value       = base64decode(google_container_cluster.traefik_demo.master_auth[0].cluster_ca_certificate)
 }
 
 output "token" {

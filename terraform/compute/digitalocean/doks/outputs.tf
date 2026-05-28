@@ -1,5 +1,5 @@
 locals {
-  kubeconfig_raw  = digitalocean_kubernetes_cluster.traefik_demo.kube_config.0.raw_config
+  kubeconfig_raw  = digitalocean_kubernetes_cluster.traefik_demo.kube_config[0].raw_config
   kubeconfig      = yamldecode(local.kubeconfig_raw)
   cluster         = local.kubeconfig.clusters[0].cluster
   cluster_server  = local.cluster.server

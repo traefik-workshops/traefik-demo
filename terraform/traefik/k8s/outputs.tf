@@ -1,6 +1,6 @@
 output "load_balancer_ip" {
   description = "The Load Balancer IP of the Traefik Service"
-  value       = try(data.kubernetes_service_v1.traefik.status.0.load_balancer.0.ingress.0.ip, "")
+  value       = try(data.kubernetes_service_v1.traefik.status[0].load_balancer[0].ingress[0].ip, "")
 }
 
 output "domain" {

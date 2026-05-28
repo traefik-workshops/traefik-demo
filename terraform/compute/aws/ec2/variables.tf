@@ -58,7 +58,7 @@ variable "subnet_ids" {
   default     = []
 
   validation {
-    condition     = var.create_vpc || var.subnet_ids != []
+    condition     = var.create_vpc || length(var.subnet_ids) != 0
     error_message = "subnet_ids must be provided if create_vpc is false"
   }
 }
@@ -69,7 +69,7 @@ variable "security_group_ids" {
   default     = []
 
   validation {
-    condition     = var.create_vpc || var.security_group_ids != []
+    condition     = var.create_vpc || length(var.security_group_ids) != 0
     error_message = "security_group_ids must be provided if create_vpc is false"
   }
 }

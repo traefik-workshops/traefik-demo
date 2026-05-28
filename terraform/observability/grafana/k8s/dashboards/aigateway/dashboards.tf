@@ -15,6 +15,6 @@ resource "kubernetes_config_map_v1" "grafana_aigateway_dashboards" {
   }
 
   data = {
-    "dashboard.json" = "${file("${path.module}/dashboard.json")}"
+    "dashboard.json" = file("${path.module}/dashboard.json")
   }
 }

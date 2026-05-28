@@ -72,7 +72,7 @@ variable "private_subnet_ids" {
   description = "Private subnets for the cluster."
 
   validation {
-    condition     = var.create_vpc || var.private_subnet_ids != []
+    condition     = var.create_vpc || length(var.private_subnet_ids) != 0
     error_message = "private_subnet_ids must be provided if create_vpc is false"
   }
 }
@@ -83,7 +83,7 @@ variable "public_subnet_ids" {
   description = "Public subnets for the cluster."
 
   validation {
-    condition     = var.create_vpc || var.public_subnet_ids != []
+    condition     = var.create_vpc || length(var.public_subnet_ids) != 0
     error_message = "public_subnet_ids must be provided if create_vpc is false"
   }
 }

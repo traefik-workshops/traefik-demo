@@ -60,7 +60,7 @@ resource "null_resource" "wait" {
 resource "null_resource" "doks_cluster" {
   provisioner "local-exec" {
     command = <<EOT
-      echo '${digitalocean_kubernetes_cluster.traefik_demo.kube_config.0.raw_config}' > doks-kubeconfig.yaml
+      echo '${digitalocean_kubernetes_cluster.traefik_demo.kube_config[0].raw_config}' > doks-kubeconfig.yaml
 
       export KUBECONFIG=~/.kube/config:doks-kubeconfig.yaml
       kubectl config view --flatten > merged.yaml
