@@ -33,7 +33,7 @@ different image.
 cp terraform.tfvars.example terraform.tfvars   # add your Hub token
 
 make up         # released Hub image — proves the wiring with zero source build
-make scenarios  # whoami 200 + dashboard + prints the running image
+make scenarios  # whoami 200 + prints the running image
 
 make up-dev     # build Hub from source -> push to local registry -> re-apply
 EXPECT_DEV=true make scenarios   # now asserts the running image is your :dev build
