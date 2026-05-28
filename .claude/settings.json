@@ -1,25 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(make help)",
-      "Bash(make fmt)",
-      "Bash(make fmt-check)",
-      "Bash(make lint)",
-      "Bash(make security)",
-      "Bash(make validate*)",
-      "Bash(make check)",
-      "Bash(make preflight)",
-      "Bash(make tf-fmt)",
-      "Bash(make tf-fmt-check)",
-      "Bash(make tf-lint)",
-      "Bash(make tf-security)",
-      "Bash(make tf-validate*)",
-      "Bash(make helm-lint)",
-      "Bash(make helm-template)",
-      "Bash(make helm-test)",
-      "Bash(make helm-deps)",
-      "Bash(make helm-package)",
-      "Bash(make release-preview)",
+      "Bash(make *)",
       "Bash(terraform fmt*)",
       "Bash(terraform validate)",
       "Bash(terraform init -backend=false*)",
@@ -50,7 +32,9 @@
       "Bash(head *)",
       "Bash(tail *)",
       "Bash(wc *)",
-      "Bash(diff *)"
+      "Bash(diff *)",
+      "Bash(python3 -c *)",
+      "Bash(jq *)"
     ]
   }
 }

@@ -21,6 +21,23 @@ Read the `scenario.signals` list from `poc.yaml`. Each signal has a canonical va
 
 Read [`catalog.json`](../../catalog.json). For each signal, find catalog entries whose `keywords` contain the signal as a substring (case-insensitive).
 
+When querying `catalog.json` in a shell command, prefer `jq` over `python3 -c`:
+
+```bash
+# preferred — works for any signal; pass each signal value as $sig
+jq -r --arg sig "cognito" '
+  (.modules[], .charts[]) | select(.keywords[]? | ascii_downcase | contains($sig)) | .path
+' catalog.json
+
+# fallback when jq unavailable
+python3 -c "
+import json; sig='cognito'; data=json.load(open('catalog.json'))
+for m in data.get('modules',[]) + data.get('charts',[]):
+    if any(sig in k.lower() for k in m.get('keywords',[])):
+        print(m['path'])
+"
+```
+
 Rank matches by:
 1. Number of distinct keyword matches.
 2. Tie-break by section priority: `compute` > `traefik` > `security` > `observability` > `ai` > `tools` > `apps`.

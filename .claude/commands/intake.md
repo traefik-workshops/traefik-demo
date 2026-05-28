@@ -5,15 +5,32 @@ Normalize raw prospect material into a clean, unified document ready for signal 
 ## Invocation
 
 ```
-/intake <path-or-glob>
+/intake <path-or-glob> [--workdir <output-dir>]
 ```
 
 Examples:
 ```
 /intake fixtures/example-1/transcript.md
-/intake ~/downloads/nexovault/          # directory — merge all files inside
-/intake ~/downloads/nexovault/*.pdf
+/intake ~/downloads/nexovault/                              # directory — merge all files inside
+/intake ~/downloads/nexovault/*.pdf --workdir /tmp/poc/nexovault
 ```
+
+`--workdir` sets the output root for this PoC. If omitted, defaults to `~/poc-scenarios/<slug>/`.
+All subsequent commands (`/extract-scenario`, `/feasibility-check`, etc.) must use the same workdir.
+
+## Step 0 — Create output working directory
+
+1. Determine output root:
+   - If `--workdir <path>` was provided in the prompt: use that path as the PoC root.
+   - Otherwise: infer prospect slug from file content (company name, first 20 lines → lowercase, non-alphanumerics → `-`) and use `~/poc-scenarios/<slug>/`.
+   - If prospect name is ambiguous: ask SA before proceeding.
+2. Create the directory tree:
+   ```bash
+   mkdir -p <workdir>/intake
+   ```
+3. All output for this PoC (normalized.md, poc.yaml, manifests/) lives under `<workdir>/`.
+
+Do not proceed until the output directory exists.
 
 ## Step 1 — Discover and classify sources
 
@@ -40,10 +57,8 @@ If multiple files or sections provided:
 
 Write the unified document to:
 ```
-~/poc-scenarios/<prospect-slug>/intake/normalized.md
+<workdir>/intake/normalized.md
 ```
-
-Create the directory if it doesn't exist. `<prospect-slug>` is the company name lowercased with non-alphanumerics replaced by `-`. If no prospect name can be inferred from filenames, ask SA before proceeding.
 
 Format of `normalized.md`:
 ```markdown
@@ -73,17 +88,20 @@ Format of `normalized.md`:
 
 ## Step 4 — Append to poc.yaml
 
-Create `~/poc-scenarios/<prospect-slug>/poc.yaml` if it doesn't exist. Append:
+Create `<workdir>/poc.yaml` if it doesn't exist. Append:
 
 ```yaml
 intake:
   prospect_slug: <slug>
+  workdir: <workdir>
   sources:
     - { path: <original-path>, type: <email-thread|transcript|slack|pdf|mixed> }
-  normalized_path: ~/poc-scenarios/<slug>/intake/normalized.md
+  normalized_path: <workdir>/intake/normalized.md
   contradictions:
     - { fact: "<fact>", sources: ["<A> says X", "<B> says Y"], resolved: "<B> (authority rule)" }
 ```
+
+`workdir` is written once here so all subsequent commands can read it from `poc.yaml` without needing the flag again.
 
 ## Rules
 
