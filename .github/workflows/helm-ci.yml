@@ -52,7 +52,7 @@ jobs:
       - name: Add external chart repos (weaviate is an external subchart of ai-gateway)
         run: helm repo add weaviate https://weaviate.github.io/weaviate-helm
 
-      - name: helm dep update (so file:// subcharts resolve)
+      - name: helm dep update + unpack (so file:// subcharts resolve)
         run: |
           set -euo pipefail
           for c in helm/*/; do
@@ -61,6 +61,14 @@ jobs:
               helm dep update "$c"
               echo "::endgroup::"
             fi
+          done
+          # `helm lint --strict` reports vendored .tgz dependencies as "missing"
+          # — it only recognizes unpacked dependency directories. Extract them.
+          # Loop a few times to cover nested umbrella deps (airlines -> ai-gateway -> weaviate).
+          for _ in 1 2 3; do
+            while IFS= read -r tgz; do
+              tar xf "$tgz" -C "$(dirname "$tgz")"
+            done < <(find helm -path '*/charts/*.tgz')
           done
 
       - name: helm lint --strict per chart

@@ -29,7 +29,7 @@ keycloak:
 realm:
   enabled: true
   name: traefik
-  accessTokenLifespan: 2419200 # 28 days in seconds
+  accessTokenLifespan: 2419200  # 28 days in seconds
 
   # Simple users list (will be transformed to have email@traefik.io and belong to {username}s group)
   users: []

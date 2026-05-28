@@ -13,7 +13,7 @@ chart-dirs:
 
 # Strict — fail if any chart is missing the canonical files.
 check-version-increment: false   # version is repo-wide; per-chart increment doesn't apply
-validate-maintainers: true
+validate-maintainers: false   # maintainer is a team alias (sa@traefik.io), not a GitHub user
 validate-chart-schema: true
 chart-yaml-schema: ""             # default helm chart yaml schema
 lint-conf: ""                     # use default lint config

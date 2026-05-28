@@ -3,6 +3,11 @@
   "title": "presidio chart values",
   "type": "object",
   "properties": {
+    "global": {
+      "type": "object",
+      "description": "Helm global values injected by a parent chart (e.g. ai-gateway). Open-ended.",
+      "additionalProperties": true
+    },
     "image": {
       "type": "object",
       "properties": {
