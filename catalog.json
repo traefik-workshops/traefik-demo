@@ -1851,6 +1851,68 @@
       ]
     },
     {
+      "path": "terraform/compute/imported/k8s",
+      "section": "compute",
+      "platform": "imported",
+      "name": "k8s",
+      "description": "Bring-your-own Kubernetes cluster: adapt an existing cluster's kubeconfig to the same output shape this repo's managed-k8s modules expose (EKS, AKS, DOKS, ...). Downstream modules (observability, traefik, ai, security, tools) can then consume the imported cluster with no changes to their inputs.",
+      "keywords": [
+        "bring your own",
+        "existing cluster",
+        "imported",
+        "kubeconfig",
+        "byoc",
+        "external cluster"
+      ],
+      "required_inputs": [
+        {
+          "name": "kubeconfig",
+          "type": "string",
+          "description": "Full kubeconfig contents for the existing Kubernetes cluster. Pass via `file(\\\"~/.kube/config\\\")` or read from a `data.local_file`. The module extracts host / CA / token from the current context (or the first context if `current-context` is unset). Sensitive."
+        }
+      ],
+      "optional_inputs": [
+        {
+          "name": "cluster_name",
+          "type": "string",
+          "description": "Logical name for the imported cluster \u2014 surfaced in outputs so downstream modules can tag resources consistently. Pure metadata; no resources are renamed based on it.",
+          "default_kind": "literal"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "host",
+          "description": "Imported cluster API server URL (parsed from kubeconfig).",
+          "sensitive": true
+        },
+        {
+          "name": "cluster_ca_certificate",
+          "description": "Imported cluster CA certificate (PEM, decoded from `certificate-authority-data`). Empty when the kubeconfig uses a CA file path or exec auth \u2014 pass the CA explicitly downstream in that case.",
+          "sensitive": true
+        },
+        {
+          "name": "token",
+          "description": "Imported cluster auth token (parsed from the kubeconfig's user). Empty when the kubeconfig uses exec auth \u2014 wire downstream providers via `config_path` to the kubeconfig file instead.",
+          "sensitive": true
+        },
+        {
+          "name": "kubeconfig",
+          "description": "Imported cluster kubeconfig, passed through unchanged. Use this when downstream providers can take `config_path` or a raw kubeconfig string.",
+          "sensitive": true
+        },
+        {
+          "name": "cluster_id",
+          "description": "Imported cluster identifier. Mirrors `cluster_name` since there is no provider-side cluster ID for an imported cluster.",
+          "sensitive": false
+        },
+        {
+          "name": "cluster_name",
+          "description": "Imported cluster name (echo of the input, for downstream tagging).",
+          "sensitive": false
+        }
+      ]
+    },
+    {
       "path": "terraform/compute/nutanix/categories",
       "section": "compute",
       "platform": "nutanix",

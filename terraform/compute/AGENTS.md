@@ -20,6 +20,7 @@ Live-derived; regenerate with `make discover | jq '.modules[] | select(.path | s
 | [`azure/aks`](./azure/aks) | AKS cluster — optional GPU node pool, extra worker pools per `worker_nodes` entry. |
 | [`digitalocean/doks`](./digitalocean/doks) | DigitalOcean Kubernetes cluster — optional autoscaling, extra worker pools. |
 | [`gcp/gke`](./gcp/gke) | GKE cluster — optional GPU pool, extra worker pools. |
+| [`imported/k8s`](./imported/k8s) | Bring-your-own-cluster adapter: takes an existing kubeconfig, exposes the standard managed-k8s output shape (host / CA / token / kubeconfig / cluster_id). Provisions nothing. |
 | [`nutanix/categories`](./nutanix/categories) | Prism Central categories and values from a map. |
 | [`nutanix/fip`](./nutanix/fip) | Allocates a Nutanix Floating IP and binds it to a VM NIC or VPC private IP. |
 | [`nutanix/nkp`](./nutanix/nkp) | End-to-end NKP cluster: bastion VM, control plane VIP, optional FIP, Kommander, kubeconfig extraction. |
