@@ -332,7 +332,7 @@
                 "type": "object",
                 "properties": {
                   "temperature": {
-                    "type": "integer",
+                    "type": "number",
                     "default": 1
                   },
                   "maxTokens": {
