@@ -153,3 +153,4 @@ Use **`.claude/skills/bump/`** (or `make release-bug/feature/major`). The skill 
 - Lint rules: [`.tflint.hcl`](./.tflint.hcl), [`.pre-commit-config.yaml`](./.pre-commit-config.yaml)
 - Skills: [`new-module`](./.claude/skills/new-module/README.md), [`new-chart`](./.claude/skills/new-chart/README.md), [`bump`](./.claude/skills/bump/README.md), [`sa-assistant`](./.claude/skills/sa-assistant/SKILL.md)
 - Slash commands: [`/extract-scenario`](./.claude/commands/extract-scenario.md), [`/preflight`](./.claude/commands/preflight.md), [`/build-poc`](./.claude/commands/build-poc.md), [`/snapshot-poc`](./.claude/commands/snapshot-poc.md)
+- Cross-tool mirror: [`agents/`](./agents) — symlinks to `.claude/skills/` and `.claude/commands/` for non-Claude agents (Codex / Cursor / Gemini CLI).
