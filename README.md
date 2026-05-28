@@ -21,10 +21,13 @@ This repo holds two kinds of building blocks consumed by demos:
 │   ├── tools/          # cluster add-ons (ArgoCD, cert-manager, ingress, k6, ...)
 │   └── traefik/        # Traefik installs per platform (EC2, ECS, k8s, Nutanix)
 ├── helm/           # Helm charts (ai-gateway, airlines, dns-traefiker, ...) published to OCI
+├── catalog.json    # machine-readable index of every module + chart (regenerated via `make catalog`)
+├── scripts/        # repo tooling — discover.py (builds catalog.json), release helpers
+├── agents/         # tool-agnostic mirror of .claude/ (skills + commands) for Codex/Cursor/Gemini
 └── .claude/        # Agent assets: skills (new-module, new-chart, bump, sa-assistant) + slash commands
 ```
 
-Inside each Terraform section, modules are organized by **platform** (`k8s/`, `aws/`, `nutanix/`, `runpod/`, ...). A *leaf module* is any directory containing `.tf` files directly — ~69 of them. The `helm/` directory holds 7 charts.
+Inside each Terraform section, modules are organized by **platform** (`k8s/`, `aws/`, `nutanix/`, `runpod/`, ...). A *leaf module* is any directory containing `.tf` files directly — 70 of them. The `helm/` directory holds 7 charts. [`catalog.json`](./catalog.json) is the regenerated, machine-readable index of all of them.
 
 Each section has its own `README.md` and `AGENTS.md` — start with those when you want a focused view.
 
