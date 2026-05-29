@@ -1,10 +1,18 @@
 locals {
+  # The realm chart seeds simple users with this password and the token-fetch
+  # Job below replays it via grant_type=password — they MUST match or the Job
+  # gets invalid_grant and mints nothing. Sourcing both from var.user_password
+  # (passed to the chart in main.tf) keeps them in lockstep. Unwrapped here
+  # because the module deliberately surfaces the demo credential in its
+  # users/users_map outputs and renders it into the Job spec.
+  user_password = nonsensitive(var.user_password)
+
   # Normalize simple users (email strings) into full user objects
   simple_users = [
     for email in var.users : {
       username = email
       email    = email
-      password = "password"
+      password = local.user_password
       groups   = []
       claims   = {}
     }

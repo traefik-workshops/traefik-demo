@@ -57,7 +57,8 @@ jobs:
   # Deploy + scenarios: stand each k3d demo up on the runner, curl its route via
   # its scenarios.sh, tear down. Needs a Hub token (Hub is licensed) — gated on
   # the TRAEFIK_HUB_TOKEN secret, so fork PRs (no secret) skip cleanly.
-  # oidc-portal is omitted: it's cloud (EKS + Cognito), validate-only here.
+  # The cloud demos are omitted here (validate-only above): oidc-portal (EKS +
+  # Cognito) and aks-demo (AKS + Keycloak).
   # --------------------------------------------------------------------------
   deploy:
     name: deploy + scenarios (k3d)

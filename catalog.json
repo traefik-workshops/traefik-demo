@@ -3965,6 +3965,12 @@
           "default_kind": "literal"
         },
         {
+          "name": "user_password",
+          "type": "string",
+          "description": "Initial password assigned to every simple user (the `users` list). Demo default \u2014 override for anything beyond ephemeral PoCs. `advanced_users` carry their own password. The same value seeds the realm credential and is replayed by the token-fetch Job, so the two can never drift.",
+          "default_kind": "literal"
+        },
+        {
           "name": "redirect_uris",
           "type": "list(string)",
           "description": "Allowed callback URL for the authentication flow",

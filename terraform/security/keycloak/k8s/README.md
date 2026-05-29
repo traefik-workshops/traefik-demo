@@ -83,6 +83,7 @@ that publish those tokens to the cluster. Pick which:
 | <a name="input_instances"></a> [instances](#input\_instances) | Number of Keycloak pods behind the shared Postgres backend. Scale when multiple independent test runs hit the OIDC endpoint in parallel. | `number` | `1` | no |
 | <a name="input_name"></a> [name](#input\_name) | The name of the traefik release | `string` | `"traefik"` | no |
 | <a name="input_redirect_uris"></a> [redirect\_uris](#input\_redirect\_uris) | Allowed callback URL for the authentication flow | `list(string)` | `[]` | no |
+| <a name="input_user_password"></a> [user\_password](#input\_user\_password) | Initial password assigned to every simple user (the `users` list). Demo default — override for anything beyond ephemeral PoCs. `advanced_users` carry their own password. The same value seeds the realm credential and is replayed by the token-fetch Job, so the two can never drift. | `string` | `"topsecretpassword"` | no |
 
 ## Outputs
 

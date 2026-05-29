@@ -38,6 +38,12 @@ realm:
   #   - admin
   #   - user
 
+  # Password seeded for every simple user above (advancedUsers carry their own).
+  # The security/keycloak/k8s Terraform module's token-fetch Job replays this
+  # exact value, so override it there too if you change it — otherwise the Job
+  # gets invalid_grant and mints no tokens.
+  userPassword: topsecretpassword
+
   # Extra simple users - appended to users (populated by parent chart, empty for standalone use)
   extraUsers: []
 

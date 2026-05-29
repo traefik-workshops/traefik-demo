@@ -1,0 +1,23 @@
+# Copy to terraform.tfvars and fill in. NEVER commit real values.
+
+# Azure (run `az login` first; the azurerm provider uses your ambient creds).
+resource_group_name = "aks-demo-rg"
+cluster_name        = "aks-demo"
+region              = "westus"
+
+# Node pool — sized so the stack sits ~50% requested / ~60% CPU under load.
+# Use a non-burstable D-series SKU (B-series throttles under sustained load).
+# cluster_node_type  = "Standard_D4s_v5"
+# cluster_node_count = 3
+
+# Base demo domain — must live in the Cloudflare zone the dns-traefiker
+# controller's token can edit. Everything is exposed under it (portal.,
+# keycloak., whoami., grafana., langfuse., dashboard.). No Cloudflare token is
+# needed here: dns-traefiker supplies it from its own domain-secret.
+domain = "aks.demo.traefik.ai"
+
+# Traefik Hub license (offline JWT).
+traefik_hub_token = "REPLACE_ME"
+
+# Optional — only override if you changed helm/keycloak's realm.clientSecret.
+# keycloak_client_secret = "NoTgoLZpbrr5QvbNDIRIvmZOhe9wI0r0"

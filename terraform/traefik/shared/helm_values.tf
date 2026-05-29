@@ -41,16 +41,32 @@ locals {
 
     ports = merge(
       {
-        web = {
-          port     = var.entry_points.web.port
-          expose   = { default = true }
-          protocol = "TCP"
-        }
-        websecure = {
-          port     = var.entry_points.websecure.port
-          expose   = { default = true }
-          protocol = "TCP"
-        }
+        # web/websecure carry the proxy entrypoints. On Kubernetes the Traefik
+        # container runs non-root (no effective CAP_NET_BIND_SERVICE), so it
+        # can't bind privileged ports — bind the entrypoints on unprivileged
+        # container ports (8000/8443) and let the LoadBalancer Service publish
+        # 80/443 via exposedPort. This is the Traefik chart's intended model
+        # (host:80 -> service:80 -> container:8000) and works on both k3d and
+        # real cloud nodes. On VMs (extract_config) Traefik runs under systemd
+        # with CAP_NET_BIND_SERVICE and binds the privileged ports directly, so
+        # the entrypoint address must stay on var.entry_points.<name>.port and
+        # there is no Service to carry exposedPort.
+        web = merge(
+          {
+            port     = var.extract_config ? var.entry_points.web.port : 8000
+            expose   = { default = true }
+            protocol = "TCP"
+          },
+          var.extract_config ? {} : { exposedPort = var.entry_points.web.port }
+        )
+        websecure = merge(
+          {
+            port     = var.extract_config ? var.entry_points.websecure.port : 8443
+            expose   = { default = true }
+            protocol = "TCP"
+          },
+          var.extract_config ? {} : { exposedPort = var.entry_points.websecure.port }
+        )
         traefik = {
           port   = var.entry_points.traefik.port
           expose = { default = true }

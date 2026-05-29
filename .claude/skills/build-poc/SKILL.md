@@ -108,6 +108,13 @@ deployment:
 ## Rules
 
 - Never deploy without showing manifests first and getting explicit SA confirmation.
+- **Cloud Traefik ports are already handled — don't override them.** On a cloud node
+  (AKS/EKS/GKE) the non-root Traefik container can't bind privileged ports; if `web`/`websecure`
+  sit on 80/443 it crash-loops on `bind: permission denied` and the atomic helm release rolls
+  back. `terraform/traefik/k8s` binds the entrypoints on unprivileged container ports (8000/8443)
+  and publishes 80/443 at the LoadBalancer Service via `exposedPort`, so the module default is
+  correct on both cloud and k3d (k3d only masks the issue). Do not add a `ports`/`exposedPort`
+  override to the rendered traefik invocation.
 - Never substitute a module or chart not in `feasibility.modules` / `feasibility.charts`.
 - On any failure: stop immediately, report exact error output, wait for SA input.
 - Never run `terraform destroy`.

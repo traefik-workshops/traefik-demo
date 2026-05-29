@@ -1,7 +1,7 @@
 {{- if and .Values.enabled .Values.realm.enabled }}
 {{- $simpleUsersTransformed := list }}
 {{- range (concat (default list .Values.realm.users) .Values.realm.extraUsers | uniq) }}
-{{- $simpleUsersTransformed = append $simpleUsersTransformed (dict "username" . "email" (printf "%s@traefik.io" .) "password" "topsecretpassword" "groups" (list (printf "%ss" .)) "claims" dict) }}
+{{- $simpleUsersTransformed = append $simpleUsersTransformed (dict "username" . "email" (printf "%s@traefik.io" .) "password" ($.Values.realm.userPassword | default "topsecretpassword") "groups" (list (printf "%ss" .)) "claims" dict) }}
 {{- end }}
 {{- $allUsersSeen := dict }}
 {{- $allUsers := list }}

@@ -43,6 +43,13 @@ variable "users" {
   type        = list(string)
 }
 
+variable "user_password" {
+  description = "Initial password assigned to every simple user (the `users` list). Demo default — override for anything beyond ephemeral PoCs. `advanced_users` carry their own password. The same value seeds the realm credential and is replayed by the token-fetch Job, so the two can never drift."
+  type        = string
+  sensitive   = true
+  default     = "topsecretpassword"
+}
+
 variable "redirect_uris" {
   type        = list(string)
   default     = []
