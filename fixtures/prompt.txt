@@ -1,0 +1,29 @@
+----------------------
+/sa-assistant  Hello, I want to build a PoC for a prospect.
+Transcripts and other are in  ./fixtures/example-1/.
+I want to use ./PROSPECT_X as my workdir.
+Please create the PoC, however, just render files.
+Do not deploy it. Skip step 7, no snapshot needed for this PoC.
+Proceed each step automatically if there are no error.
+
+----------------------
+/sa-assistant  Hello, I want to build a PoC for a prospect.
+Transcripts and other are in  ./fixtures/example-2/.
+I want to use./PROSPECT_Y as my workdir.
+
+Please create the PoC, however, just render files. Do not deploy it. 
+Skip step 7, no snapshot is needed for this PoC since it is a demo.
+Proceed each step automatically if there are no error.
+
+Use default value and placeholder if needed, but give all env
+vars that needs to be set for the deployment.
+
+----------------------
+/sa-assistant  Hello, I want to build a PoC for a prospect.
+His mail is at fixtures/example-4/mail.eml. Create the PoC, however,
+just render files in ./PROSPECT_Z.
+----------------------
+
+/sa-assistant  Hello, I want to build a PoC for a prospect.
+His mail is at fixtures/example-impossible/transcript.md.
+Create the PoC, however, just render files in ./PROSPECT_I.
