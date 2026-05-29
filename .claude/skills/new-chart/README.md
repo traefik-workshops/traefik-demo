@@ -1,6 +1,6 @@
 # new-chart skill
 
-Scaffolds a new Helm chart under `helm/<name>/` following the canonical layout in [`/helm/AGENTS.md`](../../helm/AGENTS.md).
+Scaffolds a new Helm chart under `helm/<name>/` following the canonical layout in [`/helm/AGENTS.md`](../../../helm/AGENTS.md).
 
 Two ways to use it:
 
