@@ -24,35 +24,40 @@ module "loadgen_aigateway" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| kubectl | ~> 1.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | ~> 1.0 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| kubectl | `gavinbunney/kubectl` | `~> 1.0` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | ~> 1.0 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `kubectl_manifest.aigateway_traffic_configmap` | resource |
-| `kubectl_manifest.aigateway_traffic_testrun` | resource |
+| ---- | ---- |
+| [kubectl_manifest.aigateway_traffic_configmap](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
+| [kubectl_manifest.aigateway_traffic_testrun](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| apis | n/a | `list(object({url = string, models = list(string)))` | n/a | yes |
-| keycloak_client_id | Keycloak client ID | `string` | n/a | yes |
-| keycloak_client_secret 🔒 | Keycloak client secret | `string` | n/a | yes |
-| keycloak_url | Keycloak token endpoint URL | `string` | n/a | yes |
-| users | List of users with credentials for JWT authentication | `list(object({username = string, password = string))` | n/a | yes |
-| max_messages_per_conversation | Maximum number of messages in a conversation | `number` | `8` | no |
-| min_messages_per_conversation | Minimum number of messages in a conversation | `number` | `3` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_apis"></a> [apis](#input\_apis) | AI Gateway API endpoints the k6 scenario rotates through. Each entry is `{ url, models }` — the scenario picks an API at random per request, then a model from that API's list. | <pre>list(object({<br/>    url    = string<br/>    models = list(string)<br/>  }))</pre> | n/a | yes |
+| <a name="input_keycloak_client_id"></a> [keycloak\_client\_id](#input\_keycloak\_client\_id) | Keycloak client ID | `string` | n/a | yes |
+| <a name="input_keycloak_client_secret"></a> [keycloak\_client\_secret](#input\_keycloak\_client\_secret) | Keycloak client secret | `string` | n/a | yes |
+| <a name="input_keycloak_url"></a> [keycloak\_url](#input\_keycloak\_url) | Keycloak token endpoint URL | `string` | n/a | yes |
+| <a name="input_users"></a> [users](#input\_users) | List of users with credentials for JWT authentication | <pre>list(object({<br/>    username = string<br/>    password = string<br/>  }))</pre> | n/a | yes |
+| <a name="input_max_messages_per_conversation"></a> [max\_messages\_per\_conversation](#input\_max\_messages\_per\_conversation) | Maximum number of messages in a conversation | `number` | `8` | no |
+| <a name="input_min_messages_per_conversation"></a> [min\_messages\_per\_conversation](#input\_min\_messages\_per\_conversation) | Minimum number of messages in a conversation | `number` | `3` | no |
 
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->

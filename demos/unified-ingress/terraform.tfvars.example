@@ -1,4 +1,5 @@
-cluster_prefix    = "demo"
-cluster_location  = "nyc1"
-domain            = "demo.example.com"
-traefik_hub_token = "REPLACE_ME"
+# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars.
+
+cluster_prefix    = "unified-ingress"
+domain            = "unified-ingress.localhost"
+traefik_hub_token = "REPLACE_ME" # offline JWT from https://hub.traefik.io

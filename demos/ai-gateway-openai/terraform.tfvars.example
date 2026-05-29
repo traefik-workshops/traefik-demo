@@ -1,0 +1,10 @@
+# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars.
+
+cluster_name      = "ai-gateway-openai"
+domain            = "ai-gateway-openai.localhost"
+traefik_hub_token = "REPLACE_ME" # offline JWT from https://hub.traefik.io
+
+# Optional. Guard scenarios block at the gateway and pass without a real key;
+# only the happy-path scenario needs one (or point backend at a mock).
+openai_api_key        = "sk-REPLACE_ME"
+backend_external_name = "api.openai.com"

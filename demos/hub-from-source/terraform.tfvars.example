@@ -1,0 +1,9 @@
+# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars.
+
+cluster_name      = "hub-from-source"
+domain            = "hub-from-source.localhost"
+traefik_hub_token = "REPLACE_ME" # offline JWT from https://hub.traefik.io
+
+# Leave false for `make up` (released Hub image). `make up-dev` sets this to
+# true for you after building the image from source.
+local_traefik_hub = false

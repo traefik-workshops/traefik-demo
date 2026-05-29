@@ -18,22 +18,28 @@ module "aigw_deps" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| helm | ~> 3.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| helm | `hashicorp/helm` | `~> 3.0` |
+No providers.
+
+## Resources
+
+No resources.
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| namespace | Namespace for the Grafana deployment | `string` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for the Grafana deployment | `string` | n/a | yes |
 
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->

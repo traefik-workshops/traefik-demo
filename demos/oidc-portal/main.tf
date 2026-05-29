@@ -1,11 +1,13 @@
 # demos/oidc-portal — Traefik Hub API Portal protected by AWS Cognito.
 
 module "vpc" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/compute/aws/vpc?ref=v4.0.0"
+  source = "../../terraform/compute/aws/vpc"
+
+  name = var.cluster_name
 }
 
 module "cluster" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/compute/aws/eks?ref=v4.0.0"
+  source = "../../terraform/compute/aws/eks"
 
   cluster_name       = var.cluster_name
   cluster_location   = var.region
@@ -16,21 +18,21 @@ module "cluster" {
 }
 
 module "cognito" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/security/cognito?ref=v4.0.0"
+  source = "../../terraform/security/cognito"
 
   users         = ["analyst", "admin"]
   redirect_uris = ["https://portal.${var.domain}/callback"]
 }
 
 provider "kubernetes" {
-  host                   = module.cluster.host
+  host                   = module.cluster.cluster_endpoint
   cluster_ca_certificate = base64decode(module.cluster.cluster_ca_certificate)
   token                  = module.cluster.token
 }
 
 provider "helm" {
   kubernetes = {
-    host                   = module.cluster.host
+    host                   = module.cluster.cluster_endpoint
     cluster_ca_certificate = base64decode(module.cluster.cluster_ca_certificate)
     token                  = module.cluster.token
   }
@@ -44,17 +46,26 @@ resource "kubernetes_namespace_v1" "apps" {
 }
 
 module "traefik" {
-  source = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/traefik/k8s?ref=v4.0.0"
+  source = "../../terraform/traefik/k8s"
 
   namespace             = kubernetes_namespace_v1.traefik.metadata[0].name
   traefik_hub_token     = var.traefik_hub_token
   enable_api_gateway    = true
   enable_api_management = true # API Portal lives here
+  enable_offline_mode   = true
   dashboard_entrypoints = ["websecure"]
 }
 
 module "whoami" {
-  source    = "git::https://github.com/traefik-workshops/traefik-demo.git//terraform/apps/whoami/k8s?ref=v4.0.0"
+  source    = "../../terraform/apps/whoami/k8s"
   namespace = kubernetes_namespace_v1.apps.metadata[0].name
-  domain    = "whoami.${var.domain}"
+  apps = {
+    whoami = {
+      ingress_route = {
+        enabled     = true
+        host        = "whoami.${var.domain}"
+        entrypoints = ["websecure"]
+      }
+    }
+  }
 }

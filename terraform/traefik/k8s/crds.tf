@@ -9,7 +9,11 @@ resource "null_resource" "traefik_crds" {
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
+    # Target a specific cluster when given a kubeconfig (e.g. a cluster created
+    # in this same run, so there's no current context yet); otherwise fall back
+    # to the ambient kubeconfig / current context.
+    environment = var.kubeconfig != "" ? { KUBECONFIG = var.kubeconfig } : {}
+    command     = <<-EOT
       helm repo add traefik https://traefik.github.io/charts --force-update
       helm template traefik-crds traefik/traefik-crds \
         --version 1.16.0 \

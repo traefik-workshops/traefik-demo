@@ -1,22 +1,17 @@
 variable "cluster_name" {
   type        = string
-  description = "Name for the demo cluster."
-  default     = "demo"
-}
-
-variable "cluster_location" {
-  type        = string
-  description = "Cluster region/zone. Cheapest by default."
-  default     = "nyc1"
+  description = "k3d cluster name."
+  default     = "single-cluster"
 }
 
 variable "domain" {
   type        = string
-  description = "Domain to expose the whoami ingress on (e.g. demo.example.com)."
+  description = "Domain the whoami ingress is exposed on. With k3d this resolves to localhost, so any *.localhost works."
+  default     = "single-cluster.localhost"
 }
 
 variable "traefik_hub_token" {
   type        = string
-  description = "Traefik Hub license token."
+  description = "Traefik Hub license token (offline JWT). Get one at https://hub.traefik.io."
   sensitive   = true
 }

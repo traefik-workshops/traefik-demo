@@ -22,32 +22,37 @@ module "ollama" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| helm | ~> 3.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| helm | `hashicorp/helm` | `~> 3.0` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 3.0 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `helm_release.ollama` | resource |
+| ---- | ---- |
+| [helm_release.ollama](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| enable_deepseek | Enable DeepSeek model | `bool` | `false` | no |
-| enable_llama | Enable Llama model | `bool` | `false` | no |
-| enable_qwen | Enable Qwen model | `bool` | `false` | no |
-| name | The name of the milvus release | `string` | `"milvus"` | no |
-| namespace | The namespace of the milvus release | `string` | `"milvus"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_enable_deepseek"></a> [enable\_deepseek](#input\_enable\_deepseek) | Enable DeepSeek model | `bool` | `false` | no |
+| <a name="input_enable_llama"></a> [enable\_llama](#input\_enable\_llama) | Enable Llama model | `bool` | `false` | no |
+| <a name="input_enable_qwen"></a> [enable\_qwen](#input\_enable\_qwen) | Enable Qwen model | `bool` | `false` | no |
+| <a name="input_name"></a> [name](#input\_name) | Name of the Ollama Helm release. | `string` | `"ollama"` | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for the Ollama Helm release. | `string` | `"ollama"` | no |
 
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->

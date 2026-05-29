@@ -21,34 +21,39 @@ module "dns" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| cloudflare | ~> 5 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | ~> 5 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| cloudflare | `cloudflare/cloudflare` | `~> 5` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | ~> 5 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `cloudflare_dns_record.root` | resource |
-| `cloudflare_dns_record.wildcard` | resource |
+| ---- | ---- |
+| [cloudflare_dns_record.root](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record) | resource |
+| [cloudflare_dns_record.wildcard](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| domain | Domain for the Cloudflare DNS record | `string` | n/a | yes |
-| zone_id | The zone ID of the Cloudflare DNS record | `string` | n/a | yes |
-| hostname | Hostname for the Cloudflare DNS record | `string` | `""` | no |
-| ip | IP address for the Cloudflare DNS record | `string` | `""` | no |
-| proxied | Whether the record is proxied through Cloudflare | `bool` | `false` | no |
-| record_type | Type of the Cloudflare DNS record | `string` | `"A"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_domain"></a> [domain](#input\_domain) | Domain for the Cloudflare DNS record | `string` | n/a | yes |
+| <a name="input_zone_id"></a> [zone\_id](#input\_zone\_id) | The zone ID of the Cloudflare DNS record | `string` | n/a | yes |
+| <a name="input_hostname"></a> [hostname](#input\_hostname) | Hostname for the Cloudflare DNS record | `string` | `""` | no |
+| <a name="input_ip"></a> [ip](#input\_ip) | IP address for the Cloudflare DNS record | `string` | `""` | no |
+| <a name="input_proxied"></a> [proxied](#input\_proxied) | Whether the record is proxied through Cloudflare | `bool` | `false` | no |
+| <a name="input_record_type"></a> [record\_type](#input\_record\_type) | Type of the Cloudflare DNS record | `string` | `"A"` | no |
 
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->

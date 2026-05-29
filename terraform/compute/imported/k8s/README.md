@@ -56,4 +56,37 @@ For non-token auth modes, downstream `helm` / `kubernetes` providers must be wir
 - Multiple contexts where you want a non-default one — set `current-context` in the kubeconfig before passing, or use `kubectl config view --minify` to drop the others.
 
 <!-- BEGIN_TF_DOCS -->
+
+
+## Requirements
+
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+
+## Providers
+
+No providers.
+
+## Resources
+
+No resources.
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_kubeconfig"></a> [kubeconfig](#input\_kubeconfig) | Full kubeconfig contents for the existing Kubernetes cluster. Pass via `file("~/.kube/config")` or read from a `data.local_file`. The module extracts host / CA / token from the current context (or the first context if `current-context` is unset). Sensitive. | `string` | n/a | yes |
+| <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Logical name for the imported cluster — surfaced in outputs so downstream modules can tag resources consistently. Pure metadata; no resources are renamed based on it. | `string` | `"imported"` | no |
+
+## Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_cluster_ca_certificate"></a> [cluster\_ca\_certificate](#output\_cluster\_ca\_certificate) | Imported cluster CA certificate (PEM, decoded from `certificate-authority-data`). Empty when the kubeconfig uses a CA file path or exec auth — pass the CA explicitly downstream in that case. |
+| <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id) | Imported cluster identifier. Mirrors `cluster_name` since there is no provider-side cluster ID for an imported cluster. |
+| <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Imported cluster name (echo of the input, for downstream tagging). |
+| <a name="output_host"></a> [host](#output\_host) | Imported cluster API server URL (parsed from kubeconfig). |
+| <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Imported cluster kubeconfig, passed through unchanged. Use this when downstream providers can take `config_path` or a raw kubeconfig string. |
+| <a name="output_token"></a> [token](#output\_token) | Imported cluster auth token (parsed from the kubeconfig's user). Empty when the kubeconfig uses exec auth — wire downstream providers via `config_path` to the kubeconfig file instead. |
 <!-- END_TF_DOCS -->

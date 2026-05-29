@@ -23,25 +23,33 @@ module "granite_guardian" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| terraform | >= 1.3.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+
+## Providers
+
+No providers.
+
+## Resources
+
+No resources.
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| hugging_face_api_key 🔒 | Hugging Face API key | `string` | n/a | yes |
-| runpod_api_key | RunPod API key | `string` | n/a | yes |
-| enable_granite_guardian | Enable Granite Guardian | `bool` | `false` | no |
-| pod_type | Pod type | `string` | `"NVIDIA A40"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_hugging_face_api_key"></a> [hugging\_face\_api\_key](#input\_hugging\_face\_api\_key) | Hugging Face API key | `string` | n/a | yes |
+| <a name="input_runpod_api_key"></a> [runpod\_api\_key](#input\_runpod\_api\_key) | RunPod API key | `string` | n/a | yes |
+| <a name="input_enable_granite_guardian"></a> [enable\_granite\_guardian](#input\_enable\_granite\_guardian) | Enable Granite Guardian | `bool` | `false` | no |
+| <a name="input_pod_type"></a> [pod\_type](#input\_pod\_type) | Pod type | `string` | `"NVIDIA A40"` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| pods | Map of created pods with their details |
-
+| ---- | ----------- |
+| <a name="output_pods"></a> [pods](#output\_pods) | Map of created pods with their details |
 <!-- END_TF_DOCS -->

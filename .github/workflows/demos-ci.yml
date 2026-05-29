@@ -1,0 +1,111 @@
+name: demos-ci
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "demos/**"
+      - "terraform/**"
+      - ".github/workflows/demos-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "demos/**"
+      - "terraform/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demos-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  K3D_VERSION: "v5.8.3"
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Static: fmt + terraform validate per demo. Relative module sources resolve
+  # locally, so this runs offline with no secrets.
+  # --------------------------------------------------------------------------
+  validate:
+    name: demos validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.5"
+      - name: fmt + validate per demo
+        run: |
+          set -euo pipefail
+          terraform fmt -recursive -check -diff demos
+          fail=0
+          for d in demos/*/; do
+            [ -f "${d}main.tf" ] || continue
+            echo "::group::validate $d"
+            (
+              cd "$d"
+              terraform init -backend=false -input=false -no-color > /dev/null
+              terraform validate -no-color
+            ) || fail=1
+            echo "::endgroup::"
+          done
+          exit "$fail"
+
+  # --------------------------------------------------------------------------
+  # Deploy + scenarios: stand each k3d demo up on the runner, curl its route via
+  # its scenarios.sh, tear down. Needs a Hub token (Hub is licensed) — gated on
+  # the TRAEFIK_HUB_TOKEN secret, so fork PRs (no secret) skip cleanly.
+  # oidc-portal is omitted: it's cloud (EKS + Cognito), validate-only here.
+  # --------------------------------------------------------------------------
+  deploy:
+    name: deploy + scenarios (k3d)
+    runs-on: ubuntu-latest
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        demo: [single-cluster, unified-ingress, ai-gateway-openai, hub-from-source]
+    env:
+      TF_VAR_traefik_hub_token: ${{ secrets.TRAEFIK_HUB_TOKEN }}
+    steps:
+      - name: Gate on Hub token
+        id: gate
+        run: |
+          if [ -z "${TF_VAR_traefik_hub_token}" ]; then
+            echo "No TRAEFIK_HUB_TOKEN secret (e.g. fork PR) — skipping deploy."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip != 'true'
+
+      - uses: hashicorp/setup-terraform@v3
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          terraform_version: "1.9.5"
+
+      - name: Install k3d
+        if: steps.gate.outputs.skip != 'true'
+        run: curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=${{ env.K3D_VERSION }} bash
+
+      - name: Deploy + run scenarios
+        if: steps.gate.outputs.skip != 'true'
+        working-directory: demos/${{ matrix.demo }}
+        run: |
+          set -euo pipefail
+          terraform init -input=false -no-color
+          terraform apply -auto-approve -no-color
+          # Provider-created k3d clusters aren't in the default kubeconfig; merge
+          # them so scenarios that use `kubectl --context k3d-*` can find them.
+          k3d kubeconfig merge --all --kubeconfig-merge-default > /dev/null 2>&1 || true
+          chmod +x scenarios.sh
+          ./scenarios.sh
+
+      - name: Teardown
+        if: always() && steps.gate.outputs.skip != 'true'
+        working-directory: demos/${{ matrix.demo }}
+        run: |
+          terraform destroy -auto-approve -no-color || true
+          k3d cluster delete --all || true

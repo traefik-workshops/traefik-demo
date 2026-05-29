@@ -24,29 +24,34 @@ module "categories" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| nutanix | >= 2.4.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_nutanix"></a> [nutanix](#requirement\_nutanix) | >= 2.4.0 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| nutanix | `nutanix/nutanix` | `>= 2.4.0` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_nutanix"></a> [nutanix](#provider\_nutanix) | >= 2.4.0 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `nutanix_category_key.category_key` | resource |
-| `nutanix_category_value.category_value` | resource |
+| ---- | ---- |
+| [nutanix_category_key.category_key](https://registry.terraform.io/providers/nutanix/nutanix/latest/docs/resources/category_key) | resource |
+| [nutanix_category_value.category_value](https://registry.terraform.io/providers/nutanix/nutanix/latest/docs/resources/category_value) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| categories | Map of category keys to create with their values | `map(object({name = string, description = string, values = list(string)))` | n/a | yes |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_categories"></a> [categories](#input\_categories) | Map of category keys to create with their values | <pre>map(object({<br/>    name        = string<br/>    description = string<br/>    values      = list(string)<br/>  }))</pre> | n/a | yes |
 
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->

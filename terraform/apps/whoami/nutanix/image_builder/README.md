@@ -20,37 +20,38 @@ module "whoami_image" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| nutanix | >= 2.4.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_nutanix"></a> [nutanix](#requirement\_nutanix) | >= 2.4.0 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| nutanix | `nutanix/nutanix` | `>= 2.4.0` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_nutanix"></a> [nutanix](#provider\_nutanix) | >= 2.4.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `terraform_data.build_image` | resource |
-| `nutanix_image.whoami` | resource |
+| ---- | ---- |
+| [nutanix_image.whoami](https://registry.terraform.io/providers/nutanix/nutanix/latest/docs/resources/image) | resource |
+| [terraform_data.build_image](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| arch | Architecture for the image build (amd64 or arm64) | `string` | `"amd64"` | no |
-| image_path | Optional path to a pre-existing image file (skips building but still uploads) | `string` | `None` | no |
-| vm_name | Name prefix for the image | `string` | `"whoami"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_arch"></a> [arch](#input\_arch) | Architecture for the image build (amd64 or arm64) | `string` | `"amd64"` | no |
+| <a name="input_image_path"></a> [image\_path](#input\_image\_path) | Optional path to a pre-existing image file (skips building but still uploads) | `string` | `null` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| id | n/a |
-
+| ---- | ----------- |
+| <a name="output_id"></a> [id](#output\_id) | Id. |
 <!-- END_TF_DOCS -->

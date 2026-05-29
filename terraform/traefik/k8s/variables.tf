@@ -73,6 +73,12 @@ variable "skip_crds" {
   default     = false
 }
 
+variable "kubeconfig" {
+  description = "Path to a kubeconfig the CRD install (local-exec kubectl) should use. Empty = ambient kubeconfig / current context. Set this when the cluster is created in the same terraform run, so kubectl has no current context yet (e.g. demos that build a k3d cluster in-config)."
+  type        = string
+  default     = ""
+}
+
 variable "skip_gateway_api_crds" {
   description = "Skip Gateway API CRD installation"
   type        = bool
@@ -182,9 +188,9 @@ variable "enable_debug" {
 
 # Versions & Images
 variable "traefik_chart_version" {
-  description = "Traefik Helm chart version"
+  description = "Traefik Helm chart version (latest stable). Must render the partial metrics.otlp block this module sets: chart 38.x nil-pointers on .Values.metrics.otlp.resourceAttributes when that block is set without it; 40.x renders it."
   type        = string
-  default     = "38.0.1"
+  default     = "40.2.0"
 }
 
 variable "traefik_tag" {
@@ -194,9 +200,9 @@ variable "traefik_tag" {
 }
 
 variable "traefik_hub_tag" {
-  description = "Traefik Hub version tag"
+  description = "Traefik Hub image tag for ghcr.io/traefik/traefik-hub (latest stable), paired with the default chart version above."
   type        = string
-  default     = "v3.19.0"
+  default     = "v3.20.2"
 }
 
 variable "traefik_hub_preview_tag" {

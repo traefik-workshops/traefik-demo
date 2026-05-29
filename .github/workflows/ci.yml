@@ -38,9 +38,9 @@ jobs:
       - name: terraform init + validate per module
         run: |
           set -euo pipefail
-          # Leaf modules live under terraform/. demos/ holds root example configs
-          # (provider blocks, git:: module sources) that are not library modules and
-          # aren't gated here — mirrors `make tf-validate` (LEAF_MODULES = find terraform).
+          # Leaf modules live under terraform/. demos/ are root configs validated
+          # by the dedicated demos-ci.yml workflow — mirrors `make tf-validate`
+          # (LEAF_MODULES = find terraform).
           mapfile -t mods < <(find terraform -name '*.tf' -not -path '*/.terraform/*' \
             -exec dirname {} \; | sort -u)
           fail=0
@@ -79,14 +79,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: aquasecurity/tfsec-action@v1.0.3
         with:
-          # Scan terraform/ only — demos/ pull modules via git:: refs, which tfsec
-          # would resolve and scan (incl. upstream third-party modules we don't own).
-          # The action runs from the repo root, so the config path is repo-root-relative.
+          # Scan terraform/ only — demos/ are root configs that compose these same
+          # modules (already scanned here) via relative paths, so scanning demos/
+          # would just double-scan. The action runs from the repo root, so the
+          # config path is repo-root-relative.
           working_directory: terraform
           additional_args: --config-file=.tfsec.yml --soft-fail=false
 
   catalog-check:
-    name: catalog.json in sync
+    name: catalog in sync (json + markdown)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -95,5 +96,9 @@ jobs:
           sudo curl -sSL -o /usr/local/bin/yq \
             https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
+      # catalog.json (machine-readable, vs the tree) and CATALOG.md (human-readable,
+      # vs catalog.json) are both committed; gate both so neither can silently rot.
       - name: make catalog-check
         run: make catalog-check
+      - name: make catalog-markdown-check
+        run: make catalog-markdown-check
