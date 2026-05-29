@@ -60,3 +60,17 @@ repos:
     rev: v0.1.23
     hooks:
       - id: helmlint
+
+  # ----- Traefik + Hub CRD validation -----
+  # Render every chart and validate emitted Traefik/Hub custom resources against
+  # the real JSON Schemas from traefik/reference (fetched on demand). Degrades
+  # gracefully: if you're not authenticated to that private repo, or a chart's
+  # deps can't build locally, it validates what it can and never blocks.
+  - repo: local
+    hooks:
+      - id: kubeconform-crds
+        name: kubeconform (Traefik + Hub CRDs vs traefik/reference)
+        entry: scripts/reference.sh validate
+        language: system
+        files: ^helm/.*/templates/.*\.ya?ml$
+        pass_filenames: false

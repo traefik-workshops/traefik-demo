@@ -116,15 +116,8 @@ helm-lint: ## H: helm lint --strict every chart (uses values.schema.json).
 	@if [ "$$fail" -eq 0 ]; then echo "$(GREEN)helm-lint: ok$(RESET)"; else echo "$(RED)helm-lint: failed$(RESET)"; exit 1; fi
 
 .PHONY: helm-template
-helm-template: ## H: helm template every chart, pipe to kubeconform.
-	@set -euo pipefail
-	@if ! command -v kubeconform > /dev/null; then echo "$(YELLOW)warn:$(RESET) kubeconform not installed — skipping manifest validation"; exit 0; fi
-	@fail=0
-	@for c in $(HELM_CHARTS); do \
-		echo "$(DIM)template $$c$(RESET)"; \
-		helm template release-name "$$c" 2>/dev/null | kubeconform -strict -summary -skip CustomResourceDefinition,IngressRoute,Middleware,ServersTransport,Keycloak,KeycloakRealmImport || fail=1; \
-	done
-	@if [ "$$fail" -eq 0 ]; then echo "$(GREEN)helm-template: ok$(RESET)"; else echo "$(RED)helm-template: failed$(RESET)"; exit 1; fi
+helm-template: ## H: helm template every chart | kubeconform, validating Traefik + Hub CRDs against traefik/reference schemas.
+	@scripts/reference.sh validate
 
 .PHONY: helm-test
 helm-test: ## H: ct lint --all (chart-testing).
@@ -233,6 +226,14 @@ catalog-markdown: ## X: Regenerate CATALOG.md (human-readable module index) from
 .PHONY: catalog-markdown-check
 catalog-markdown-check: ## X: Fail if CATALOG.md is out of sync with catalog.json (CI gate).
 	@python3 scripts/catalog_markdown.py --check
+
+.PHONY: reference
+reference: ## X: Print a traefik/reference config/CRD page (PAGE=hub/crd/api | oss/middlewares/jwt | INDEX).
+	@scripts/reference.sh page "$(PAGE)"
+
+.PHONY: reference-schemas
+reference-schemas: ## X: Cache Traefik + Hub CRD JSON schemas from traefik/reference into .reference/ (for kubeconform).
+	@scripts/reference.sh schemas
 
 # ============================================================================
 # 4. Release machinery
