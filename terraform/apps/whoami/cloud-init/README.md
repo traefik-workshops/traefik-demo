@@ -26,18 +26,32 @@ module "whoami_cloud_init" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
+## Requirements
+
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+
+## Providers
+
+No providers.
+
+## Resources
+
+No resources.
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| arch | The architecture (amd64, arm64) | `string` | `"amd64"` | no |
-| port | Port for whoami to listen on | `number` | `80` | no |
-| whoami_version | The Whoami version to install | `string` | `"v1.10.1"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_arch"></a> [arch](#input\_arch) | The architecture (amd64, arm64) | `string` | `"amd64"` | no |
+| <a name="input_port"></a> [port](#input\_port) | Port for whoami to listen on | `number` | `80` | no |
+| <a name="input_whoami_version"></a> [whoami\_version](#input\_whoami\_version) | The Whoami version to install | `string` | `"v1.10.1"` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| rendered | n/a |
-
+| ---- | ----------- |
+| <a name="output_rendered"></a> [rendered](#output\_rendered) | Rendered. |
 <!-- END_TF_DOCS -->

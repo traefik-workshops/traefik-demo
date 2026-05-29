@@ -19,32 +19,37 @@ module "k6_operator" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| helm | ~> 3.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| helm | `hashicorp/helm` | `~> 3.0` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 3.0 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `helm_release.k6_operator` | resource |
+| ---- | ---- |
+| [helm_release.k6_operator](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| namespace | Namespace for the k6 deployment | `string` | n/a | yes |
-| extra_values | Extra values to merge into the Helm chart values | `any` | `{}` | no |
-| name | The name of the k6 release | `string` | `"k6-operator"` | no |
-| node_selector | Node selector for pod scheduling | `map(string)` | `{}` | no |
-| tolerations | Tolerations for pod scheduling | `list(object({key = string, operator = string, value = string, effect = string))` | `[]` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for the k6 deployment | `string` | n/a | yes |
+| <a name="input_extra_values"></a> [extra\_values](#input\_extra\_values) | Extra values to merge into the Helm chart values | `any` | `{}` | no |
+| <a name="input_name"></a> [name](#input\_name) | The name of the k6 release | `string` | `"k6-operator"` | no |
+| <a name="input_node_selector"></a> [node\_selector](#input\_node\_selector) | Node selector for pod scheduling | `map(string)` | `{}` | no |
+| <a name="input_tolerations"></a> [tolerations](#input\_tolerations) | Tolerations for pod scheduling | <pre>list(object({<br/>    key      = string<br/>    operator = string<br/>    value    = string<br/>    effect   = string<br/>  }))</pre> | `[]` | no |
 
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->

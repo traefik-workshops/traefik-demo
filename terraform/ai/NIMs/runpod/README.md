@@ -24,28 +24,36 @@ module "nims" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| terraform | >= 1.3.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+
+## Providers
+
+No providers.
+
+## Resources
+
+No resources.
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| ngc_token | NVIDIA NGC API token | `string` | n/a | yes |
-| runpod_api_key | RunPod API key | `string` | n/a | yes |
-| enable_content_safety_nim | Configuration for Content Safety NIM | `bool` | `false` | no |
-| enable_jailbreak_detection_nim | Configuration for Jailbreak Detection NIM | `bool` | `false` | no |
-| enable_topic_control_nim | Configuration for Topic Control NIM | `bool` | `false` | no |
-| ngc_username | NVIDIA NGC username (usually '$oauthtoken' for API auth) | `string` | `"$oauthtoken"` | no |
-| pod_type | The type of pod to deploy (e.g., NVIDIA L40, NVIDIA A100, etc.) | `string` | `"NVIDIA A40"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_ngc_token"></a> [ngc\_token](#input\_ngc\_token) | NVIDIA NGC API token | `string` | n/a | yes |
+| <a name="input_runpod_api_key"></a> [runpod\_api\_key](#input\_runpod\_api\_key) | RunPod API key | `string` | n/a | yes |
+| <a name="input_enable_content_safety_nim"></a> [enable\_content\_safety\_nim](#input\_enable\_content\_safety\_nim) | Configuration for Content Safety NIM | `bool` | `false` | no |
+| <a name="input_enable_jailbreak_detection_nim"></a> [enable\_jailbreak\_detection\_nim](#input\_enable\_jailbreak\_detection\_nim) | Configuration for Jailbreak Detection NIM | `bool` | `false` | no |
+| <a name="input_enable_topic_control_nim"></a> [enable\_topic\_control\_nim](#input\_enable\_topic\_control\_nim) | Configuration for Topic Control NIM | `bool` | `false` | no |
+| <a name="input_ngc_username"></a> [ngc\_username](#input\_ngc\_username) | NVIDIA NGC username (usually '$oauthtoken' for API auth) | `string` | `"$oauthtoken"` | no |
+| <a name="input_pod_type"></a> [pod\_type](#input\_pod\_type) | The type of pod to deploy (e.g., NVIDIA L40, NVIDIA A100, etc.) | `string` | `"NVIDIA A40"` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| pods | Map of created pods with their details |
-
+| ---- | ----------- |
+| <a name="output_pods"></a> [pods](#output\_pods) | Map of created pods with their details |
 <!-- END_TF_DOCS -->

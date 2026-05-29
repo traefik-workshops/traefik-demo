@@ -21,11 +21,32 @@ module "httpbin" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
+## Requirements
+
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.27 |
+
+## Providers
+
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.27 |
+
 ## Resources
 
 | Name | Type |
-|------|------|
-| `kubernetes_deployment_v1.httpbin` | resource |
-| `kubernetes_service.httpbin` | resource |
+| ---- | ---- |
+| [kubernetes_deployment_v1.httpbin](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment_v1) | resource |
+| [kubernetes_service.httpbin](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service) | resource |
 
+## Inputs
+
+No inputs.
+
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->

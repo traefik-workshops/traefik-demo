@@ -35,40 +35,59 @@ that publish those tokens to the cluster. Pick which:
 
 <!-- BEGIN_TF_DOCS -->
 
+
+## Requirements
+
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_external"></a> [external](#requirement\_external) | ~> 2.0 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.27 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2 |
+
+## Providers
+
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_external"></a> [external](#provider\_external) | ~> 2.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | ~> 3.0 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.27 |
+| <a name="provider_null"></a> [null](#provider\_null) | ~> 3.2 |
+
 ## Resources
 
 | Name | Type |
-|------|------|
-| `helm_release.keycloak` | resource |
-| `null_resource.validate_keycloak_deployment` | resource |
-| `kubernetes_job_v1.fetch_tokens` | resource |
-| `kubernetes_secret_v1.user_tokens` | resource |
+| ---- | ---- |
+| [helm_release.keycloak](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [kubernetes_job_v1.fetch_tokens](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/job_v1) | resource |
+| [kubernetes_secret_v1.user_tokens](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret_v1) | resource |
+| [null_resource.validate_keycloak_deployment](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| namespace | Namespace for the Traefik Hub deployment | `string` | n/a | yes |
-| users | List of users to create in the security module | `list(string)` | n/a | yes |
-| access_token_lifespan | The lifespan of the access token in seconds | `number` | `2419200` | no |
-| advanced_users | List of advanced users with detailed configuration including groups and claims | `list(object({username = string, email = string, password = string, groups = list(string), claims = map(list(string))))` | `[]` | no |
-| chart | Path to the Helm chart for the Keycloak deployment. When empty, uses the git-hosted chart. | `string` | `""` | no |
-| client_certificate | n/a | `string` | `""` | no |
-| client_key | n/a | `string` | `""` | no |
-| domain | Base domain for ingress (e.g., benchmarks.demo.traefik.ai) | `string` | `""` | no |
-| host | n/a | `string` | `""` | no |
-| ingress | Ingress configuration for the keycloak service | `object({enabled = optional(bool, false), internal = optional(bool, true), domain = optional(string, ""), entrypoint = optional(string, "traefik"))` | `{}` | no |
-| ingress_annotations | Additional metadata annotations merged onto the Ingress. Useful for custom router options beyond the three observability toggles. | `map(string)` | `{}` | no |
-| ingress_observability | Emit Traefik observability signals (access logs, metrics, traces) for the Keycloak ingress router. Set to false to add the three `traefik.ingress.kubernetes.io/router.observability.*: "false"` annotations. Same switch shape as other k8s modules. | `bool` | `true` | no |
-| instances | Number of Keycloak pods behind the shared Postgres backend. Scale when multiple independent test runs hit the OIDC endpoint in parallel. | `number` | `1` | no |
-| name | The name of the traefik release | `string` | `"traefik"` | no |
-| redirect_uris | Allowed callback URL for the authentication flow | `list(string)` | `[]` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for the Traefik Hub deployment | `string` | n/a | yes |
+| <a name="input_users"></a> [users](#input\_users) | List of users to create in the security module | `list(string)` | n/a | yes |
+| <a name="input_access_token_lifespan"></a> [access\_token\_lifespan](#input\_access\_token\_lifespan) | The lifespan of the access token in seconds | `number` | `2419200` | no |
+| <a name="input_advanced_users"></a> [advanced\_users](#input\_advanced\_users) | List of advanced users with detailed configuration including groups and claims | <pre>list(object({<br/>    username = string<br/>    email    = string<br/>    password = string<br/>    groups   = list(string)<br/>    claims   = map(list(string))<br/>  }))</pre> | `[]` | no |
+| <a name="input_chart"></a> [chart](#input\_chart) | Path to the Helm chart for the Keycloak deployment. When empty, uses the git-hosted chart. | `string` | `""` | no |
+| <a name="input_client_certificate"></a> [client\_certificate](#input\_client\_certificate) | PEM-encoded client certificate matching `host`. Written to a temp file for the token-capture kubectl context. Required when `host` is set. | `string` | `""` | no |
+| <a name="input_client_key"></a> [client\_key](#input\_client\_key) | PEM-encoded client key matching `client_certificate`. Written to a temp file for the token-capture kubectl context. Required when `host` is set. | `string` | `""` | no |
+| <a name="input_domain"></a> [domain](#input\_domain) | Base domain for ingress (e.g., benchmarks.demo.traefik.ai) | `string` | `""` | no |
+| <a name="input_host"></a> [host](#input\_host) | Kubernetes API server URL for the cluster Keycloak runs on. Used by the token-capture data source to build an isolated kubectl context when reading from a remote cluster. Leave empty to use the ambient kubeconfig. | `string` | `""` | no |
+| <a name="input_ingress"></a> [ingress](#input\_ingress) | Ingress configuration for the keycloak service | <pre>object({<br/>    enabled    = optional(bool, false)<br/>    internal   = optional(bool, true)<br/>    domain     = optional(string, "")<br/>    entrypoint = optional(string, "traefik")<br/>  })</pre> | `{}` | no |
+| <a name="input_ingress_annotations"></a> [ingress\_annotations](#input\_ingress\_annotations) | Additional metadata annotations merged onto the Ingress. Useful for custom router options beyond the three observability toggles. | `map(string)` | `{}` | no |
+| <a name="input_ingress_observability"></a> [ingress\_observability](#input\_ingress\_observability) | Emit Traefik observability signals (access logs, metrics, traces) for the Keycloak ingress router. Set to false to add the three `traefik.ingress.kubernetes.io/router.observability.*: "false"` annotations. Same switch shape as other k8s modules. | `bool` | `true` | no |
+| <a name="input_instances"></a> [instances](#input\_instances) | Number of Keycloak pods behind the shared Postgres backend. Scale when multiple independent test runs hit the OIDC endpoint in parallel. | `number` | `1` | no |
+| <a name="input_name"></a> [name](#input\_name) | The name of the traefik release | `string` | `"traefik"` | no |
+| <a name="input_redirect_uris"></a> [redirect\_uris](#input\_redirect\_uris) | Allowed callback URL for the authentication flow | `list(string)` | `[]` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| users | All users with their IDs, emails, groups, and claims |
-| users_map | Map of users keyed by username |
-
+| ---- | ----------- |
+| <a name="output_users"></a> [users](#output\_users) | All users with their IDs, emails, groups, and claims |
+| <a name="output_users_map"></a> [users\_map](#output\_users\_map) | Map of users keyed by username |
 <!-- END_TF_DOCS -->

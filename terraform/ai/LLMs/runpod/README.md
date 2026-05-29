@@ -23,26 +23,34 @@ module "llms" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| terraform | >= 1.3.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+
+## Providers
+
+No providers.
+
+## Resources
+
+No resources.
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| hugging_face_api_key 🔒 | Hugging Face API key | `string` | n/a | yes |
-| runpod_api_key | RunPod API key | `string` | n/a | yes |
-| enable_gpt_oss_20b | Enable GPT OSS 20B | `bool` | `false` | no |
-| enable_llama31_8b | Enable Llama31 8B | `bool` | `false` | no |
-| pod_type | Pod type | `string` | `"NVIDIA A40"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_hugging_face_api_key"></a> [hugging\_face\_api\_key](#input\_hugging\_face\_api\_key) | Hugging Face API key | `string` | n/a | yes |
+| <a name="input_runpod_api_key"></a> [runpod\_api\_key](#input\_runpod\_api\_key) | RunPod API key | `string` | n/a | yes |
+| <a name="input_enable_gpt_oss_20b"></a> [enable\_gpt\_oss\_20b](#input\_enable\_gpt\_oss\_20b) | Enable GPT OSS 20B | `bool` | `false` | no |
+| <a name="input_enable_llama31_8b"></a> [enable\_llama31\_8b](#input\_enable\_llama31\_8b) | Enable Llama31 8B | `bool` | `false` | no |
+| <a name="input_pod_type"></a> [pod\_type](#input\_pod\_type) | Pod type | `string` | `"NVIDIA A40"` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| pods | Map of created pods with their details |
-
+| ---- | ----------- |
+| <a name="output_pods"></a> [pods](#output\_pods) | Map of created pods with their details |
 <!-- END_TF_DOCS -->

@@ -33,30 +33,35 @@ There is also a Helm chart that ships Presidio with the full values surface:
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| helm | ~> 3.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.0 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| helm | `hashicorp/helm` | `~> 3.0` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.0 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `kubernetes_deployment_v1.presidio` | resource |
-| `kubernetes_service_v1.presidio` | resource |
+| ---- | ---- |
+| [kubernetes_deployment_v1.presidio](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment_v1) | resource |
+| [kubernetes_service_v1.presidio](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service_v1) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| name | The name of the milvus release | `string` | `"milvus"` | no |
-| namespace | The namespace of the milvus release | `string` | `"milvus"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_name"></a> [name](#input\_name) | Name of the Presidio Helm release. | `string` | `"presidio"` | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for the Presidio Helm release. | `string` | `"presidio"` | no |
 
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->

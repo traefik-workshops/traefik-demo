@@ -23,42 +23,43 @@ module "vpc" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| nutanix | >= 2.4.0 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_nutanix"></a> [nutanix](#requirement\_nutanix) | >= 2.4.0 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| nutanix | `nutanix/nutanix` | `>= 2.4.0` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_nutanix"></a> [nutanix](#provider\_nutanix) | >= 2.4.0 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `nutanix_vpc_v2.vpc` | resource |
-| `nutanix_subnet_v2.subnets` | resource |
-| `nutanix_static_routes.external_reroute` | resource |
+| ---- | ---- |
+| [nutanix_static_routes.external_reroute](https://registry.terraform.io/providers/nutanix/nutanix/latest/docs/resources/static_routes) | resource |
+| [nutanix_subnet_v2.subnets](https://registry.terraform.io/providers/nutanix/nutanix/latest/docs/resources/subnet_v2) | resource |
+| [nutanix_vpc_v2.vpc](https://registry.terraform.io/providers/nutanix/nutanix/latest/docs/resources/vpc_v2) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| external_subnet_uuid | UUID of the external subnet to connect to | `string` | n/a | yes |
-| vpc_name | Name of the VPC | `string` | n/a | yes |
-| dns_servers | List of DNS Servers | `list(string)` | `["10.8.1.10","10.42.196.10"]` | no |
-| externally_routable_prefixes | List of externally routable prefixes | `list(string)` | `[]` | no |
-| subnets | Map of subnets to create. Key is the subnet name. | `map(object({cidr = string, prefix_length = optional(number), subnet_type = optional(string), extra_ip = optional(string)))` | `{}` | no |
-| vpc_type | Type of VPC (REGULAR or TRANSIT) | `string` | `"REGULAR"` | no |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_external_subnet_uuid"></a> [external\_subnet\_uuid](#input\_external\_subnet\_uuid) | UUID of the external subnet to connect to | `string` | n/a | yes |
+| <a name="input_vpc_name"></a> [vpc\_name](#input\_vpc\_name) | Name of the VPC | `string` | n/a | yes |
+| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | List of DNS Servers | `list(string)` | <pre>[<br/>  "10.8.1.10",<br/>  "10.42.196.10"<br/>]</pre> | no |
+| <a name="input_externally_routable_prefixes"></a> [externally\_routable\_prefixes](#input\_externally\_routable\_prefixes) | List of externally routable prefixes | `list(string)` | `[]` | no |
+| <a name="input_subnets"></a> [subnets](#input\_subnets) | Map of subnets to create. Key is the subnet name. | <pre>map(object({<br/>    cidr          = string<br/>    prefix_length = optional(number)<br/>    subnet_type   = optional(string)<br/>    extra_ip      = optional(string)<br/>  }))</pre> | `{}` | no |
+| <a name="input_vpc_type"></a> [vpc\_type](#input\_vpc\_type) | Type of VPC (REGULAR or TRANSIT) | `string` | `"REGULAR"` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
-| subnet_uuids | n/a |
-| vpc_uuid | n/a |
-
+| ---- | ----------- |
+| <a name="output_subnet_uuids"></a> [subnet\_uuids](#output\_subnet\_uuids) | Subnet uuids. |
+| <a name="output_vpc_uuid"></a> [vpc\_uuid](#output\_vpc\_uuid) | Vpc uuid. |
 <!-- END_TF_DOCS -->

@@ -22,32 +22,34 @@ module "kommander" {
 
 <!-- BEGIN_TF_DOCS -->
 
+
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| kubernetes | (unpinned) |
-| kubectl | >= 1.14 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_kubectl"></a> [kubectl](#requirement\_kubectl) | >= 1.14 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | ~> 2.27 |
 
 ## Providers
 
-| Name | Source | Version |
-|------|--------|---------|
-| kubernetes | `hashicorp/kubernetes` | `(unpinned)` |
-| kubectl | `gavinbunney/kubectl` | `>= 1.14` |
+| Name | Version |
+| ---- | ------- |
+| <a name="provider_kubectl"></a> [kubectl](#provider\_kubectl) | >= 1.14 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | ~> 2.27 |
 
 ## Resources
 
 | Name | Type |
-|------|------|
-| `kubectl_manifest.traefik_overrides` | resource |
-| `kubectl_manifest.traefik_app_deployment` | resource |
+| ---- | ---- |
+| [kubectl_manifest.traefik_app_deployment](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
+| [kubectl_manifest.traefik_overrides](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/manifest) | resource |
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| external_subnet_uuid | UUID of the external subnet for FIP creation | `string` | n/a | yes |
-| vpc_uuid | UUID of the VPC | `string` | n/a | yes |
+No inputs.
 
+## Outputs
+
+No outputs.
 <!-- END_TF_DOCS -->
