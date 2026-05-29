@@ -29,6 +29,10 @@ helm/*/charts/*/
 # Helm-docs scratch
 *.md.bak
 
+# traefik/reference CRD-schema cache (fetched on demand by scripts/reference.sh;
+# the reference repo is private, so nothing from it is committed here)
+/.reference/
+
 # ============================================================================
 # Secrets — NEVER commit. .example variants are allowed (carve-outs below).
 # Defense-in-depth: gitleaks pre-commit hook catches anything that slips past.

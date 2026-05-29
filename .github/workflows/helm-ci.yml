@@ -82,15 +82,36 @@ jobs:
           done
           exit $fail
 
+      # Real JSON Schemas for Traefik + Hub CRDs, fetched from the private
+      # traefik/reference repo. The gh CLI is the single source of auth: the
+      # token below just wires gh up, and `gh auth status` is what gates the
+      # fetch. Unauthenticated, the next step degrades to leaving CRDs
+      # unvalidated rather than failing.
+      - name: Cache Traefik + Hub CRD schemas (traefik/reference)
+        env:
+          GH_TOKEN: ${{ secrets.HUB_REPO_TOKEN }}
+        run: |
+          if gh auth status >/dev/null 2>&1; then
+            scripts/reference.sh schemas
+          else
+            echo "::warning::gh CLI not authenticated for traefik/reference — Traefik/Hub custom resources will not be schema-validated."
+          fi
+
       - name: helm template | kubeconform per chart
         run: |
           set -euo pipefail
+          # Validate Traefik/Hub CRs against the reference schemas when available,
+          # then fall through to the upstream default location for core kinds.
+          loc=()
+          if [ -d .reference/schemas ] && [ -n "$(ls -A .reference/schemas 2>/dev/null)" ]; then
+            loc=(-schema-location '.reference/schemas/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -schema-location default)
+          fi
           fail=0
           for c in helm/*/; do
             echo "::group::kubeconform $c"
             helm template release-name "$c" 2>/dev/null \
               | kubeconform -strict -summary -ignore-missing-schemas \
-                  -skip CustomResourceDefinition \
+                  -skip CustomResourceDefinition "${loc[@]}" \
               || fail=1
             echo "::endgroup::"
           done
