@@ -49,7 +49,7 @@ If `helm` isn't on PATH the script still scaffolds but skips lint with a warning
 2. **Hand-edit `values.schema.json`** to add `description:` fields and tighten any `additionalProperties: false` boundaries that should be enforced.
 3. **Update `NOTES.txt`** with the real post-install URLs, credentials, and commands. The stub is generic.
 4. **Add a row to `helm/README.md`'s charts table** with the new chart's name, purpose, and `appVersion`.
-5. **Pick a test tier from [`/TESTING.md`](../../TESTING.md#helm)** (default `Install`). Add a `templates/tests/<probe>.yaml` Helm test.
+5. **Pick a test tier from [`/TESTING.md`](../../../TESTING.md#helm)** (default `Install`). Add a `templates/tests/<probe>.yaml` Helm test.
 6. **Run `make check`** before committing. If helm-lint or kubeconform fails, fix the chart, not the lint rule.
 7. **Tell the user this is a release-feature bump** — adding a chart is additive, so it ships in the next minor release.
 
