@@ -55,6 +55,14 @@ Gather these before rendering anything. Use the `AskUserQuestion` tool. Apply th
    `azure/aks`, `gcp/gke`, `oracle/oke`, `digitalocean/doks`, `akamai/lke`, `nutanix/nkp`,
    `imported/k8s` (bring-your-own kubeconfig). A cloud choice pulls in its prerequisites
    (e.g. `aws/eks` needs `aws/vpc` — see `demos/oidc-portal`).
+   - **Right-size the node pool — and confirm it (cloud/managed clusters).** Don't
+     ship the compute module's tiny default node (e.g. AKS defaults to *one*
+     `Standard_B2s`); a multi-module stack won't fit, and CPU-starved nodes give a
+     bad demo. After resolving the module/chart list, do the sizing math (see
+     [Right-sizing a node pool](#right-sizing-a-node-pool)) and **show the computed
+     SKU + count and the resulting ~%-requested, and confirm with the user** as part
+     of the pre-write confirmation. For local `k3d`, node sizing is the host's Docker
+     resources — note heavy stacks but there's no node pool to pick.
 
 3. **Topology** — *single-cluster* (default) or *multi-cluster*.
    - **Multi-cluster → ask for the other compute.** The second ("app-workload"/child)
@@ -100,6 +108,51 @@ gateway endpoint is the target).
 
 ---
 
+## Right-sizing a node pool
+
+For a managed cluster, pick the node SKU + count from the resolved stack — don't inherit the
+compute module's default (it's a single small node, e.g. AKS = one `Standard_B2s`; fine for a
+bare gateway, not for a multi-module demo). Confirm the result with the user before writing.
+
+1. **Sum the pod CPU + memory *requests*** of every chart in the resolved list — the gateway,
+   IdP, each observability backend, sample apps, **plus their bundled datastores** (Langfuse
+   alone pulls ClickHouse + Postgres + Redis + MinIO; kube-prometheus-stack pulls Prometheus +
+   Grafana + Loki + Tempo + kube-state-metrics). Add ~0.7 vCPU for kube-system DaemonSets.
+2. **Target ~50–60% of *allocatable*** so steady CPU sits around 60% with headroom for boot
+   spikes (realm imports, DB migrations, ClickHouse init). Managed nodes lose ~3–4% of CPU and
+   ~25% of the first GBs of RAM to the kubelet reservation — a 4 vCPU / 16 GB node yields
+   ~3.86 vCPU / ~12.5 GB allocatable.
+3. **Prefer a non-burstable SKU** for sustained workloads — Azure D-series, AWS m-series, GCP
+   n2/e2-standard. Avoid burstable (Azure B-series, AWS t-series): they throttle below baseline
+   once CPU credits drain, which tanks a long-lived demo.
+4. **Round up the node count** and prefer fewer larger nodes — memory-heavy pods (ClickHouse,
+   Prometheus, JVMs) schedule better on big nodes than on many small ones.
+
+Worked example — `demos/aks-demo` (Hub + Keycloak + Langfuse + Grafana stack + OTel + whoami)
+≈ 5 vCPU requested + ~0.7 system ≈ 5.7 vCPU → target allocatable ≈ 5.7 / 0.55 ≈ 10.4 vCPU →
+**3× `Standard_D4s_v5`** (~11.6 vCPU allocatable, ~50% requested, CPU peaks ~60%).
+
+---
+
+## Traefik on a cloud cluster: ports are already handled
+
+On a real cloud node (AKS / EKS / GKE) the Traefik container runs non-root and **can't bind
+privileged ports**. If the `web` / `websecure` entrypoints sit on container ports 80/443 it
+crash-loops on `bind: permission denied` → the helm release times out → the atomic apply
+rolls back, so the gateway never comes up (and nothing routed through it does either). Adding
+`NET_BIND_SERVICE` via `securityContext.capabilities` does **not** fix it — the capability
+never reaches a non-root container's effective set.
+
+`terraform/traefik/k8s` already solves this the way the chart intends: it binds the
+entrypoints on **unprivileged** container ports (8000/8443) and publishes 80/443 at the
+LoadBalancer Service via `exposedPort` (`host:80 → service:80 → container:8000`). The module
+default is correct on **both** cloud and k3d — k3d only ever *masked* the problem by allowing
+privileged binds. So a cloud build needs **no** `extra_values { ports {...} }` override; if a
+seed demo still carries one, delete it. (VM platforms — `traefik/ec2|ecs|nutanix` — are
+unaffected: they bind 80/443 directly under systemd `CAP_NET_BIND_SERVICE`.)
+
+---
+
 ## Config → module / chart mapping
 
 | Choice | Pulls in | traefik/k8s flags |
@@ -116,6 +169,28 @@ gateway endpoint is the target).
 | *(always, unless gateway-only)* | `apps/whoami/k8s` | — |
 
 Confirm the resolved module/chart list with the user before writing files.
+
+---
+
+## IdP / JWT auth: seed Keycloak with the simple `users` list
+
+When a build needs an in-cluster IdP that **mints per-user JWTs into the
+`traefik-user-tokens` Secret** (e.g. a JWT-gated route like the `whoami` gate), wire
+`terraform/security/keycloak/k8s` with the **simple `users` list** — `users =
+["developer"]` seeds the user *and* mints its token, readable from the `users_map` output
+/ the Secret.
+
+- **Don't reach for `advanced_users` just to get a working token.** The seeded password is
+  one shared value — `user_password` (default `topsecretpassword`) — used by **both** the
+  realm chart and the token-mint Job, so a simple user always authenticates. (Older builds
+  set `advanced_users` to work around a bug where the two sides used different passwords and
+  minted nothing; that's fixed — don't copy that workaround.) Use `advanced_users` only when
+  a user needs its own **groups, claims, or password**.
+- Override the demo default by setting `user_password` on the module — it flows to the chart
+  *and* the Job together, so they can't drift.
+- The token Secret carries `lifecycle { ignore_changes = [data] }`: it fills on first create
+  but won't self-heal if it was ever created empty — re-mint with `terraform apply
+  -replace='module.<name>.kubernetes_secret_v1.user_tokens'`.
 
 ---
 

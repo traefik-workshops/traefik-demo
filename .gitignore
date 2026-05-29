@@ -92,3 +92,7 @@ aws-credentials
 
 # Anything dropped into a top-level secrets/ scratch dir
 /secrets/
+
+# Saved terraform plan files (may contain secrets)
+tfplan*
+*.tfplan

@@ -30,8 +30,11 @@ observability (default off; if on, default grafana, else any otel backend), API 
 
 Then resolve the config → module/chart list via the
 [mapping table](../skills/sa-assistant/demo-spec.md#config--module--chart-mapping) and read
-`catalog.json` to confirm every path exists and to pull each module's required inputs.
-**Show the resolved module list and ask the user to confirm before writing files.**
+`catalog.json` to confirm every path exists and to pull each module's required inputs. For a
+cloud/managed cluster, also compute the node pool (SKU + count) from the resolved stack per
+[Right-sizing a node pool](../skills/sa-assistant/demo-spec.md#right-sizing-a-node-pool).
+**Show the resolved module list and the node pool (SKU + count + ~%-requested), and ask the
+user to confirm before writing files.**
 
 ## Step 2 — Pick the seed demo and copy it
 
@@ -65,7 +68,17 @@ Edit the copied `main.tf` / `variables.tf` / `outputs.tf` to match the resolved 
   `/create-poc`'s job, not this one.
 - **Swap the compute module** to the chosen infra. For k3d keep the `k3d` provider in
   `versions.tf`; for a cloud, drop `k3d` and follow `oidc-portal`'s provider wiring
-  (token-based, no local-exec kubeconfig).
+  (token-based, no local-exec kubeconfig). Don't add a Traefik `ports`/`exposedPort`
+  override for a cloud cluster — `traefik/k8s` already binds the entrypoints on unprivileged
+  container ports and publishes 80/443 at the Service, so delete any such block you inherit
+  from a seed (see
+  [demo-spec → Traefik on a cloud cluster](../skills/sa-assistant/demo-spec.md#traefik-on-a-cloud-cluster-ports-are-already-handled)).
+  **Right-size the node pool** for the resolved
+  stack instead of inheriting the module's single-small-node default — a non-burstable SKU
+  + count so aggregate pod requests land ~50–60% of allocatable (the math + a worked example
+  are in
+  [demo-spec → Right-sizing a node pool](../skills/sa-assistant/demo-spec.md#right-sizing-a-node-pool)),
+  confirmed with the user in Step 1.
 - **Toggle the traefik flags** per the mapping table (`enable_api_management`,
   `enable_ai_gateway`, `enable_mcp_gateway`, the `enable_otlp_*` + `otlp_address` set).
 - **Multi-cluster:** keep the parent/child split, the per-cluster providers, the uplink
