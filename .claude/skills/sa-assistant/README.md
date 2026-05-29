@@ -26,4 +26,4 @@ Claude activates this skill and drives the full 7-step loop. See [`SKILL.md`](./
 
 ## Test fixtures
 
-`fixtures/` (not yet checked in) — intended to hold three prospect intake scenarios (AWS/fintech, Azure/healthcare, GCP/e-commerce) for validating the skill end-to-end (e.g. `fixtures/example-1/transcript.md`, per [`poc-schema.md`](./poc-schema.md)).
+[`fixtures/`](../../../fixtures/) — synthetic prospect conversations for validating the skill end-to-end: three deployable scenarios (AWS/fintech, Azure/healthcare, GCP/e-commerce) plus two negative tests (wrong recipient, fictional product). Run via `/extract-scenario fixtures/example-1/transcript.md`.
