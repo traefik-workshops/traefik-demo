@@ -1,273 +1,155 @@
-# demos/unified-ingress — multicluster Traefik Hub on k3d: one "transit" parent
-# cluster + one "app-workload" child. The parent discovers the child's routes
-# and serves them under a single entrypoint — the dominant real-world shape.
+# demos/unified-ingress — multi-cloud Traefik Hub mesh. EKS is the hub (the
+# unified ingress); EC2, ECS, and AKS join as spokes over SPIFFE-mTLS Hub
+# uplinks. This file is the EKS hub baseline. The rest layers in via:
+#   nginx-migration.tf  (NGINX -> Traefik provider migration)
+#   spire.tf            (SPIRE for SPIFFE-mTLS uplinks)
+#   spokes-*.tf         (EC2 / ECS / AKS children + uplink wiring)
+#   routes.tf           (parent <spoke>@multicluster routes)
+#   waf.tf, mirroring-failover.tf, apim.tf, ai-mcp-gateway.tf, observability.tf
 #
-# Cross-cluster on k3d: two k3d clusters share one host, so they can't share
-# host ports. The child's Traefik (443) is exposed on host port 9443, and the
-# parent reaches it at host.k3d.internal:9443.
+# Cloud demo: CI only `terraform validate`s it (relative module sources resolve
+# offline); apply + scenarios are run by hand against AWS (+ Azure, later phases).
 
-# --- Clusters -----------------------------------------------------------------
-module "transit_cluster" {
-  source       = "../../terraform/compute/suse/k3d"
-  cluster_name = "${var.cluster_prefix}-transit"
-  # default ports: 80/443/8080 on the host
+# --- EKS hub ------------------------------------------------------------------
+module "vpc" {
+  source = "../../terraform/compute/aws/vpc"
+
+  name = var.cluster_name
 }
 
-module "app_workload_cluster" {
-  source       = "../../terraform/compute/suse/k3d"
-  cluster_name = "${var.cluster_prefix}-app"
-  # Expose the child's Hub uplink entrypoint (:9443) on the host so the transit
-  # parent can reach it at host.k3d.internal:9443. (The child's app traffic is
-  # served by the parent after discovery, so its web/websecure need no host port.)
-  ports = [{ from = 9443, to = 9443 }]
+module "eks" {
+  source = "../../terraform/compute/aws/eks"
+
+  cluster_name       = var.cluster_name
+  cluster_location   = var.region
+  cluster_node_type  = var.cluster_node_type
+  cluster_node_count = var.cluster_node_count
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  public_subnet_ids  = module.vpc.public_subnet_ids
+  create_vpc         = false
+  update_kubeconfig  = true # ambient kubeconfig for the keycloak token-capture + post-apply kubectl
 }
 
-# --- Providers (one set per cluster; k3d uses client-cert auth) ---------------
-provider "k3d" {}
-
-provider "kubernetes" {
-  alias                  = "transit"
-  host                   = module.transit_cluster.host
-  client_certificate     = module.transit_cluster.client_certificate
-  client_key             = module.transit_cluster.client_key
-  cluster_ca_certificate = module.transit_cluster.cluster_ca_certificate
-}
-
-provider "kubernetes" {
-  alias                  = "app_workload"
-  host                   = module.app_workload_cluster.host
-  client_certificate     = module.app_workload_cluster.client_certificate
-  client_key             = module.app_workload_cluster.client_key
-  cluster_ca_certificate = module.app_workload_cluster.cluster_ca_certificate
-}
-
-provider "helm" {
-  alias = "transit"
-  kubernetes = {
-    host                   = module.transit_cluster.host
-    client_certificate     = module.transit_cluster.client_certificate
-    client_key             = module.transit_cluster.client_key
-    cluster_ca_certificate = module.transit_cluster.cluster_ca_certificate
-  }
-}
-
-provider "helm" {
-  alias = "app_workload"
-  kubernetes = {
-    host                   = module.app_workload_cluster.host
-    client_certificate     = module.app_workload_cluster.client_certificate
-    client_key             = module.app_workload_cluster.client_key
-    cluster_ca_certificate = module.app_workload_cluster.cluster_ca_certificate
-  }
-}
-
-# kubectl providers for the whoami IngressRoute (a kubectl_manifest), per cluster.
-provider "kubectl" {
-  alias                  = "transit"
-  host                   = module.transit_cluster.host
-  client_certificate     = module.transit_cluster.client_certificate
-  client_key             = module.transit_cluster.client_key
-  cluster_ca_certificate = module.transit_cluster.cluster_ca_certificate
-  load_config_file       = false
-}
-
-provider "kubectl" {
-  alias                  = "app_workload"
-  host                   = module.app_workload_cluster.host
-  client_certificate     = module.app_workload_cluster.client_certificate
-  client_key             = module.app_workload_cluster.client_key
-  cluster_ca_certificate = module.app_workload_cluster.cluster_ca_certificate
-  load_config_file       = false
-}
-
-# Per-cluster kubeconfigs for each traefik module's CRD local-exec (no current
-# context yet — the clusters are created in this same run).
-resource "local_file" "transit_kubeconfig" {
-  filename        = "${path.module}/.transit.kubeconfig"
-  file_permission = "0600"
-  content = yamlencode({
-    apiVersion        = "v1"
-    kind              = "Config"
-    "current-context" = "transit"
-    clusters          = [{ name = "transit", cluster = { server = module.transit_cluster.host, "certificate-authority-data" = base64encode(module.transit_cluster.cluster_ca_certificate) } }]
-    users             = [{ name = "transit", user = { "client-certificate-data" = base64encode(module.transit_cluster.client_certificate), "client-key-data" = base64encode(module.transit_cluster.client_key) } }]
-    contexts          = [{ name = "transit", context = { cluster = "transit", user = "transit" } }]
-  })
-}
-
-resource "local_file" "app_workload_kubeconfig" {
-  filename        = "${path.module}/.app.kubeconfig"
-  file_permission = "0600"
-  content = yamlencode({
-    apiVersion        = "v1"
-    kind              = "Config"
-    "current-context" = "app"
-    clusters          = [{ name = "app", cluster = { server = module.app_workload_cluster.host, "certificate-authority-data" = base64encode(module.app_workload_cluster.cluster_ca_certificate) } }]
-    users             = [{ name = "app", user = { "client-certificate-data" = base64encode(module.app_workload_cluster.client_certificate), "client-key-data" = base64encode(module.app_workload_cluster.client_key) } }]
-    contexts          = [{ name = "app", context = { cluster = "app", user = "app" } }]
-  })
-}
-
-# --- Transit (parent) ---------------------------------------------------------
-resource "kubernetes_namespace_v1" "transit_traefik" {
-  provider = kubernetes.transit
+resource "kubernetes_namespace_v1" "traefik" {
+  provider = kubernetes.eks
   metadata { name = "traefik" }
 }
 
-resource "kubernetes_namespace_v1" "transit_observability" {
-  provider = kubernetes.transit
-  metadata { name = "traefik-observability" }
+resource "kubernetes_namespace_v1" "apps" {
+  provider = kubernetes.eks
+  metadata { name = "apps" }
 }
 
-module "transit_observability" {
-  source = "../../terraform/observability/opentelemetry/k8s"
-  providers = {
-    helm       = helm.transit
-    kubernetes = kubernetes.transit
-  }
-  namespace = kubernetes_namespace_v1.transit_observability.metadata[0].name
-}
-
-module "transit_traefik" {
+# --- Hub Traefik (the unified ingress) ---------------------------------------
+# Parent of the multicluster mesh (children are added in spokes-*.tf / routes.tf).
+# Runs the kubernetesIngressNGINX provider so it serves existing nginx Ingress
+# objects unchanged — the NGINX -> Traefik migration in nginx-migration.tf.
+module "traefik" {
   source = "../../terraform/traefik/k8s"
   providers = {
-    helm       = helm.transit
-    kubernetes = kubernetes.transit
+    helm       = helm.eks
+    kubernetes = kubernetes.eks
   }
 
-  namespace             = kubernetes_namespace_v1.transit_traefik.metadata[0].name
+  namespace             = kubernetes_namespace_v1.traefik.metadata[0].name
   traefik_hub_token     = var.traefik_hub_token
   enable_api_gateway    = true
-  enable_api_management = true
+  enable_api_management = true # the API Portal + APIM CRDs live here (apim.tf)
   enable_offline_mode   = true
-  kubeconfig            = abspath(local_file.transit_kubeconfig.filename)
-
-  enable_otlp_metrics     = true
-  enable_otlp_traces      = true
-  enable_otlp_access_logs = true
-  otlp_service_name       = "traefik-transit"
-  otlp_address            = "http://opentelemetry-opentelemetry-collector.${kubernetes_namespace_v1.transit_observability.metadata[0].name}.svc.cluster.local:4318"
+  kubeconfig            = abspath(local_file.eks_kubeconfig.filename)
 
   dashboard_entrypoints = ["websecure"]
   dashboard_match_rule  = "Host(`dashboard.${var.domain}`)"
 
+  # Serve existing nginx Ingress objects without rewriting them.
+  custom_providers = {
+    kubernetesIngressNGINX = {}
+  }
+
+  # Register the Coraza (OWASP CRS) WAF plugin so waf.tf's middleware can use it.
+  # CAVEAT: confirm moduleName/version against the Traefik plugin catalog before a
+  # live apply — this is best-effort.
+  custom_plugins = {
+    coraza = {
+      moduleName = "github.com/jcchavezs/coraza-http-wasm-traefik"
+      version    = "v0.2.2"
+    }
+  }
+
+  # Parent of the multicluster mesh — dials each spoke's Hub uplink. SPIFFE mTLS
+  # on the uplink lands in Phase 2c (serversTransport.spiffe replaces the
+  # insecureSkipVerify below). Spoke addresses come from the spokes-*.tf data
+  # sources (the spoke Traefik LoadBalancer's public :9443).
   multicluster_provider = {
     enabled      = true
     pollInterval = 5
     pollTimeout  = 5
-    children = {
-      app-workload = {
-        address          = "https://host.k3d.internal:9443"
+    children = merge({
+      aks = {
+        address          = local.aks_uplink_address
+        serversTransport = { spiffe = { ids = [local.aks_traefik_spiffe_id] } }
+      }
+      # EC2 / ECS uplinks (var.enable_vm_spokes): SPIFFE-on-VM/ECS is the
+      # documented extension, so the hub verifies these with insecureSkipVerify.
+      }, var.enable_vm_spokes ? {
+      ec2 = {
+        address          = local.ec2_uplink_address
         serversTransport = { insecureSkipVerify = true }
       }
-    }
+      ecs = {
+        address          = local.ecs_uplink_address
+        serversTransport = { insecureSkipVerify = true }
+      }
+    } : {})
+  }
+
+  # SPIFFE: read the SVID from the SPIRE agent Workload API (CSI-mounted) so the
+  # uplink to each spoke is mutually authenticated by SVID (see spire.tf).
+  custom_arguments         = [local.spiffe_workload_api_arg]
+  additional_volumes       = local.spiffe_volumes
+  additional_volume_mounts = local.spiffe_volume_mounts
+
+  # Telemetry -> the hub OTel collector (metrics -> Prometheus, access logs ->
+  # Loki, traces -> Tempo + Langfuse; see observability.tf).
+  enable_otlp_metrics     = true
+  enable_otlp_traces      = true
+  enable_otlp_access_logs = true
+  otlp_service_name       = "traefik-hub"
+  otlp_address            = "http://opentelemetry-opentelemetry-collector.${kubernetes_namespace_v1.observability.metadata[0].name}.svc.cluster.local:4318"
+
+  # Real DNS + per-host Let's Encrypt over the websecure entrypoint. dns-traefiker
+  # owns the domain-secret (Cloudflare token); Traefik's cf resolver reuses it.
+  dns_traefiker = {
+    enabled       = true
+    chart         = abspath("${path.module}/../../helm/dns-traefiker")
+    unique_domain = false
+    domain        = var.domain
   }
 }
 
-# --- App-workload (child) -----------------------------------------------------
-resource "kubernetes_namespace_v1" "app_workload_traefik" {
-  provider = kubernetes.app_workload
-  metadata { name = "traefik" }
-}
-
-resource "kubernetes_namespace_v1" "app_workload_apps" {
-  provider = kubernetes.app_workload
-  metadata { name = "apps" }
-}
-
-module "app_workload_traefik" {
-  source = "../../terraform/traefik/k8s"
-  providers = {
-    helm       = helm.app_workload
-    kubernetes = kubernetes.app_workload
-  }
-
-  namespace             = kubernetes_namespace_v1.app_workload_traefik.metadata[0].name
-  traefik_hub_token     = var.traefik_hub_token
-  enable_api_gateway    = true
-  enable_offline_mode   = true
-  dashboard_entrypoints = ["websecure"]
-  kubeconfig            = abspath(local_file.app_workload_kubeconfig.filename)
-
-  # Multicluster child: expose a Hub uplink entrypoint the transit parent dials.
-  # The entrypoint name ("app-workload") matches the parent's child key.
-  multicluster_provider = { enabled = true }
-  custom_ports = {
-    "app-workload" = {
-      port   = 9443
-      uplink = true
-      expose = { default = true }
-      http   = { tls = { enabled = true } }
-    }
-  }
-  custom_arguments = [
-    "--hub.uplinkEntryPoints.app-workload.address=:9443",
-    "--hub.uplinkEntryPoints.app-workload.http.tls=true",
-  ]
-}
-
+# --- whoami on the hub (EKS-local) -------------------------------------------
 module "whoami" {
   source = "../../terraform/apps/whoami/k8s"
   providers = {
-    helm       = helm.app_workload
-    kubernetes = kubernetes.app_workload
-    kubectl    = kubectl.app_workload
+    kubernetes = kubernetes.eks
+    kubectl    = kubectl.eks
   }
-  # IngressRoute is a kubectl_manifest; wait for the child traefik module to
-  # install the traefik.io CRDs on the app-workload cluster.
-  depends_on = [module.app_workload_traefik]
+  depends_on = [module.traefik]
 
-  namespace = kubernetes_namespace_v1.app_workload_apps.metadata[0].name
-  # Advertise whoami over the multicluster uplink. uplink_name must match the
-  # child's uplink entrypoint (--hub.uplinkEntryPoints.app-workload) and the
-  # parent's "app-workload@multicluster" service ref below. The module emits the
-  # Uplink CRD (exposeName=app-workload) + a path-matched child route annotated
-  # with hub.traefik.io/router.uplinks; the Host is matched by the parent route.
-  uplink_enabled = true
-  uplink_name    = "app-workload"
-  # No host/strip_prefix here: in uplink mode the child route matches
-  # PathPrefix(`/`) and the Host is owned by the transit parent route below.
+  # whoami lives in the traefik namespace alongside the Hub API CRDs so the
+  # hub.traefik.io/api annotation ties its route to the whoami-api managed API
+  # (the default JWT APIAuth in apim.tf then gates it).
+  namespace           = kubernetes_namespace_v1.traefik.metadata[0].name
+  ingress_annotations = { "hub.traefik.io/api" = "whoami-api" }
+
   apps = {
     whoami = {
       ingress_route = {
-        enabled = true
+        enabled     = true
+        host        = "whoami.${var.domain}"
+        entrypoints = ["websecure"]
       }
     }
   }
-}
-
-# Parent (transit) route — the other half of the unified ingress. It terminates
-# Host(`whoami.<domain>`) on the transit websecure entrypoint (host :443) and
-# forwards to "app-workload@multicluster": the Hub multicluster provider
-# reference (<exposeName>@<provider>) to the whoami service the app-workload
-# child advertises over its uplink. Without this, the discovered child service
-# has no parent-side router and the host 404s. Lives in the transit traefik
-# namespace (the transit Traefik watches all namespaces by default).
-resource "kubectl_manifest" "transit_whoami" {
-  provider   = kubectl.transit
-  depends_on = [module.transit_traefik]
-
-  yaml_body = yamlencode({
-    apiVersion = "traefik.io/v1alpha1"
-    kind       = "IngressRoute"
-    metadata = {
-      name      = "whoami-uplink"
-      namespace = kubernetes_namespace_v1.transit_traefik.metadata[0].name
-    }
-    spec = {
-      entryPoints = ["websecure"]
-      routes = [
-        {
-          kind  = "Rule"
-          match = "Host(`whoami.${var.domain}`)"
-          services = [
-            {
-              kind = "TraefikService"
-              name = "app-workload@multicluster"
-            }
-          ]
-        }
-      ]
-    }
-  })
 }

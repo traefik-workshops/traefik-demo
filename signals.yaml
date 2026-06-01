@@ -62,6 +62,7 @@ modules:
   terraform/security/entraid: [sso, oidc, "azure ad", entraid, entra, microsoft, auth]
   terraform/security/keycloak/k8s: [sso, oidc, keycloak, "in-cluster idp", generic, auth, realm]
   terraform/security/oci-instance-principal: [oci, oracle, "instance principal", iam]
+  terraform/security/spire/k8s: [spiffe, spire, mtls, "mutual tls", "workload identity", svid, "zero trust", federation]
 
   # observability
   terraform/observability/grafana-stack/k8s: [monitoring, observability, grafana, prometheus, dashboards, metrics]

@@ -1,0 +1,5 @@
+# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars.
+
+cluster_prefix    = "k3d-unified-ingress"
+domain            = "k3d-unified-ingress.localhost"
+traefik_hub_token = "REPLACE_ME" # offline JWT from https://hub.traefik.io

@@ -1,24 +1,27 @@
-# demos/unified-ingress — multicluster Traefik Hub on k3d (transit + app).
+# demos/unified-ingress — multi-cloud Traefik Hub mesh: EKS hub + EC2/ECS/AKS
+# spokes joined over SPIFFE-mTLS Hub uplinks.
 #
-#   make up         # stand up both k3d clusters (needs a Hub token)
-#   make scenarios  # curl whoami through the transit cluster (cross-cluster route)
-#   make down       # tear down both clusters
+#   make up         # stand it up (needs AWS + Azure creds, a Hub token, a CF token)
+#   make scenarios  # curl the deployed routes
+#   make down       # tear down
 #
-# Prereqs: terraform, k3d, kubectl + a Traefik Hub token (offline JWT).
+# Prereqs: terraform, aws (configured), az (logged in), kubectl, a Traefik Hub
+# token (offline JWT), and a Cloudflare API token for the demo domain's zone.
+# CLOUD demo — CI only `terraform validate`s it; apply + scenarios run by hand.
 
 .DEFAULT_GOAL := help
 
 .PHONY: help
 help: ## Show this help.
-	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: up
-up: ## Stand up both clusters + Hub (parent + child) + whoami.
+up: ## Stand up the EKS hub + spokes + the full mesh.
 	terraform init
 	terraform apply
 
 .PHONY: scenarios
-scenarios: ## Curl whoami through the transit parent (proves cross-cluster routing).
+scenarios: ## Curl the deployed routes (see scenarios.sh).
 	./scenarios.sh
 
 .PHONY: fmt
@@ -31,5 +34,5 @@ validate: ## terraform validate (offline — modules are local relative paths).
 	terraform validate
 
 .PHONY: down
-down: ## Destroy both clusters.
+down: ## Destroy everything.
 	terraform destroy -auto-approve

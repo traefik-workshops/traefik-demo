@@ -11,11 +11,11 @@
 | `apps` | 7 | Sample workloads | Demo apps (whoami, httpbin) across platforms |
 | `compute` | 24 | Clusters & VMs | Managed Kubernetes and IaaS per cloud provider |
 | `observability` | 8 | Metrics, logs, traces | Grafana, Prometheus, Loki, Tempo, Langfuse, OpenTelemetry |
-| `security` | 4 | Identity providers | Cognito, EntraID, Keycloak, OCI instance principal |
+| `security` | 5 | Identity providers | Cognito, EntraID, Keycloak, OCI instance principal |
 | `tools` | 9 | Cluster add-ons | ArgoCD, cert-manager, PostgreSQL, Redis, k6, MCP inspector |
 | `traefik` | 6 | Traefik Hub installs | Traefik Hub across every platform — always included in every PoC |
 
-Total: **70 modules**, **7 Helm charts**
+Total: **71 modules**, **7 Helm charts**
 
 ## Module index
 
@@ -153,11 +153,13 @@ Total: **70 modules**, **7 Helm charts**
 | [`terraform/security/entraid`](./terraform/security/entraid) | *(none)* | `sso`, `oidc`, `azure ad`, `entraid`, `entra`, `microsoft` |
 | [`terraform/security/keycloak/k8s`](./terraform/security/keycloak/k8s) | `namespace`, `users` | `sso`, `oidc`, `keycloak`, `in-cluster idp`, `generic`, `auth` |
 | [`terraform/security/oci-instance-principal`](./terraform/security/oci-instance-principal) | `compartment_id` | `oci`, `oracle`, `instance principal`, `iam` |
+| [`terraform/security/spire/k8s`](./terraform/security/spire/k8s) | *(none)* | `spiffe`, `spire`, `mtls`, `mutual tls`, `workload identity`, `svid` |
 
 - **cognito** (``): Provisions an AWS Cognito User Pool, a domain, an App Client, and a set of demo users.
 - **entraid** (``): Provisions an Azure AD (Entra ID) Application, a client secret, and a set of demo users.
 - **k8s** (`k8s`): Deploys Keycloak on Kubernetes, seeds users + groups + claims, mints per-user access tokens, and stores them as Kubernetes Secrets.
 - **oci-instance-principal** (``): Creates an OCI dynamic group and policy so instances in a compartment can authenticate as instance principals (no static API keys).
+- **k8s** (`k8s`): Deploys SPIRE (the SPIFFE Runtime Environment) on Kubernetes to issue SVIDs for SPIFFE-mTLS multicluster uplinks.
 
 ### tools
 

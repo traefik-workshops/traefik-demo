@@ -10,6 +10,7 @@ Identity providers and IAM scaffolding. The job of this section is "give the dem
 | [`entraid`](./entraid) | Azure EntraID (Azure AD) app + users + group |
 | [`keycloak/k8s`](./keycloak/k8s) | Keycloak in-cluster + realm/users |
 | [`oci-instance-principal`](./oci-instance-principal) | Oracle OCI dynamic group + policy for instance principal auth |
+| [`spire/k8s`](./spire/k8s) | SPIRE (SPIFFE) workload-identity plane — issues SVIDs for SPIFFE-mTLS, optional cross-cluster federation |
 
 ## Picking an IdP
 

@@ -4055,6 +4055,119 @@
       "outputs": []
     },
     {
+      "path": "terraform/security/spire/k8s",
+      "section": "security",
+      "platform": "k8s",
+      "name": "k8s",
+      "description": "Deploys SPIRE (the SPIFFE Runtime Environment) on Kubernetes to issue SVIDs for SPIFFE-mTLS multicluster uplinks.",
+      "keywords": [
+        "spiffe",
+        "spire",
+        "mtls",
+        "mutual tls",
+        "workload identity",
+        "svid",
+        "zero trust",
+        "federation"
+      ],
+      "required_inputs": [],
+      "optional_inputs": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Helm release name for the SPIRE umbrella chart (server + agent + CSI driver + controller-manager).",
+          "default_kind": "literal"
+        },
+        {
+          "name": "namespace",
+          "type": "string",
+          "description": "Namespace to install SPIRE into.",
+          "default_kind": "literal"
+        },
+        {
+          "name": "create_namespace",
+          "type": "bool",
+          "description": "Create the namespace before installing. Set false if the caller already manages it.",
+          "default_kind": "literal"
+        },
+        {
+          "name": "trust_domain",
+          "type": "string",
+          "description": "SPIFFE trust domain that roots every SVID this server issues (e.g. \\\"eks.example.org\\\"). Each cluster in a federation MUST use a distinct trust domain.",
+          "default_kind": "literal"
+        },
+        {
+          "name": "cluster_name",
+          "type": "string",
+          "description": "Logical cluster name SPIRE uses for node attestation and SVID paths.",
+          "default_kind": "literal"
+        },
+        {
+          "name": "ca_subject",
+          "type": "object({",
+          "description": "Subject of the SPIRE server's self-signed CA.",
+          "default_kind": "expression"
+        },
+        {
+          "name": "enable_federation",
+          "type": "bool",
+          "description": "Expose the SPIRE server federation bundle endpoint so peer trust domains can fetch this cluster's trust bundle. Required for cross-cluster SPIFFE-mTLS uplinks; pair with ClusterFederatedTrustDomain resources (managed by the consuming demo) pointing at each peer's bundle endpoint.",
+          "default_kind": "literal"
+        },
+        {
+          "name": "spire_chart_version",
+          "type": "string",
+          "description": "Pinned version of the `spire` umbrella chart (spiffe/helm-charts-hardened).",
+          "default_kind": "literal"
+        },
+        {
+          "name": "spire_crds_chart_version",
+          "type": "string",
+          "description": "Pinned version of the `spire-crds` chart (spiffe/helm-charts-hardened).",
+          "default_kind": "literal"
+        },
+        {
+          "name": "chart_repository",
+          "type": "string",
+          "description": "Helm chart repository URL for the SPIRE hardened charts.",
+          "default_kind": "literal"
+        },
+        {
+          "name": "values",
+          "type": "any",
+          "description": "Additional Helm values for the `spire` chart, deep-merged on top of the module's base values (trust domain, cluster name, CA subject, federation). Use for node attestors (e.g. aws_iid), ClusterSPIFFEID defaults, and resource tuning.",
+          "default_kind": "literal"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "trust_domain",
+          "description": "SPIFFE trust domain rooting every SVID this server issues.",
+          "sensitive": false
+        },
+        {
+          "name": "cluster_name",
+          "description": "Logical cluster name used for node attestation and SVID paths.",
+          "sensitive": false
+        },
+        {
+          "name": "namespace",
+          "description": "Namespace SPIRE is installed into.",
+          "sensitive": false
+        },
+        {
+          "name": "workload_api_socket_path",
+          "description": "In-pod path where the spiffe-csi-driver (csi.spiffe.io) mounts the Workload API socket. Mount that CSI volume here in a consumer pod and point Traefik at --spiffe.workloadAPIAddress=unix://<this>.",
+          "sensitive": false
+        },
+        {
+          "name": "federation_bundle_endpoint",
+          "description": "In-cluster federation bundle endpoint peers fetch this cluster's trust bundle from (empty unless enable_federation). Expose externally for cross-cloud federation.",
+          "sensitive": false
+        }
+      ]
+    },
+    {
       "path": "terraform/tools/argocd/k8s",
       "section": "tools",
       "platform": "k8s",

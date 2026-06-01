@@ -85,7 +85,7 @@ helm install my-airlines oci://ghcr.io/traefik-workshops/airlines --version 4.0.
 [`demos/`](./demos/README.md) holds runnable, white-labeled compositions of the library — the reference shapes the `sa-assistant` / `build-poc` skills pattern-match against. Module sources are **relative** so each demo tracks this checkout and validates offline. Four run end-to-end on k3d for free (`make up` / `make scenarios` / `make down`); one targets AWS:
 
 - [`single-cluster`](./demos/single-cluster) — one k3d cluster + Traefik Hub + whoami (the "hello world")
-- [`unified-ingress`](./demos/unified-ingress) — multicluster transit + workload (the dominant real-world shape)
+- [`k3d-unified-ingress`](./demos/k3d-unified-ingress) — multicluster transit + workload (the dominant real-world shape)
 - [`ai-gateway-openai`](./demos/ai-gateway-openai) — AI Gateway over an OpenAI-compatible backend with Presidio content-guards + a token rate-limit
 - [`hub-from-source`](./demos/hub-from-source) — Traefik Hub built from local source on k3d (the dev loop for testing a Hub change)
 - [`oidc-portal`](./demos/oidc-portal) — Traefik Hub API Portal + Cognito on EKS (cloud; swap for EntraID or Keycloak)

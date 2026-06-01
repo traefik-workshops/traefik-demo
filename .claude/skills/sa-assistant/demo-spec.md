@@ -30,12 +30,12 @@ blank file; you will get the provider/kubeconfig/uplink wiring subtly wrong.
 | Build includes… | Start from | Why |
 |---|---|---|
 | single cluster, baseline | [`demos/single-cluster`](../../../demos/single-cluster) | minimal cluster + Hub + whoami |
-| **multi-cluster** | [`demos/unified-ingress`](../../../demos/unified-ingress) | parent "transit" + child "app-workload", uplink + multicluster provider wiring |
+| **multi-cluster** | [`demos/k3d-unified-ingress`](../../../demos/k3d-unified-ingress) | parent "transit" + child "app-workload", uplink + multicluster provider wiring |
 | **AI gateway** | [`demos/ai-gateway-openai`](../../../demos/ai-gateway-openai) | `enable_ai_gateway`, Presidio + Redis content-guard chain, OpenAI-compatible backend |
 | **API management + portal** | [`demos/oidc-portal`](../../../demos/oidc-portal) | `enable_api_management` (the portal lives here) + a cloud compute shape |
 
 Compose features by merging the relevant reference shapes (e.g. multi-cluster + AI gateway
-= unified-ingress wiring with `enable_ai_gateway = true` on the relevant traefik module).
+= k3d-unified-ingress wiring with `enable_ai_gateway = true` on the relevant traefik module).
 
 Only reference modules/charts that exist in [`catalog.json`](../../../catalog.json). Never
 invent a path. If the catalog looks stale, run `make catalog`.
@@ -67,7 +67,7 @@ Gather these before rendering anything. Use the `AskUserQuestion` tool. Apply th
 3. **Topology** — *single-cluster* (default) or *multi-cluster*.
    - **Multi-cluster → ask for the other compute.** The second ("app-workload"/child)
      cluster's infra defaults to the **same** platform as the first, but the user may pick
-     a different one (e.g. parent on EKS, child on k3d). Wire it per `unified-ingress`:
+     a different one (e.g. parent on EKS, child on k3d). Wire it per `k3d-unified-ingress`:
      parent runs the multicluster provider, child exposes a Hub uplink entrypoint, parent
      route forwards to `<child>@multicluster`.
 
@@ -75,7 +75,7 @@ Gather these before rendering anything. Use the `AskUserQuestion` tool. Apply th
    - *defaults to **grafana*** → `terraform/observability/grafana-stack/k8s`
      (Grafana + Prometheus). For traces/logs, pair with
      `terraform/observability/opentelemetry/k8s` as the OTLP sink and point its
-     Prometheus/Loki/Tempo pipelines at the stack (the `unified-ingress` demo shows the
+     Prometheus/Loki/Tempo pipelines at the stack (the `k3d-unified-ingress` demo shows the
      collector pattern).
    - *any other otel-supported backend* → `terraform/observability/opentelemetry/k8s`
      configured with that backend's pipeline. The collector module supports

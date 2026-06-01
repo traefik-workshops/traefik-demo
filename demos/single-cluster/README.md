@@ -31,4 +31,4 @@ Outputs:
 - Swap `terraform/compute/suse/k3d` for any `terraform/compute/<cloud>` module — the rest of this file is provider-agnostic.
 - Add `enable_ai_gateway = true` / `enable_mcp_gateway = true` on the Traefik module to enable more Hub features.
 - For SSO, point at [`../oidc-portal`](../oidc-portal) instead.
-- For multicluster, point at [`../unified-ingress`](../unified-ingress).
+- For multicluster, point at [`../k3d-unified-ingress`](../k3d-unified-ingress).

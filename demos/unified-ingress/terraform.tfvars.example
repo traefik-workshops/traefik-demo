@@ -1,5 +1,22 @@
-# Copy to terraform.tfvars and fill in. Never commit terraform.tfvars.
+# Copy to terraform.tfvars and fill in. NEVER commit real values.
 
-cluster_prefix    = "unified-ingress"
-domain            = "unified-ingress.localhost"
-traefik_hub_token = "REPLACE_ME" # offline JWT from https://hub.traefik.io
+# AWS — the EKS hub + the EC2/ECS spokes. Configure creds first
+# (`aws configure` / export AWS_PROFILE).
+cluster_name = "unified-ingress"
+region       = "us-east-1"
+
+# Hub node pool — sized so the hub stack sits ~48% requested / ~60% CPU under
+# load. Use a non-burstable m-series SKU (t-series throttles under sustained
+# load). Uncomment to override the defaults.
+# cluster_node_type  = "m5.2xlarge"
+# cluster_node_count = 2
+
+# Base demo domain — must live in the Cloudflare zone the dns-traefiker
+# controller's token can edit. Everything is exposed under it (whoami., legacy.,
+# dashboard., and — in later phases — portal., keycloak., grafana., langfuse.,
+# ai., mcp.). dns-traefiker supplies the Cloudflare token from its own
+# domain-secret, so none is set here.
+domain = "unified-ingress.demo.traefik.ai"
+
+# Traefik Hub license (offline JWT).
+traefik_hub_token = "REPLACE_ME"

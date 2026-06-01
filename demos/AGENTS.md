@@ -1,7 +1,7 @@
 # Agent guide — `demos/`
 
 `demos/` holds runnable, white-labeled **compositions** of the library in this
-repo. Four run end-to-end on k3d for free — `single-cluster`, `unified-ingress`,
+repo. Four run end-to-end on k3d for free — `single-cluster`, `k3d-unified-ingress`,
 `ai-gateway-openai`, `hub-from-source` — each shipping a `Makefile` +
 `scenarios.sh` and deployed in CI. One targets a cloud — `oidc-portal` (EKS +
 Cognito) — and is `terraform validate`-only in CI, run by hand against AWS. All

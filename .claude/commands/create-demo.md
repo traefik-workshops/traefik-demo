@@ -53,7 +53,7 @@ Seed selection (combine shapes for multi-feature demos):
 | Build | Seed |
 |---|---|
 | single-cluster baseline | `single-cluster` |
-| multi-cluster | `unified-ingress` |
+| multi-cluster | `k3d-unified-ingress` |
 | AI gateway | `ai-gateway-openai` |
 | API management + portal (and/or cloud infra) | `oidc-portal` |
 
@@ -83,7 +83,7 @@ Edit the copied `main.tf` / `variables.tf` / `outputs.tf` to match the resolved 
   `enable_ai_gateway`, `enable_mcp_gateway`, the `enable_otlp_*` + `otlp_address` set).
 - **Multi-cluster:** keep the parent/child split, the per-cluster providers, the uplink
   entrypoint + `multicluster_provider`, and the parent `<child>@multicluster` route from
-  `unified-ingress`. If the second compute differs from the first, swap only that module.
+  `k3d-unified-ingress`. If the second compute differs from the first, swap only that module.
 - **Observability:** add the chosen `observability/*` module and point the gateway's
   `otlp_address` at its collector service.
 - **De-brand.** No client names, real domains, tokens, or sample data — `*.localhost` for

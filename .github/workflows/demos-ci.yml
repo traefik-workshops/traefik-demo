@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        demo: [single-cluster, unified-ingress, ai-gateway-openai, hub-from-source]
+        demo: [single-cluster, k3d-unified-ingress, ai-gateway-openai, hub-from-source]
     env:
       TF_VAR_traefik_hub_token: ${{ secrets.TRAEFIK_HUB_TOKEN }}
     steps:
