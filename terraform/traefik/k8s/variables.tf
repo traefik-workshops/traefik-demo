@@ -317,14 +317,17 @@ variable "custom_envs" {
 
 variable "additional_volumes" {
   description = "Additional volumes to mount in the Traefik pod"
-  type        = list(any)
-  default     = []
+  # `any`, not list(any): list(any) coerces mixed-type objects (e.g. a CSI volume
+  # carrying a readOnly bool) to map(string), stringifying the bool.
+  type    = any
+  default = []
 }
 
 variable "additional_volume_mounts" {
   description = "Additional volume mounts for the Traefik container"
-  type        = list(any)
-  default     = []
+  # `any`, not list(any) — see additional_volumes above (readOnly bool coercion).
+  type    = any
+  default = []
 }
 
 variable "file_provider_config" {

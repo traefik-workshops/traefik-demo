@@ -9,7 +9,7 @@ provider "aws" {
 provider "kubernetes" {
   alias                  = "eks"
   host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+  cluster_ca_certificate = module.eks.cluster_ca_certificate
   token                  = module.eks.token
 }
 
@@ -17,7 +17,7 @@ provider "helm" {
   alias = "eks"
   kubernetes = {
     host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+    cluster_ca_certificate = module.eks.cluster_ca_certificate
     token                  = module.eks.token
   }
 }
@@ -25,7 +25,7 @@ provider "helm" {
 provider "kubectl" {
   alias                  = "eks"
   host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+  cluster_ca_certificate = module.eks.cluster_ca_certificate
   token                  = module.eks.token
   load_config_file       = false
 }
@@ -37,14 +37,14 @@ provider "kubectl" {
 # .eks / .aks alias.
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+  cluster_ca_certificate = module.eks.cluster_ca_certificate
   token                  = module.eks.token
 }
 
 provider "helm" {
   kubernetes = {
     host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_ca_certificate)
+    cluster_ca_certificate = module.eks.cluster_ca_certificate
     token                  = module.eks.token
   }
 }
@@ -59,7 +59,7 @@ resource "local_file" "eks_kubeconfig" {
     apiVersion        = "v1"
     kind              = "Config"
     "current-context" = "eks"
-    clusters          = [{ name = "eks", cluster = { server = module.eks.cluster_endpoint, "certificate-authority-data" = module.eks.cluster_ca_certificate } }]
+    clusters          = [{ name = "eks", cluster = { server = module.eks.cluster_endpoint, "certificate-authority-data" = base64encode(module.eks.cluster_ca_certificate) } }]
     users             = [{ name = "eks", user = { token = module.eks.token } }]
     contexts          = [{ name = "eks", context = { cluster = "eks", user = "eks" } }]
   })

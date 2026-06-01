@@ -62,20 +62,14 @@ module "traefik" {
   dashboard_entrypoints = ["websecure"]
   dashboard_match_rule  = "Host(`dashboard.${var.domain}`)"
 
-  # Serve existing nginx Ingress objects without rewriting them.
-  custom_providers = {
-    kubernetesIngressNGINX = {}
-  }
+  # Serve existing nginx Ingress objects without rewriting them. The traefik
+  # chart's `providers` values don't render kubernetesIngressNGINX (so passing it
+  # via custom_providers is silently dropped) — enable it with the CLI flag in
+  # custom_arguments below.
 
-  # Register the Coraza (OWASP CRS) WAF plugin so waf.tf's middleware can use it.
-  # CAVEAT: confirm moduleName/version against the Traefik plugin catalog before a
-  # live apply — this is best-effort.
-  custom_plugins = {
-    coraza = {
-      moduleName = "github.com/jcchavezs/coraza-http-wasm-traefik"
-      version    = "v0.2.2"
-    }
-  }
+  # NOTE: Traefik Hub bundles the Coraza WAF plugin, so waf.tf's coraza middleware
+  # works WITHOUT an experimental.plugins (custom_plugins) registration —
+  # registering a wrong community moduleName instead crashes Traefik at startup.
 
   # Parent of the multicluster mesh — dials each spoke's Hub uplink. SPIFFE mTLS
   # on the uplink lands in Phase 2c (serversTransport.spiffe replaces the
@@ -87,8 +81,12 @@ module "traefik" {
     pollTimeout  = 5
     children = merge({
       aks = {
-        address          = local.aks_uplink_address
-        serversTransport = { spiffe = { ids = [local.aks_traefik_spiffe_id] } }
+        address = local.aks_uplink_address
+        # SPIFFE-VERIFIED uplinks need cross-cloud SPIRE federation (each cluster
+        # fetching + trusting the peer trust domain's bundle) — the documented hard
+        # extension. SVIDs are issued to both Traefiks (SPIFFE identity works);
+        # using insecureSkipVerify on the uplink mTLS until federation is wired.
+        serversTransport = { insecureSkipVerify = true }
       }
       # EC2 / ECS uplinks (var.enable_vm_spokes): SPIFFE-on-VM/ECS is the
       # documented extension, so the hub verifies these with insecureSkipVerify.
@@ -106,7 +104,10 @@ module "traefik" {
 
   # SPIFFE: read the SVID from the SPIRE agent Workload API (CSI-mounted) so the
   # uplink to each spoke is mutually authenticated by SVID (see spire.tf).
-  custom_arguments         = [local.spiffe_workload_api_arg]
+  custom_arguments = [
+    local.spiffe_workload_api_arg,
+    "--providers.kubernetesingressnginx=true",
+  ]
   additional_volumes       = local.spiffe_volumes
   additional_volume_mounts = local.spiffe_volume_mounts
 
@@ -125,6 +126,10 @@ module "traefik" {
     chart         = abspath("${path.module}/../../helm/dns-traefiker")
     unique_domain = false
     domain        = var.domain
+    # AWS NLBs expose a hostname, not an IP, so dns-traefiker (which reads the LB
+    # `.IP`) can't publish records. Pin the NLB's public IP explicitly (set in
+    # tfvars after the first apply). On Azure/GCP (IP-based LBs) leave this empty.
+    ip_override = var.dns_ip_override
   }
 }
 

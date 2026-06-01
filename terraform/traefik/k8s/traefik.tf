@@ -9,7 +9,10 @@ locals {
   # Combine shared arguments with K8s-specific ones
   additional_arguments = module.config.cli_arguments
 
-  # K8s-specific volumes for file provider + user-provided additional volumes
+  # K8s-specific volumes for file provider + user-provided additional volumes.
+  # NOTE: var.additional_volumes / _mounts are typed `any` (not list(any)) so a
+  # mixed-type object (e.g. a CSI volume with a `readOnly` bool) isn't coerced to
+  # map(string) — list(any) stringifies the bool, which breaks the spiffe-csi-driver.
   deployment_volumes = concat(
     var.file_provider_config != "" ? [{
       name      = "traefik-dynamic-config"

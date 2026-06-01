@@ -73,6 +73,7 @@ resource "kubectl_manifest" "failover_service" {
       failover = {
         service  = { kind = "TraefikService", name = "aks@multicluster" }
         fallback = { name = "whoami-svc", port = 80 }
+        errors   = { status = ["500-599"] } # fall back to the hub-local whoami on 5xx
       }
     }
   })

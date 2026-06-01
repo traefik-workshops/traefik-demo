@@ -60,6 +60,12 @@ variable "domain" {
   description = "Base demo domain. Everything is exposed under it: whoami.<domain>, dashboard.<domain>, legacy.<domain> (and, in later phases, portal./keycloak./grafana./langfuse./ai./mcp.<domain>). Must live in the Cloudflare zone the dns-traefiker controller's token can edit — dns-traefiker registers the records and Traefik's cf resolver issues the certs (both read the Cloudflare token from the dns-traefiker domain-secret, so the demo takes no Cloudflare input)."
 }
 
+variable "dns_ip_override" {
+  type        = string
+  description = "Public IP to publish DNS A records at, overriding the LB-IP lookup. Needed on AWS, where the EKS hub's NLB exposes a hostname (not an IP) that dns-traefiker can't read — set to the NLB's public IP after the first apply. Leave empty on Azure/GCP (IP-based LBs)."
+  default     = ""
+}
+
 # --- Traefik Hub --------------------------------------------------------------
 variable "traefik_hub_token" {
   type        = string

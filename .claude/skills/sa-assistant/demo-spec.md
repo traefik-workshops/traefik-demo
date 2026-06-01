@@ -153,6 +153,61 @@ unaffected: they bind 80/443 directly under systemd `CAP_NET_BIND_SERVICE`.)
 
 ---
 
+## Cloud & multi-cluster deploy gotchas
+
+Hard-won from real cloud applies. A build can `terraform validate` clean and still fail on
+`apply` (or come up but not route) for every one of these — check them before standing up a
+cloud or multi-cluster demo.
+
+- **Cluster CA shape (per cloud).** `compute/aws/eks`'s `cluster_ca_certificate` output is
+  **already base64-decoded** (raw PEM): feed it to a provider's `cluster_ca_certificate`
+  **directly** (`base64decode()` double-decodes and fails at apply) and `base64encode()` it for a
+  kubeconfig's `certificate-authority-data`. `compute/azure/aks` is raw PEM too. (`oidc-portal`'s
+  `base64decode` is a latent bug — that demo has never been applied.)
+- **EKS tokens expire (~15 min).** A kubeconfig embedding `module.eks.token` goes stale; terraform
+  regenerates it each apply (local-execs work mid-apply), but for `kubectl`/`helm` *after* an
+  apply run `aws eks update-kubeconfig` (exec auth) rather than reusing the built `.kubeconfig`.
+- **Multi-cluster: `update_kubeconfig = false` on the spokes.** It defaults to `true` and runs
+  `aws eks update-kubeconfig` / `az aks get-credentials`; the **last module wins**, stealing the
+  ambient current-context. Anything reading the *ambient* kubeconfig (e.g. `security/keycloak/k8s`
+  token-capture when `host = ""`) then hits the wrong cluster ("namespace not found"). Set it
+  `false` on every cluster except the one you want ambient.
+- **Pass only the providers a module declares**, or validate warns "Reference to undefined
+  provider" and apply mis-wires. Current shapes: `apps/whoami/k8s` = kubernetes + kubectl (**no
+  helm**); `tools/nginx/k8s` = **helm only**; `ai/presidio/k8s` + `tools/mcp-inspector/k8s` =
+  **kubernetes only**; `observability/grafana-stack/k8s` declares **none** (inherits the default
+  providers — so in an all-aliased multi-cluster demo add a **default** unaliased
+  `kubernetes`/`helm` pointing at the primary cluster for it to inherit).
+- **dns-traefiker needs `ip_override` on AWS.** It reads the Traefik Service's
+  `loadBalancer.ingress[].ip`; AWS ELBs/NLBs publish a **hostname**, not an IP, so it logs "load
+  balancer IP is empty" and creates **no records** — which also breaks in-cluster resolution of
+  `keycloak.<domain>` (JWT/JWKS) and the portal OIDC. Set `dns_traefiker.ip_override` to the LB's
+  public IP (a second-apply value — the LB must exist first). Azure/GCP hand out IPs, so it's a
+  no-op there.
+- **Hub bundles plugins — don't double-register them.** Traefik Hub ships Coraza WAF (and the
+  AI-gateway plugins): use the `plugin.coraza` middleware directly. Registering it via
+  `custom_plugins` (experimental.plugins) with a wrong community `moduleName` makes Traefik try to
+  download it at startup and **crash-loop**.
+- **SPIFFE.** The static flag is `--spiffe.workloadAPIAddr` (not `workloadAPIAddress`); mount the
+  `csi.spiffe.io` volume `readOnly: true` (the driver requires it). SVIDs issue per-cluster fine,
+  but **SPIFFE-verified multicluster uplinks need cross-cloud SPIRE federation** (each cluster
+  fetching + trusting the peer trust domain's bundle from a publicly reachable endpoint) — the hard
+  part. Prove the uplink with `serversTransport.insecureSkipVerify` first, then layer federation.
+- **Cross-cluster uplink address + ordering.** A parent's
+  `multicluster_provider.children.<spoke>.address` is the spoke's **public LB** (`https://<ip>:9443`).
+  Read it via a `data.kubernetes_service_v1` on the spoke Traefik with `try(...)` for the
+  pre-IP window, and apply the **spokes before the parent** (`-target` the spokes, then a full
+  apply) so the IP exists when the parent reads it.
+- **Don't guess Traefik/Hub CRD fields** — required fields bite at apply, not validate. A
+  `failover` TraefikService requires `spec.failover.errors`; the SPIFFE node is `workloadAPIAddr`.
+  Use `make reference PAGE=<id>` / `.reference/schemas/*.json` and `make helm-template` (kubeconform).
+- **A killed apply orphans Helm releases.** Interrupting an `atomic`, `wait`-ing `helm_release`
+  mid-install leaves it `pending-install` in the cluster but not in state; the next apply fails
+  "cannot re-use a name that is still in use". Clean up with `helm uninstall <name> -n <ns>` (per
+  cluster) before re-applying.
+
+---
+
 ## Config → module / chart mapping
 
 | Choice | Pulls in | traefik/k8s flags |

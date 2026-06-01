@@ -20,7 +20,7 @@ locals {
   aks_traefik_spiffe_id = "spiffe://${local.aks_trust_domain}/ns/traefik/sa/traefik"
 
   # In-pod Workload API socket the spiffe-csi-driver mounts; both Traefiks read it.
-  spiffe_workload_api_arg = "--spiffe.workloadAPIAddress=unix://${module.spire_eks.workload_api_socket_path}"
+  spiffe_workload_api_arg = "--spiffe.workloadAPIAddr=unix://${module.spire_eks.workload_api_socket_path}"
   spiffe_volumes = [{
     name = "spiffe-workload-api"
     csi  = { driver = "csi.spiffe.io", readOnly = true }

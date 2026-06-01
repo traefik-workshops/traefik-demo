@@ -20,6 +20,12 @@ module "aks" {
   aks_version         = var.aks_version
   cluster_node_type   = var.aks_node_type
   cluster_node_count  = var.aks_node_count
+
+  # Don't touch the ambient kubectl context. The EKS module already set it (EKS
+  # current), and the keycloak token-capture data source reads the EKS cluster via
+  # the ambient kubeconfig — update_kubeconfig=true here would `az aks
+  # get-credentials` and repoint it at AKS, breaking the capture.
+  update_kubeconfig = false
 }
 
 # AKS providers (cert-based, from the AKS kube_config outputs — raw PEM, unlike
